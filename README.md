@@ -1,9 +1,9 @@
 # Terraform backend management in MongoDB
 
-MongoDB as [HTTP](https://www.terraform.io/language/settings/backends/http) [backend](
-https://github.com/hashicorp/terraform/tree/main/internal/backend/remote-state) to store Terraform remote state.
+Store [Terraform](https://www.terraform.io) state in [MongoDB](https://www.mongodb.com/), thanks to this
+[HTTP](https://www.terraform.io/language/settings/backends/http) [backend](https://github.com/hashicorp/terraform/tree/main/internal/backend/remote-state).
 
 ## Samples with other technologies
 
-* [MiteshSharma/TerraformWithS3Backend](https://github.com/MiteshSharma/TerraformWithS3Backend)
+* [bhoriuchi/terraform-backend-http](https://github.com/bhoriuchi/terraform-backend-http)
 * [plumber-cd/terraform-backend-git](https://github.com/plumber-cd/terraform-backend-git)
