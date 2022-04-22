@@ -1,11 +1,11 @@
-﻿using System.Collections.Generic;
-using System.Threading.Tasks;
-using Kalosyni.TerraformBackend.Domain.Models;
+﻿using System.Threading.Tasks;
 
 namespace Kalosyni.TerraformBackend.Domain.Repositories
 {
     public interface IStateRepository
     {
-        public Task<List<StateModel>> GetAllAsync();
+        Task<string> FindOneAsync(string name);
+
+        Task CreateAsync(string name, string jsonInput);
     }
 }

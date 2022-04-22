@@ -1,4 +1,6 @@
-﻿namespace Kalosyni.TerraformBackend.WebApi
+﻿using Kalosyni.TerraformBackend.Infrastructure.MongoDb;
+
+namespace Kalosyni.TerraformBackend.WebApi
 {
     public class ApplicationConfiguration
     {
@@ -10,5 +12,11 @@
         }
 
         public bool IsSwaggerEnabled => _configurationRoot.GetSection("Application:IsSwaggerEnabled").Get<bool>();
+
+        public MongoDbConfiguration MongoDbConfiguration => new()
+        {
+            ConnectionString = _configurationRoot.GetConnectionString(_configurationRoot.GetSection("MongoDb:ConnectionStringName").Get<string>()),
+            DatabaseName = _configurationRoot.GetSection("MongoDb:DatabaseName").Get<string>()
+        };
     }
 }
