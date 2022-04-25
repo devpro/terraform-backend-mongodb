@@ -1,4 +1,6 @@
 ﻿using System.Text.Json.Serialization;
+using MongoDB.Bson;
+using MongoDB.Bson.Serialization.Attributes;
 
 namespace Kalosyni.TerraformBackend.Domain.Models
 {
@@ -7,8 +9,15 @@ namespace Kalosyni.TerraformBackend.Domain.Models
         /// <summary>
         /// Terraform state lock ID.
         /// </summary>
+        [BsonId]
+        [BsonRepresentation(BsonType.String)]
         [JsonPropertyName("ID")]
         public string Id { get; set; } = string.Empty;
+
+        /// <summary>
+        /// Name of the Terraform state.
+        /// </summary>
+        public string Name { get; set; } = string.Empty;
 
         /// <summary>
         /// Terraform operation.

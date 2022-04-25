@@ -8,9 +8,9 @@ namespace Kalosyni.TerraformBackend.WebApi.DependencyInjection
         {
             // MongoDB
             services.AddSingleton(configuration.MongoDbConfiguration);
-            services.TryAddScoped<Common.MongoDb.IMongoClientFactory, Common.MongoDb.DefaultMongoClientFactory>();
-            services.AddTransient<Domain.Repositories.IStateLockRepository, Infrastructure.MongoDb.Repositories.StateLockRepository>();
-            services.AddTransient<Domain.Repositories.IStateRepository, Infrastructure.MongoDb.Repositories.StateRepository>();
+            services.TryAddSingleton<Common.MongoDb.IMongoClientFactory, Common.MongoDb.DefaultMongoClientFactory>();
+            services.TryAddScoped<Domain.Repositories.IStateLockRepository, Infrastructure.MongoDb.Repositories.StateLockRepository>();
+            services.TryAddScoped<Domain.Repositories.IStateRepository, Infrastructure.MongoDb.Repositories.StateRepository>();
 
             return services;
         }

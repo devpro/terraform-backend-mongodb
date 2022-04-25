@@ -11,18 +11,18 @@ namespace Kalosyni.Common.MongoDb
             RegisterConventions();
         }
 
-        public MongoClient CreateClient(string connectionStringName)
+        public virtual MongoClient CreateClient(string connectionStringName)
         {
             return new MongoClient(connectionStringName);
         }
 
         /// <summary>
-        /// 
+        /// Register usual conventions.
         /// </summary>
         /// <remarks>
-        /// - See https://github.com/mongodb/mongo-csharp-driver/tree/master/src/MongoDB.Bson/Serialization/Conventions
+        /// See https://github.com/mongodb/mongo-csharp-driver/tree/master/src/MongoDB.Bson/Serialization/Conventions
         /// </remarks>
-        private void RegisterConventions()
+        protected virtual void RegisterConventions()
         {
             var pack = new ConventionPack
             {

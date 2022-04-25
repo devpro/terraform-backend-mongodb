@@ -351,3 +351,7 @@ MigrationBackup/
 
 # .NET Local development files
 appsettings.Development.json
+
+# Terraform local files
+.terraform/
+.terraform.lock.hcl

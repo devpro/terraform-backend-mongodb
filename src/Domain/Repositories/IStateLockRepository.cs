@@ -6,10 +6,12 @@ namespace Kalosyni.TerraformBackend.Domain.Repositories
 {
     public interface IStateLockRepository
     {
-        Task<List<StateLockModel>> GetAllAsync();
+        Task<StateLockModel> FindOneAsync(string id);
 
-        Task CreateAsync(StateLockModel creationModel);
+        Task<List<StateLockModel>> FindAllAsync();
 
-        Task DeleteAsync(StateLockModel creationModel);
+        Task CreateAsync(StateLockModel input);
+
+        Task<long> DeleteAsync(StateLockModel input);
     }
 }
