@@ -4,7 +4,6 @@ using Kalosyni.Common.MongoDb;
 using Kalosyni.TerraformBackend.Domain.Models;
 using Kalosyni.TerraformBackend.Domain.Repositories;
 using Microsoft.Extensions.Logging;
-using MongoDB.Bson;
 using MongoDB.Driver;
 
 namespace Kalosyni.TerraformBackend.Infrastructure.MongoDb.Repositories
@@ -15,7 +14,7 @@ namespace Kalosyni.TerraformBackend.Infrastructure.MongoDb.Repositories
 
         private readonly IMongoCollection<StateLockModel> _modelCollection;
 
-        public StateLockRepository(IMongoClientFactory mongoClientFactory, ILogger<RepositoryBase> logger, MongoDbConfiguration configuration)
+        public StateLockRepository(IMongoClientFactory mongoClientFactory, ILogger<StateLockRepository> logger, MongoDbConfiguration configuration)
             : base(mongoClientFactory, logger, configuration)
         {
             //_bsonCollection = GetCollection<BsonDocument>();

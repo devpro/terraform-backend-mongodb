@@ -11,9 +11,9 @@ namespace Kalosyni.Common.MongoDb
             RegisterConventions();
         }
 
-        public virtual MongoClient CreateClient(string connectionStringName)
+        public virtual MongoClient CreateClient(string connectionString)
         {
-            return new MongoClient(connectionStringName);
+            return new MongoClient(connectionString);
         }
 
         /// <summary>

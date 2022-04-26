@@ -20,6 +20,7 @@ namespace Kalosyni.TerraformBackend.Infrastructure.MongoDb.Repositories
 
         public async Task CreateAsync(string name, string jsonInput)
         {
+            //TODO: makes it the latest value
             var document = new BsonDocument
             {
                 ["_id"] = new BsonObjectId(ObjectId.GenerateNewId()),
@@ -34,8 +35,15 @@ namespace Kalosyni.TerraformBackend.Infrastructure.MongoDb.Repositories
         public async Task<string> FindOneAsync(string name)
         {
             var collection = GetCollection<BsonDocument>();
-            var documents = await collection.Find(new BsonDocument()).ToListAsync();
-            return documents.Select(x => x["value"].ToJson()).FirstOrDefault();
+            var document = await collection.Find(new BsonDocument("name", name))
+                .Sort(Builders<BsonDocument>.Sort.Descending("createdAt"))
+                .FirstOrDefaultAsync();
+            if (document == null)
+            {
+                return string.Empty;
+            }
+
+            return document["value"].ToJson();
         }
     }
 }
