@@ -348,3 +348,11 @@ MigrationBackup/
 
 # Ionide (cross platform F# VS Code tools) working folder
 .ionide/
+
+# .NET Local development files
+appsettings.Development.json
+
+# Terraform local files
+.terraform/
+.terraform.lock.hcl
+errored.tfstate
