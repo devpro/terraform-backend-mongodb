@@ -1,4 +1,5 @@
-﻿using Kalosyni.TerraformBackend.Domain.Models;
+﻿using System.Text.Json;
+using Kalosyni.TerraformBackend.Domain.Models;
 using Kalosyni.TerraformBackend.Domain.Repositories;
 using Microsoft.AspNetCore.Mvc;
 
@@ -40,10 +41,12 @@ namespace Kalosyni.TerraformBackend.WebApi.Controllers
         /// <returns></returns>
         [HttpPost("{name}", Name = "CreateState")]
         [ProducesResponseType(201)]
-        public async Task Create(string name, [FromBody] string input, [FromQuery(Name = "ID")] string? lockId = "")
+        [Consumes("application/json", "text/json")]
+        public async Task Create(string name, [FromBody] object input, [FromQuery(Name = "ID")] string? lockId = "")
         {
             //TODO: check lock
-            await _stateRepository.CreateAsync(name, input);
+            var jsonInput = JsonSerializer.Serialize(input);
+            await _stateRepository.CreateAsync(name, jsonInput);
         }
 
         [HttpGet("/locks", Name = "GetStateLocks")]
@@ -56,6 +59,8 @@ namespace Kalosyni.TerraformBackend.WebApi.Controllers
 
         [HttpPost("{name}/lock", Name = "CreateStateLock")]
         [ProducesResponseType(201)]
+        [Consumes("application/json", "text/json")]
+        [Produces("application/json")]
         public async Task Lock(string name, StateLockModel input)
         {
             input.Name = name;
@@ -64,6 +69,8 @@ namespace Kalosyni.TerraformBackend.WebApi.Controllers
 
         [HttpDelete("{name}/lock", Name = "DeleteStateLock")]
         [ProducesResponseType(204)]
+        [Consumes("application/json", "text/json")]
+        [Produces("application/json")]
         public async Task Unlock(string name, [FromBody] StateLockModel input)
         {
             input.Name = name;

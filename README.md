@@ -3,18 +3,33 @@
 Store [Terraform](https://www.terraform.io) state in [MongoDB](https://www.mongodb.com/), using
 [HTTP](https://www.terraform.io/language/settings/backends/http) [backend](https://github.com/hashicorp/terraform/tree/main/internal/backend/remote-state).
 
-## Quick start
+## How to use
 
-* Create or update the Terraform file
+* Run the web API
+
+* Update the Terraform file
 
 ```tf
 terraform {
   backend "http" {
+    address = "<webapi_url>/state/<project_name>"
+    lock_address = "<webapi_url>/state/<project_name>/lock"
+    unlock_address = "<webapi_url>/state/<project_name>/lock"
+    lock_method = "POST"
+    unlock_method = "DELETE"
+    # uncomment if HTTPS certificate is not valid
+    # skip_cert_verification = "true"
   }
 }
 ```
 
-## References
+* Execute usual Terraform command lines
+
+## How to evaluate
+
+* Run the [samples](samples/README.md)
+
+## How to compare
 
 ### Samples with other solutions
 

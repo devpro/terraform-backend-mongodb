@@ -355,3 +355,4 @@ appsettings.Development.json
 # Terraform local files
 .terraform/
 .terraform.lock.hcl
+errored.tfstate

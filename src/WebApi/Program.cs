@@ -7,6 +7,7 @@ builder.Services.AddControllers(x => x.InputFormatters.Insert(0, new RawRequestB
 builder.Services.AddInfrastructure(configuration);
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
+builder.Services.AddBehaviors();
 
 var app = builder.Build();
 
