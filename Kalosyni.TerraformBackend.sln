@@ -28,8 +28,10 @@ EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "samples", "samples", "{3C2E7F7E-1F8E-49D1-AD56-EC60BEB5299D}"
 	ProjectSection(SolutionItems) = preProject
 		samples\main.tf = samples\main.tf
+		samples\outputs.tf = samples\outputs.tf
 		samples\providers.tf = samples\providers.tf
 		samples\README.md = samples\README.md
+		samples\variables.tf = samples\variables.tf
 	EndProjectSection
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Common.AspNetCore", "src\Common.AspNetCore\Common.AspNetCore.csproj", "{F23098F5-355B-46F0-BABE-3D6E23D8EED7}"
