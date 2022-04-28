@@ -1,9 +1,18 @@
 # Terraform backend management in MongoDB
 
+[![GitLab Pipeline Status](https://gitlab.com/kalosyni/terraform-backend-mongodb/badges/main/pipeline.svg)](https://gitlab.com/kalosyni/terraform-backend-mongodb/-/pipelines)
+
 Store [Terraform](https://www.terraform.io) state in [MongoDB](https://www.mongodb.com/), using
 [HTTP](https://www.terraform.io/language/settings/backends/http) [backend](https://github.com/hashicorp/terraform/tree/main/internal/backend/remote-state).
 
 ## How to use
+
+* Create a MongoDB database (you can provision a cluster in MongoDB Atlas)
+
+```bash
+# example on a MongoDB container running locally
+docker run --name mongodb -d -p 27017:27017 mongo:5.0
+```
 
 * Run the web API
 
@@ -25,9 +34,41 @@ terraform {
 
 * Execute usual Terraform command lines
 
-## How to evaluate
+* (Optional) Add MongoDB indexes for optimal performances
 
-* Run the [samples](samples/README.md)
+```bash
+# example on a MongoDB container running locally
+docker run --rm --link mongodb \
+  -v "$(pwd)/scripts":/home/scripts mongo:5.0 \
+  bash -c "mongo mongodb://mongodb:27017/terraform_backend_dev /home/scripts/mongo-create-index.js"
+```
+
+## How to demonstrate
+
+* Run the [terraform-docker sample](samples/terraform-docker/README.md)
+
+## How to contribute
+
+This is a .NET 6 / C# codebase (open-source, cross-platform, free, object-oriented technologies)
+
+### Project structure
+
+Project name | Technology | Project type
+------------ | ---------- | ------------
+`Common.AspNetCore` | .NET 6 | Library
+`Common.MongoDb` | .NET Standard 2.1 | Library
+`Common.Runtime` | .NET Standard 2.1 | Library
+`Domain` | .NET Standard 2.1 | Library
+`Infrastructure.MongoDb` | .NET Standard 2.1 | Library
+`WebApi` | ASP.NET 6 | Web application (REST API)
+
+### Packages (NuGet)
+
+Name | Description
+---- | -----------
+`MongoDB.Bson`, `MongoDB.Driver`, `MongoDB.Driver.Core` | MongoDB .NET Driver
+`Swashbuckle.AspNetCore` | OpenAPI / Swagger generation
+`System.Text.Json` | JSON support
 
 ## How to compare
 

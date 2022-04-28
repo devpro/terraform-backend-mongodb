@@ -1,6 +1,6 @@
 # MongoDB common library
 
-Enrichments of [MongoDB .NET druver](https://mongodb.github.io/mongo-csharp-driver/) ([GitHub repository](https://github.com/mongodb/mongo-csharp-driver)).
+Enrichments of [MongoDB .NET driver](https://mongodb.github.io/mongo-csharp-driver/) ([GitHub repository](https://github.com/mongodb/mongo-csharp-driver)).
 
 ## References
 

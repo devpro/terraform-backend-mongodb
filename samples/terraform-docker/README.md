@@ -14,7 +14,7 @@ docker ps
 * Run the commands
 
 ```bash
-cd samples
+cd samples/terraform-docker
 
 SET TF_LOG=TRACE
 
