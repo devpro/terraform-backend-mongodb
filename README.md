@@ -5,6 +5,13 @@ Store [Terraform](https://www.terraform.io) state in [MongoDB](https://www.mongo
 
 ## How to use
 
+* Create a MongoDB database (you can provision a cluster in MongoDB Atlas)
+
+```bash
+# example on a MongoDB container running locally
+docker run --name mongodb -d -p 27017:27017 mongo:5.0
+```
+
 * Run the web API
 
 * Update the Terraform file
@@ -24,6 +31,15 @@ terraform {
 ```
 
 * Execute usual Terraform command lines
+
+* (Optional) Add MongoDB indexes for optimal performances
+
+```bash
+# example on a MongoDB container running locally
+docker run --rm --link mongodb \
+  -v "$(pwd)/scripts":/home/scripts mongo:5.0 \
+  bash -c "mongo mongodb://mongodb:27017/terraform_backend_dev /home/scripts/mongo-create-index.js"
+```
 
 ## How to demonstrate
 
