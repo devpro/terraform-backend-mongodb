@@ -27,7 +27,7 @@ terraform {
 
 ## How to demonstrate
 
-* Run the [samples](samples/README.md)
+* Run the [terraform-docker sample](samples/terraform-docker/README.md)
 
 ## How to contribute
 
