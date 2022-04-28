@@ -1,0 +1,66 @@
+image: mcr.microsoft.com/dotnet/sdk:6.0
+
+variables:
+  ROOT_FOLDER: .
+  BUILD_SOURCEBRANCHNAME: $CI_COMMIT_BRANCH
+  BUILD_BUILDID: $CI_PIPELINE_ID
+
+stages:
+  - build
+  - test
+
+# avoid duplicate GitLab pipeline runs from GitHub notifications (two messages are received on a commit on a branch with a Pull Request)
+workflow:
+  rules:
+    - if: '$CI_PIPELINE_SOURCE == "external_pull_request_event"'
+    - if: '$CI_COMMIT_BRANCH == $CI_DEFAULT_BRANCH'
+    - if: '$CI_PIPELINE_SOURCE == "web"'
+
+build:
+  stage: build
+  before_script:
+    - cat /etc/issue
+  script:
+    - cd $ROOT_FOLDER
+    - dotnet restore
+    - dotnet build --no-restore --configuration Debug
+
+test:
+  stage: test
+  variables:
+    COBERTURA_REPORT_FILEPATH: ./test/*/TestResults/*/coverage.cobertura.xml
+    REPORTGENERATOR_OPTIONS: -targetdir:sonarqubecoverage -reporttypes:SonarQube
+    SONAR_EXTRA_PARAMETERS: /d:sonar.cpd.exclusions=**/*Generated*.cs /d:sonar.coverageReportPaths=./sonarqubecoverage/SonarQube.xml
+    ASPNETCORE_ENVIRONMENT: Development
+    Application__IsHttpsRedirectionEnabled: "false"
+  before_script:
+    # updates system
+    - apt-get update
+    - apt-get install -y gnupg
+    # installs java runtime, sonar scanner and report generator tool
+    - apt install -y default-jre
+    - dotnet tool install --global dotnet-sonarscanner
+    - dotnet tool install --global dotnet-reportgenerator-globaltool
+    # adds dotnet global tool in the path
+    - export PATH="$PATH:/root/.dotnet/tools"
+  script:
+    - cd $ROOT_FOLDER
+    # runs all tests with sonar analysis
+    - dotnet restore
+    - dotnet sonarscanner begin /o:$SONAR_ORGANIZATION /k:$SONAR_PROJECTKEY /d:sonar.host.url=$SONAR_HOSTURL $SONAR_EXTRA_PARAMETERS
+    - dotnet test --configuration Debug --logger:"junit;LogFilePath=..\..\artifacts\{assembly}-test-result.xml;MethodFormat=Class;FailureBodyFormat=Verbose" --collect:"XPlat Code Coverage"
+    - reportgenerator "-reports:$COBERTURA_REPORT_FILEPATH" $REPORTGENERATOR_OPTIONS
+    - dotnet sonarscanner end
+  artifacts:
+    when: always
+    paths:
+      - ./**/*test-result.xml
+      - $COBERTURA_REPORT_FILEPATH
+    reports:
+      junit:
+        - ./**/*test-result.xml
+      cobertura: $COBERTURA_REPORT_FILEPATH
+  only:
+    - external_pull_requests
+    - main
+    - web

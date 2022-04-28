@@ -1,5 +1,7 @@
 # Terraform backend management in MongoDB
 
+[![GitLab Pipeline Status](https://gitlab.com/kalosyni/terraform-backend-mongodb/badges/main/pipeline.svg)](https://gitlab.com/kalosyni/terraform-backend-mongodb/-/pipelines)
+
 Store [Terraform](https://www.terraform.io) state in [MongoDB](https://www.mongodb.com/), using
 [HTTP](https://www.terraform.io/language/settings/backends/http) [backend](https://github.com/hashicorp/terraform/tree/main/internal/backend/remote-state).
 
