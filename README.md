@@ -25,9 +25,32 @@ terraform {
 
 * Execute usual Terraform command lines
 
-## How to evaluate
+## How to demonstrate
 
 * Run the [samples](samples/README.md)
+
+## How to contribute
+
+This is a .NET 6 / C# codebase (open-source, cross-platform, free, object-oriented technologies)
+
+### Project structure
+
+Project name | Technology | Project type
+------------ | ---------- | ------------
+`Common.AspNetCore` | .NET 6 | Library
+`Common.MongoDb` | .NET Standard 2.1 | Library
+`Common.Runtime` | .NET Standard 2.1 | Library
+`Domain` | .NET Standard 2.1 | Library
+`Infrastructure.MongoDb` | .NET Standard 2.1 | Library
+`WebApi` | ASP.NET 6 | Web application (REST API)
+
+### Packages (NuGet)
+
+Name | Description
+---- | -----------
+`MongoDB.Bson`, `MongoDB.Driver`, `MongoDB.Driver.Core` | MongoDB .NET Driver
+`Swashbuckle.AspNetCore` | OpenAPI / Swagger generation
+`System.Text.Json` | JSON support
 
 ## How to compare
 
