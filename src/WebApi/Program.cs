@@ -2,7 +2,7 @@
 
 var configuration = new ApplicationConfiguration(builder.Configuration);
 
-// adds services to the container.
+// adds services to the container
 builder.Services.AddControllers(x => x.InputFormatters.Insert(0, new RawRequestBodyFormatter()));
 builder.Services.AddInfrastructure(configuration);
 builder.Services.AddEndpointsApiExplorer();
