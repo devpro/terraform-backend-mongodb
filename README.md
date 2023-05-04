@@ -1,6 +1,6 @@
 # Terraform backend management in MongoDB
 
-[![GitLab Pipeline Status](https://gitlab.com/kalosyni/terraform-backend-mongodb/badges/main/pipeline.svg)](https://gitlab.com/kalosyni/terraform-backend-mongodb/-/pipelines)
+[![GitLab Pipeline Status](https://gitlab.com/Devpro/terraform-backend-mongodb/badges/main/pipeline.svg)](https://gitlab.com/Devpro/terraform-backend-mongodb/-/pipelines)
 
 Store [Terraform](https://www.terraform.io) state in [MongoDB](https://www.mongodb.com/), using
 [HTTP](https://www.terraform.io/language/settings/backends/http) [backend](https://github.com/hashicorp/terraform/tree/main/internal/backend/remote-state).
@@ -49,24 +49,24 @@ docker run --rm --link mongodb \
 
 ## How to contribute
 
-This is a .NET 6 / C# codebase (open-source, cross-platform, free, object-oriented technologies)
+This is a .NET 7 / C# codebase (open-source, cross-platform, free, object-oriented technologies)
 
 ### Project structure
 
 Project name | Technology | Project type
 ------------ | ---------- | ------------
-`Common.AspNetCore` | .NET 6 | Library
-`Common.MongoDb` | .NET Standard 2.1 | Library
-`Common.Runtime` | .NET Standard 2.1 | Library
-`Domain` | .NET Standard 2.1 | Library
-`Infrastructure.MongoDb` | .NET Standard 2.1 | Library
-`WebApi` | ASP.NET 6 | Web application (REST API)
+`Common.AspNetCore` | .NET 7 | Library
+`Common.MongoDb` | .NET 7 | Library
+`Common.Runtime` | .NET 7 | Library
+`Domain` | .NET 7 | Library
+`Infrastructure.MongoDb` | .NET 7 | Library
+`WebApi` | ASP.NET 7 | Web application (REST API)
 
 ### Packages (NuGet)
 
 Name | Description
 ---- | -----------
-`MongoDB.Bson`, `MongoDB.Driver`, `MongoDB.Driver.Core` | MongoDB .NET Driver
+`MongoDB.Bson`, `MongoDB.Driver` | MongoDB .NET Driver
 `Swashbuckle.AspNetCore` | OpenAPI / Swagger generation
 `System.Text.Json` | JSON support
 

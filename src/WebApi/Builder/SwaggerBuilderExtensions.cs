@@ -1,4 +1,4 @@
-﻿namespace Kalosyni.TerraformBackend.WebApi.Builder
+﻿namespace Devpro.TerraformBackend.WebApi.Builder
 {
     public static class SwaggerBuilderExtensions
     {

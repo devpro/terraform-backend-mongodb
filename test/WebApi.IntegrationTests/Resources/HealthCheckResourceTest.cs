@@ -2,17 +2,14 @@
 using FluentAssertions;
 using Microsoft.AspNetCore.Mvc.Testing;
 using Xunit;
-using Xunit.Abstractions;
 
-namespace Kalosyni.TerraformBackend.WebApi.IntegrationTests.Resources
+namespace Devpro.TerraformBackend.WebApi.IntegrationTests.Resources
 {
     [Trait("Category", "IntegrationTests")]
-    public class HealthCheckResourceTest : ResourceBase
+    public class HealthCheckResourceTest : IntegrationTestBase
     {
-        private const string ResourceEndpoint = "health";
-
-        public HealthCheckResourceTest(WebApplicationFactory<Program> factory, ITestOutputHelper testOutput)
-            : base(factory, testOutput)
+        public HealthCheckResourceTest(WebApplicationFactory<Program> factory)
+            : base(factory)
         {
         }
 
@@ -20,9 +17,19 @@ namespace Kalosyni.TerraformBackend.WebApi.IntegrationTests.Resources
         [Trait("Mode", "Readonly")]
         public async Task HealthCheckResource_Get_ReturnsOk()
         {
-            var output = await GetAsync($"/{ResourceEndpoint}");
-            output.Should().NotBeNull();
-            output.Should().Be("Healthy");
+            // Arrange
+            var client = CreateClient();
+
+            // Act
+            var response = await client.GetAsync("/health");
+
+            // Assert
+            response.StatusCode.Should().Be(System.Net.HttpStatusCode.OK);
+            response.Content.Headers.ContentType.Should().NotBeNull();
+            response.Content.Headers.ContentType?.ToString().Should().Be("text/plain");
+            var result = await response.Content.ReadAsStringAsync();
+            result.Should().NotBeNull();
+            result.Should().Be("Healthy");
         }
     }
 }

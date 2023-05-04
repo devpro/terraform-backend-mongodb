@@ -1,5 +1,5 @@
-﻿var builder = WebApplication.CreateBuilder(args);
-
+﻿// creates the builder
+var builder = WebApplication.CreateBuilder(args);
 var configuration = new ApplicationConfiguration(builder.Configuration);
 
 // adds services to the container
@@ -10,18 +10,16 @@ builder.Services.AddSwaggerGen();
 builder.Services.AddHealthChecks();
 builder.Services.AddBehaviors();
 
+// create the application and configures the HTTP request pipeline
 var app = builder.Build();
-
-// configures the HTTP request pipeline
 app.UseSwagger(configuration);
 app.UseHttpsRedirection(configuration);
 app.UseAuthorization();
 app.MapControllers();
 app.MapHealthChecks("/health");
 
+// runs the application
 app.Run();
 
-// fix: make Program class public for tests
-#pragma warning disable CA1050 // Declare types in namespaces
+// adds explicit class definition for integration test project
 public partial class Program { }
-#pragma warning restore CA1050

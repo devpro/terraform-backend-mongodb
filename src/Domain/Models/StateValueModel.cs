@@ -1,6 +1,6 @@
 ﻿using MongoDB.Bson.Serialization.Attributes;
 
-namespace Kalosyni.TerraformBackend.Domain.Models
+namespace Devpro.TerraformBackend.Domain.Models
 {
     public class StateValueModel
     {

@@ -17,4 +17,4 @@ RUN dotnet publish "WebApi.csproj" -c Release -o /app/publish
 FROM base AS final
 WORKDIR /app
 COPY --from=publish /app/publish .
-ENTRYPOINT ["dotnet", "Kalosyni.TerraformBackend.WebApi.dll"]
+ENTRYPOINT ["dotnet", "Devpro.TerraformBackend.WebApi.dll"]

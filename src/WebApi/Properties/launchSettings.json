@@ -6,7 +6,7 @@
       "launchBrowser": true,
       "launchUrl": "swagger",
       "environmentVariables": {
-        "Logging__LogLevel__Kalosyni": "Debug",
+        "Logging__LogLevel__Devpro": "Debug",
         "ASPNETCORE_ENVIRONMENT": "Development",
         "Application__IsHttpsRedirectionEnabled": "false",
         "Application__IsSwaggerEnabled": "true"

@@ -1,8 +1,8 @@
-﻿using Kalosyni.Common.MongoDb;
+﻿using Devpro.Common.MongoDb;
 using Microsoft.Extensions.Logging;
 using MongoDB.Driver;
 
-namespace Kalosyni.TerraformBackend.Infrastructure.MongoDb.Repositories
+namespace Devpro.TerraformBackend.Infrastructure.MongoDb.Repositories
 {
     public abstract class RepositoryBase
     {

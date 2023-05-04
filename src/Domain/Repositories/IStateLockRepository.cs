@@ -1,8 +1,8 @@
 ﻿using System.Collections.Generic;
 using System.Threading.Tasks;
-using Kalosyni.TerraformBackend.Domain.Models;
+using Devpro.TerraformBackend.Domain.Models;
 
-namespace Kalosyni.TerraformBackend.Domain.Repositories
+namespace Devpro.TerraformBackend.Domain.Repositories
 {
     public interface IStateLockRepository
     {

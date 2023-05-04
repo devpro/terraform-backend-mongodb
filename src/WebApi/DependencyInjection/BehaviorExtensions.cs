@@ -1,6 +1,6 @@
 ﻿using Microsoft.AspNetCore.Mvc;
 
-namespace Kalosyni.TerraformBackend.WebApi.DependencyInjection
+namespace Devpro.TerraformBackend.WebApi.DependencyInjection
 {
     internal static class BehaviorExtensions
     {

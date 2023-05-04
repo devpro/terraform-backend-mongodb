@@ -1,6 +1,6 @@
 ﻿using MongoDB.Driver;
 
-namespace Kalosyni.Common.MongoDb
+namespace Devpro.Common.MongoDb
 {
     /// <summary>
     /// Avoids calling "new" in application code.

@@ -1,7 +1,7 @@
-﻿using Kalosyni.Common.Runtime;
-using Kalosyni.TerraformBackend.Infrastructure.MongoDb;
+﻿using Devpro.Common.MongoDb;
+using Devpro.Common.Runtime;
 
-namespace Kalosyni.TerraformBackend.WebApi
+namespace Devpro.TerraformBackend.WebApi
 {
     public class ApplicationConfiguration : ConfigurationBase
     {
@@ -17,8 +17,8 @@ namespace Kalosyni.TerraformBackend.WebApi
         public MongoDbConfiguration MongoDbConfiguration =>
             new()
             {
-                ConnectionString = ConfigurationRoot.GetConnectionString(TryGetSection("MongoDb:ConnectionStringName").Get<string>()),
-                DatabaseName = TryGetSection("MongoDb:DatabaseName").Get<string>()
+                ConnectionString = ConfigurationRoot.GetConnectionString(TryGetSection("MongoDb:ConnectionStringName")?.Get<string>() ?? string.Empty) ?? string.Empty,
+                DatabaseName = TryGetSection("MongoDb:DatabaseName").Get<string>() ?? string.Empty
             };
     }
 }

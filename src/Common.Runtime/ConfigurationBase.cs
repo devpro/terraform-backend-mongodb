@@ -1,7 +1,7 @@
 ﻿using System;
 using Microsoft.Extensions.Configuration;
 
-namespace Kalosyni.Common.Runtime
+namespace Devpro.Common.Runtime
 {
     public abstract class ConfigurationBase
     {
