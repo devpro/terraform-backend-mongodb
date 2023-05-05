@@ -1,0 +1,30 @@
+name: CI
+
+on:
+  push:
+    branches: ["main"]
+  pull_request:
+    branches: ["main"]
+  workflow_dispatch: {}
+
+concurrency:
+  group: "ci"
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+  pull-requests: write
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v3
+      - name: Checkout workflow parts
+        uses: actions/checkout@v3
+        with:
+          repository: devpro/github-workflow-parts
+          ref: feature/init
+          path: .workflow-parts
+      - uses: ./.workflow-parts/dotnet/integrate

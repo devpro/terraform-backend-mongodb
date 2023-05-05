@@ -44,7 +44,7 @@ namespace Devpro.TerraformBackend.WebApi.Authentication
             var clientId = authSplit[0];
             var clientSecret = authSplit[1];
 
-            // TODO: store this info in the database, restrict a user to its organization
+            // TODO: store this info in the database & restrict a user to its organization
             // checkClient ID and secret are incorrect
             if (clientId != "admin" || clientSecret != "admin")
             {
