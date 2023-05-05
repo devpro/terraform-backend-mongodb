@@ -1,3 +1,7 @@
+# purpose: run Continuous Integration (build, unit test, lint, scan)
+# variables: [ SONAR_HOST_URL, SONAR_ORG, SONAR_PROJECT_KEY ]
+# secrets: [ SONAR_TOKEN ]
+
 name: CI
 
 on:
@@ -26,5 +30,12 @@ jobs:
         with:
           repository: devpro/github-workflow-parts
           ref: feature/init
-          path: .workflow-parts
-      - uses: ./.workflow-parts/dotnet/integrate
+          path: workflow-parts
+      - uses: workflow-parts/dotnet/integrate
+        with:
+          sonar_enabled: 'true'
+          sonar_organization: ${{ vars.SONAR_ORG }}
+          sonar_host_url: ${{ vars.SONAR_HOST_URL }}
+          sonar_project_name: Terraform Backend
+          sonar_project_key: ${{ vars.SONAR_PROJECT_KEY }}
+          sonar_token: ${{ secrets.SONAR_TOKEN }}
