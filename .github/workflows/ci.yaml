@@ -31,7 +31,7 @@ jobs:
           repository: devpro/github-workflow-parts
           ref: feature/init
           path: workflow-parts
-      - uses: workflow-parts/dotnet/integrate
+      - uses: ./workflow-parts/dotnet/integrate
         with:
           sonar_enabled: 'true'
           sonar_organization: ${{ vars.SONAR_ORG }}
