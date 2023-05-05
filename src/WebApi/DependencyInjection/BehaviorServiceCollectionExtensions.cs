@@ -2,7 +2,7 @@
 
 namespace Devpro.TerraformBackend.WebApi.DependencyInjection
 {
-    internal static class BehaviorExtensions
+    internal static class BehaviorServiceCollectionExtensions
     {
         internal static IServiceCollection AddBehaviors(this IServiceCollection services)
         {

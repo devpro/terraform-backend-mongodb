@@ -15,8 +15,8 @@
   </ItemGroup>
 
   <ItemGroup>
+    <ProjectReference Include="..\Common.AspNetCore.WebApi\Common.AspNetCore.WebApi.csproj" />
     <ProjectReference Include="..\Common.AspNetCore\Common.AspNetCore.csproj" />
-    <ProjectReference Include="..\Common.Runtime\Common.Runtime.csproj" />
     <ProjectReference Include="..\Infrastructure.MongoDb\Infrastructure.MongoDb.csproj" />
   </ItemGroup>
 

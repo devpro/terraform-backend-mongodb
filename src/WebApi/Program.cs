@@ -6,7 +6,8 @@ var configuration = new ApplicationConfiguration(builder.Configuration);
 builder.Services.AddControllers(x => x.InputFormatters.Insert(0, new RawRequestBodyFormatter()));
 builder.Services.AddInfrastructure(configuration);
 builder.Services.AddEndpointsApiExplorer();
-builder.Services.AddSwaggerGen();
+builder.Services.AddSwaggerGenWithBasicAuth(configuration);
+builder.Services.AddBasicAuthentication();
 builder.Services.AddHealthChecks();
 builder.Services.AddBehaviors();
 
@@ -14,9 +15,10 @@ builder.Services.AddBehaviors();
 var app = builder.Build();
 app.UseSwagger(configuration);
 app.UseHttpsRedirection(configuration);
+app.UseAuthentication();
 app.UseAuthorization();
 app.MapControllers();
-app.MapHealthChecks("/health");
+app.MapHealthChecks(WebApiConfiguration.HealthCheckEndpoint);
 
 // runs the application
 app.Run();

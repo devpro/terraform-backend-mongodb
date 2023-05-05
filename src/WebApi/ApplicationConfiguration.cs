@@ -1,18 +1,13 @@
 ﻿using Devpro.Common.MongoDb;
-using Devpro.Common.Runtime;
 
 namespace Devpro.TerraformBackend.WebApi
 {
-    public class ApplicationConfiguration : ConfigurationBase
+    public class ApplicationConfiguration : WebApiConfiguration
     {
         public ApplicationConfiguration(IConfigurationRoot configurationRoot)
             : base(configurationRoot)
         {
         }
-
-        public bool IsSwaggerEnabled => TryGetSection("Application:IsSwaggerEnabled").Get<bool>();
-
-        public bool IsHttpsRedirectionEnabled => TryGetSection("Application:IsHttpsRedirectionEnabled").Get<bool>();
 
         public MongoDbConfiguration MongoDbConfiguration =>
             new()

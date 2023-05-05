@@ -31,8 +31,6 @@ docker ps
 curl localhost:8000
 ```
 
-* Update main.tf, apply the change and make sure the container is running ok (for example port 8000 -> 8080)
-
 * Destroy the container
 
 ```bash

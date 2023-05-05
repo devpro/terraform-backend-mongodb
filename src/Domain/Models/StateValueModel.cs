@@ -1,4 +1,5 @@
-﻿using MongoDB.Bson.Serialization.Attributes;
+﻿using System;
+using MongoDB.Bson.Serialization.Attributes;
 
 namespace Devpro.TerraformBackend.Domain.Models
 {
@@ -15,6 +16,6 @@ namespace Devpro.TerraformBackend.Domain.Models
 
         public object Outputs { get; set; } = new { };
 
-        public object[] Resources { get; set; } = new object[0];
+        public object[] Resources { get; set; } = Array.Empty<object>();
     }
 }
