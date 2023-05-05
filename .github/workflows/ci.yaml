@@ -25,6 +25,8 @@ jobs:
     steps:
       - name: Checkout repository
         uses: actions/checkout@v3
+        with:
+          fetch-depth: 0
       - name: Checkout workflow parts
         uses: actions/checkout@v3
         with:
@@ -36,6 +38,8 @@ jobs:
           sonar_enabled: 'true'
           sonar_organization: ${{ vars.SONAR_ORG }}
           sonar_host_url: ${{ vars.SONAR_HOST_URL }}
-          sonar_project_name: Terraform Backend
+          sonar_project_name: Terraform Backend MongoDB
           sonar_project_key: ${{ vars.SONAR_PROJECT_KEY }}
           sonar_token: ${{ secrets.SONAR_TOKEN }}
+    env:
+      GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
