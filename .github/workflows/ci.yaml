@@ -33,7 +33,10 @@ jobs:
           repository: devpro/github-workflow-parts
           ref: feature/init
           path: workflow-parts
-      - uses: ./workflow-parts/dotnet/integrate
+      - name: Start MongoDB
+        uses: ./workflow-parts/mongodb/start
+      - name: Build, lint & test
+        uses: ./workflow-parts/dotnet/build-lint-test
         with:
           sonar_enabled: 'true'
           sonar_organization: ${{ vars.SONAR_ORG }}
@@ -41,5 +44,27 @@ jobs:
           sonar_project_name: Terraform Backend MongoDB
           sonar_project_key: ${{ vars.SONAR_PROJECT_KEY }}
           sonar_token: ${{ secrets.SONAR_TOKEN }}
+    env:
+      GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+  image-scan:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout source code
+        uses: actions/checkout@v3
+      - name: Checkout workflow parts
+        uses: actions/checkout@v3
+        with:
+          repository: devpro/github-workflow-parts
+          ref: feature/init
+          path: workflow-parts
+      - name: Create and scan container image
+        uses: ./workflow-parts/docker/build-scan
+        with:
+          docker_file: 'src/WebApi/Dockerfile'
+          image_tag: 1.0.${{ github.run_id }}
+          image_path: 'docker.io/devprofr'
+          image_name: terraform-backend-mongodb
+          max_high_cves: 16
+          max_medium_cves: 11
     env:
       GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
