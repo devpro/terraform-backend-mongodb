@@ -20,7 +20,7 @@ jobs:
         uses: actions/checkout@v3
         with:
           repository: devpro/github-workflow-parts
-          ref: feature/init
+          ref: main
           path: workflow-parts
       - name: Build and push a new container image
         uses: ./workflow-parts/docker/build-push
