@@ -1,24 +1,19 @@
-﻿using Kalosyni.Common.Runtime;
-using Kalosyni.TerraformBackend.Infrastructure.MongoDb;
+﻿using Devpro.Common.MongoDb;
 
-namespace Kalosyni.TerraformBackend.WebApi
+namespace Devpro.TerraformBackend.WebApi
 {
-    public class ApplicationConfiguration : ConfigurationBase
+    public class ApplicationConfiguration : WebApiConfiguration
     {
         public ApplicationConfiguration(IConfigurationRoot configurationRoot)
             : base(configurationRoot)
         {
         }
 
-        public bool IsSwaggerEnabled => TryGetSection("Application:IsSwaggerEnabled").Get<bool>();
-
-        public bool IsHttpsRedirectionEnabled => TryGetSection("Application:IsHttpsRedirectionEnabled").Get<bool>();
-
         public MongoDbConfiguration MongoDbConfiguration =>
             new()
             {
-                ConnectionString = ConfigurationRoot.GetConnectionString(TryGetSection("MongoDb:ConnectionStringName").Get<string>()),
-                DatabaseName = TryGetSection("MongoDb:DatabaseName").Get<string>()
+                ConnectionString = ConfigurationRoot.GetConnectionString(TryGetSection("MongoDb:ConnectionStringName")?.Get<string>() ?? string.Empty) ?? string.Empty,
+                DatabaseName = TryGetSection("MongoDb:DatabaseName").Get<string>() ?? string.Empty
             };
     }
 }

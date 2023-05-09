@@ -1,8 +1,8 @@
 ﻿using Microsoft.Extensions.DependencyInjection.Extensions;
 
-namespace Kalosyni.TerraformBackend.WebApi.DependencyInjection
+namespace Devpro.TerraformBackend.WebApi.DependencyInjection
 {
-    internal static class InfrastructureExtensions
+    internal static class InfrastructureServiceCollectionExtensions
     {
         internal static IServiceCollection AddInfrastructure(this IServiceCollection services, ApplicationConfiguration configuration)
         {

@@ -1,10 +1,12 @@
 ﻿using System.Text.Json;
-using Kalosyni.TerraformBackend.Domain.Models;
-using Kalosyni.TerraformBackend.Domain.Repositories;
+using Devpro.TerraformBackend.Domain.Models;
+using Devpro.TerraformBackend.Domain.Repositories;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
-namespace Kalosyni.TerraformBackend.WebApi.Controllers
+namespace Devpro.TerraformBackend.WebApi.Controllers
 {
+    [Authorize]
     [ApiController]
     [Route("state")]
     public class StateController : ControllerBase

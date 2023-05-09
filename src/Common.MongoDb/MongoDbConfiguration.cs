@@ -1,4 +1,4 @@
-﻿namespace Kalosyni.TerraformBackend.Infrastructure.MongoDb
+﻿namespace Devpro.Common.MongoDb
 {
     public class MongoDbConfiguration
     {

@@ -1,1 +1,0 @@
-﻿using System;namespace Kalosyni.TerraformBackend.WebApi.IntegrationTests{    public class TestConfiguration    {        public static bool IsLocalhostEnvironment => bool.Parse(Environment.GetEnvironmentVariable("IsLocalhostEnvironment") ?? "true");        public static string ApiUrl => Environment.GetEnvironmentVariable("ApiUrl") ?? "http://localhost";    }}
