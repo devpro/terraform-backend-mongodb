@@ -1,6 +1,9 @@
 # Terraform backend management in MongoDB
 
-[![GitLab Pipeline Status](https://gitlab.com/Devpro/terraform-backend-mongodb/badges/main/pipeline.svg)](https://gitlab.com/Devpro/terraform-backend-mongodb/-/pipelines)
+[![CI](https://github.com/devpro/terraform-backend-mongodb/actions/workflows/ci.yaml/badge.svg?branch=main)](https://github.com/devpro/terraform-backend-mongodb/actions/workflows/ci.yaml)
+[![PKG](https://github.com/devpro/terraform-backend-mongodb/actions/workflows/pkg.yaml/badge.svg?branch=main)](https://github.com/devpro/terraform-backend-mongodb/actions/workflows/pkg.yaml)
+[![Quality Gate Status](https://sonarcloud.io/api/project_badges/measure?project=devpro.terraform-backend-mongodb&metric=alert_status)](https://sonarcloud.io/summary/new_code?id=devpro.terraform-backend-mongodb)
+[![Docker Image Version](https://img.shields.io/docker/v/devprofr/terraform-backend-mongodb?label=Image)](https://hub.docker.com/r/devprofr/terraform-backend-mongodb)
 
 Store [Terraform](https://www.terraform.io) state in [MongoDB](https://www.mongodb.com/), using
 [HTTP](https://www.terraform.io/language/settings/backends/http) [backend](https://github.com/hashicorp/terraform/tree/main/internal/backend/remote-state).
@@ -21,11 +24,13 @@ docker run --name mongodb -d -p 27017:27017 mongo:5.0
 ```tf
 terraform {
   backend "http" {
-    address = "<webapi_url>/state/<project_name>"
-    lock_address = "<webapi_url>/state/<project_name>/lock"
-    unlock_address = "<webapi_url>/state/<project_name>/lock"
-    lock_method = "POST"
-    unlock_method = "DELETE"
+    address                = "<webapi_url>/state/<project_name>"
+    lock_address           = "<webapi_url>/state/<project_name>/lock"
+    unlock_address         = "<webapi_url>/state/<project_name>/lock"
+    lock_method            = "POST"
+    unlock_method          = "DELETE"
+    username               = "<api_username>"
+    password               = "<api_password>"
     # uncomment if HTTPS certificate is not valid
     # skip_cert_verification = "true"
   }
