@@ -3,6 +3,7 @@ terraform {
 
   # https://developer.hashicorp.com/terraform/language/settings/backends/http#configuration-variables
   backend "http" {
+    # port can be 5293 (project run from VS) or 9001 (docker compose)
     address                = "http://localhost:5293/state/demo_devpro"
     lock_address           = "http://localhost:5293/state/demo_devpro/lock"
     unlock_address         = "http://localhost:5293/state/demo_devpro/lock"

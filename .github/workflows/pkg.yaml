@@ -1,0 +1,35 @@
+# purpose: run Continuous Delivery / Packaging (package)
+# variables: []
+# secrets: [ DOCKERHUB_USERNAME, DOCKERHUB_TOKEN ]
+ 
+name: PKG
+
+on:
+  push:
+    branches: ["main"]
+    # tags: [ 'v*.*.*' ]
+  workflow_dispatch: {}
+
+jobs:
+  image-scan:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout source code
+        uses: actions/checkout@v3
+      - name: Checkout workflow parts
+        uses: actions/checkout@v3
+        with:
+          repository: devpro/github-workflow-parts
+          ref: feature/init
+          path: workflow-parts
+      - name: Create and scan container image
+        uses: ./workflow-parts/docker/build-push
+        with:
+          container_registry: docker.io
+          container_username: ${{ secrets.DOCKERHUB_USERNAME }}
+          container_password: ${{ secrets.DOCKERHUB_TOKEN }}
+          docker_file: 'src/WebApi/Dockerfile'
+          image_tag: 1.0.${{ github.run_id }}
+          image_path: 'docker.io/devprofr'
+          image_name: terraform-backend-mongodb
+          create_latest: ${{ github.ref_name == 'main' }}

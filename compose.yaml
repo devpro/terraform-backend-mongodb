@@ -1,0 +1,25 @@
+services:
+  data:
+    image: terraformbackendmongodb
+    build:
+      context: .
+      dockerfile: ./src/WebApi/Dockerfile
+    environment:
+      - ASPNETCORE_ENVIRONMENT=Development
+      - Application__IsHttpsRedirectionEnabled=false
+      - Application__IsOpenTelemetryEnabled=false
+      - Application__IsSwaggerEnabled=true
+      - ConnectionStrings__MongoDbLocal=mongodb://mongodb:27017/?readPreference=primary&appname=DevproTerraformBackendWebApi&directConnection=true&ssl=false
+      - Logging__LogLevel__Default=Debug
+      - Logging__LogLevel__Microsoft__AspNetCore=Information
+      - Logging__LogLevel__Devpro=Debug
+      - MongoDb__ConnectionStringName=MongoDbLocal
+      - MongoDb__DatabaseName=terraform_backend_dev
+    ports:
+      - "9001:80"
+    depends_on:
+      - mongodb
+  mongodb:
+    image: mongo:6.0
+    ports:
+      - "27017:27017"
