@@ -11,7 +11,7 @@ on:
   workflow_dispatch: {}
 
 jobs:
-  image-scan:
+  publish:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout source code
