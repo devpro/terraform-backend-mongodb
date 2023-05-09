@@ -22,7 +22,7 @@ jobs:
           repository: devpro/github-workflow-parts
           ref: feature/init
           path: workflow-parts
-      - name: Create and scan container image
+      - name: Build and push a new container image
         uses: ./workflow-parts/docker/build-push
         with:
           container_registry: docker.io
