@@ -31,7 +31,7 @@ jobs:
         uses: actions/checkout@v3
         with:
           repository: devpro/github-workflow-parts
-          ref: main
+          ref: feature/sonar-login-deprecation
           path: workflow-parts
       - name: Start MongoDB
         uses: ./workflow-parts/mongodb/start
@@ -55,7 +55,7 @@ jobs:
         uses: actions/checkout@v3
         with:
           repository: devpro/github-workflow-parts
-          ref: main
+          ref: feature/sonar-login-deprecation
           path: workflow-parts
       - name: Create and scan container image
         uses: ./workflow-parts/docker/build-scan
