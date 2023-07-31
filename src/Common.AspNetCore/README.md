@@ -2,8 +2,6 @@
 
 Enrichment of [ASP.NET library](https://github.com/dotnet/aspnetcore).
 
-## Content
-
-### Classes
+## Classes
 
 * `RawRequestBodyFormatter`

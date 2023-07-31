@@ -2,13 +2,11 @@
 
 Enrichments of [MongoDB .NET driver](https://mongodb.github.io/mongo-csharp-driver/) ([GitHub repository](https://github.com/mongodb/mongo-csharp-driver)).
 
-## Content
-
-### Interfaces
+## Interfaces
 
 * `IMongoClientFactory`
 
-### Classes
+## Classes
 
 * `DefaultMongoClientFactory`
 * `MongoDbConfiguration`
