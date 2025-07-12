@@ -54,18 +54,18 @@ docker run --rm --link mongodb \
 
 ## How to contribute
 
-This is a .NET 7 / C# codebase (open-source, cross-platform, free, object-oriented technologies)
+This is a .NET 8 / C# codebase (open-source, cross-platform, free, object-oriented technologies)
 
 ### Project structure
 
 Project name             | Technology | Project type
 ------------------------ | ---------- | --------------------------
-`Common.AspNetCore`      | .NET 7     | Library
-`Common.MongoDb`         | .NET 7     | Library
-`Common.Runtime`         | .NET 7     | Library
-`Domain`                 | .NET 7     | Library
-`Infrastructure.MongoDb` | .NET 7     | Library
-`WebApi`                 | ASP.NET 7  | Web application (REST API)
+`Common.AspNetCore`      | .NET 8     | Library
+`Common.MongoDb`         | .NET 8     | Library
+`Common.Runtime`         | .NET 8     | Library
+`Domain`                 | .NET 8     | Library
+`Infrastructure.MongoDb` | .NET 8     | Library
+`WebApi`                 | ASP.NET 8  | Web application (REST API)
 
 ### Packages (NuGet)
 
