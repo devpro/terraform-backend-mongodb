@@ -64,7 +64,7 @@ jobs:
           image_tag: 1.1.${{ github.run_id }}
           image_path: 'docker.io/devprofr'
           image_name: terraform-backend-mongodb
-          max_high_cves: 16
-          max_medium_cves: 11
+          max_high_cves: 0
+          max_medium_cves: 0
     env:
       GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
