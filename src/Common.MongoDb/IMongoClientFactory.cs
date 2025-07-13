@@ -1,17 +1,16 @@
 ﻿using MongoDB.Driver;
 
-namespace Devpro.Common.MongoDb
+namespace Devpro.Common.MongoDb;
+
+/// <summary>
+/// Avoids calling "new" in application code.
+/// </summary>
+public interface IMongoClientFactory
 {
     /// <summary>
-    /// Avoids calling "new" in application code.
+    /// Creates MongoDB client from a given connection string.
     /// </summary>
-    public interface IMongoClientFactory
-    {
-        /// <summary>
-        /// Creates MongoDB client from a given connection string.
-        /// </summary>
-        /// <param name="connectionString"></param>
-        /// <returns></returns>
-        MongoClient CreateClient(string connectionString);
-    }
+    /// <param name="connectionString"></param>
+    /// <returns></returns>
+    MongoClient CreateClient(string connectionString);
 }

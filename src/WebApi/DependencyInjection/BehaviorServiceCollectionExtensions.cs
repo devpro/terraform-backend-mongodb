@@ -1,28 +1,27 @@
 ﻿using Microsoft.AspNetCore.Mvc;
 
-namespace Devpro.TerraformBackend.WebApi.DependencyInjection
+namespace Devpro.TerraformBackend.WebApi.DependencyInjection;
+
+internal static class BehaviorServiceCollectionExtensions
 {
-    internal static class BehaviorServiceCollectionExtensions
+    internal static IServiceCollection AddBehaviors(this IServiceCollection services)
     {
-        internal static IServiceCollection AddBehaviors(this IServiceCollection services)
+        services.PostConfigure<ApiBehaviorOptions>(options =>
         {
-            services.PostConfigure<ApiBehaviorOptions>(options =>
+            var builtInFactory = options.InvalidModelStateResponseFactory;
+
+            options.InvalidModelStateResponseFactory = context =>
             {
-                var builtInFactory = options.InvalidModelStateResponseFactory;
+                var loggerFactory = context.HttpContext.RequestServices
+                    .GetRequiredService<ILoggerFactory>();
+                var logger = loggerFactory.CreateLogger("PostConfigure");
 
-                options.InvalidModelStateResponseFactory = context =>
-                {
-                    var loggerFactory = context.HttpContext.RequestServices
-                        .GetRequiredService<ILoggerFactory>();
-                    var logger = loggerFactory.CreateLogger("PostConfigure");
+                logger.LogWarning("Invalid model {RequestPath}", context.HttpContext.Request.Path);
 
-                    logger.LogWarning("Invalid model {RequestPath}", context.HttpContext.Request.Path);
+                return builtInFactory(context);
+            };
+        });
 
-                    return builtInFactory(context);
-                };
-            });
-
-            return services;
-        }
+        return services;
     }
 }

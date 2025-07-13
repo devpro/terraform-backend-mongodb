@@ -2,36 +2,35 @@
 using MongoDB.Bson.Serialization.Conventions;
 using MongoDB.Driver;
 
-namespace Devpro.Common.MongoDb
+namespace Devpro.Common.MongoDb;
+
+public class DefaultMongoClientFactory : IMongoClientFactory
 {
-    public class DefaultMongoClientFactory : IMongoClientFactory
+    static DefaultMongoClientFactory()
     {
-        static DefaultMongoClientFactory()
-        {
-            RegisterConventions();
-        }
+        RegisterConventions();
+    }
 
-        public virtual MongoClient CreateClient(string connectionString)
-        {
-            return new MongoClient(connectionString);
-        }
+    public virtual MongoClient CreateClient(string connectionString)
+    {
+        return new MongoClient(connectionString);
+    }
 
-        /// <summary>
-        /// Register usual conventions.
-        /// </summary>
-        /// <remarks>
-        /// See https://github.com/mongodb/mongo-csharp-driver/tree/master/src/MongoDB.Bson/Serialization/Conventions
-        /// </remarks>
-        protected static void RegisterConventions()
+    /// <summary>
+    /// Register usual conventions.
+    /// </summary>
+    /// <remarks>
+    /// See https://github.com/mongodb/mongo-csharp-driver/tree/master/src/MongoDB.Bson/Serialization/Conventions
+    /// </remarks>
+    protected static void RegisterConventions()
+    {
+        var pack = new ConventionPack
         {
-            var pack = new ConventionPack
-            {
-                new CamelCaseElementNameConvention(),
-                new EnumRepresentationConvention(BsonType.String),
-                new IgnoreExtraElementsConvention(true),
-                new IgnoreIfNullConvention(true)
-            };
-            ConventionRegistry.Register("Conventions", pack, t => true);
-        }
+            new CamelCaseElementNameConvention(),
+            new EnumRepresentationConvention(BsonType.String),
+            new IgnoreExtraElementsConvention(true),
+            new IgnoreIfNullConvention(true)
+        };
+        ConventionRegistry.Register("Conventions", pack, t => true);
     }
 }

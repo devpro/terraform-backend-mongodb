@@ -1,11 +1,10 @@
 ﻿using System.Threading.Tasks;
 
-namespace Devpro.TerraformBackend.Domain.Repositories
-{
-    public interface IStateRepository
-    {
-        Task<string> FindOneAsync(string name);
+namespace Devpro.TerraformBackend.Domain.Repositories;
 
-        Task CreateAsync(string name, string jsonInput);
-    }
+public interface IStateRepository
+{
+    Task<string> FindOneAsync(string name);
+
+    Task CreateAsync(string name, string jsonInput);
 }

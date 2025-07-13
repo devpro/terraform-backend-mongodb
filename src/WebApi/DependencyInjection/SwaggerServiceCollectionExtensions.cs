@@ -1,41 +1,40 @@
 ﻿using Microsoft.OpenApi.Models;
 
-namespace Devpro.TerraformBackend.WebApi.DependencyInjection
+namespace Devpro.TerraformBackend.WebApi.DependencyInjection;
+
+public static class SwaggerServiceCollectionExtensions
 {
-    public static class SwaggerServiceCollectionExtensions
+    public static IServiceCollection AddSwaggerGenWithBasicAuth(this IServiceCollection services, WebApiConfiguration configuration)
     {
-        public static IServiceCollection AddSwaggerGenWithBasicAuth(this IServiceCollection services, WebApiConfiguration configuration)
+        var openApi = configuration.OpenApi;
+
+        services.AddSwaggerGen(c =>
         {
-            var openApi = configuration.OpenApi;
-
-            services.AddSwaggerGen(c =>
+            c.SwaggerDoc(openApi.Version, new OpenApiInfo { Title = openApi.Title, Version = openApi.Version });
+            c.AddSecurityDefinition("basic", new OpenApiSecurityScheme
             {
-                c.SwaggerDoc(openApi.Version, new OpenApiInfo { Title = openApi.Title, Version = openApi.Version });
-                c.AddSecurityDefinition("basic", new OpenApiSecurityScheme
-                {
-                    Name = "Authorization",
-                    Type = SecuritySchemeType.Http,
-                    Scheme = "basic",
-                    In = ParameterLocation.Header,
-                    Description = "Basic Authorization header using the Bearer scheme."
-                });
-                c.AddSecurityRequirement(new OpenApiSecurityRequirement
-                {
-                    {
-                        new OpenApiSecurityScheme
-                        {
-                            Reference = new OpenApiReference
-                            {
-                                Type = ReferenceType.SecurityScheme,
-                                Id = "basic"
-                            }
-                        },
-                        Array.Empty<string>()
-                    }
-                });
+                Name = "Authorization",
+                Type = SecuritySchemeType.Http,
+                Scheme = "basic",
+                In = ParameterLocation.Header,
+                Description = "Basic Authorization header using the Bearer scheme."
             });
+            c.AddSecurityRequirement(new OpenApiSecurityRequirement
+            {
+                {
+                    new OpenApiSecurityScheme
+                    {
+                        Reference = new OpenApiReference
+                        {
+                            Type = ReferenceType.SecurityScheme,
+                            Id = "basic"
+                        }
+                    },
+                    Array.Empty<string>()
+                }
+            });
+        });
 
-            return services;
-        }
+        return services;
     }
 }

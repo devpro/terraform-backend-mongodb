@@ -1,7 +1,6 @@
-﻿namespace Devpro.Common.AspNetCore.WebApi.Authentication
+﻿namespace Devpro.Common.AspNetCore.WebApi.Authentication;
+
+public class BasicAuthenticationDefaults
 {
-    public class BasicAuthenticationDefaults
-    {
-        public const string AuthenticationScheme = "Basic";
-    }
+    public const string AuthenticationScheme = "Basic";
 }

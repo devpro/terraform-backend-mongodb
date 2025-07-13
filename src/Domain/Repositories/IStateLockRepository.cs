@@ -2,16 +2,15 @@
 using System.Threading.Tasks;
 using Devpro.TerraformBackend.Domain.Models;
 
-namespace Devpro.TerraformBackend.Domain.Repositories
+namespace Devpro.TerraformBackend.Domain.Repositories;
+
+public interface IStateLockRepository
 {
-    public interface IStateLockRepository
-    {
-        Task<StateLockModel> FindOneAsync(string id);
+    Task<StateLockModel> FindOneAsync(string id);
 
-        Task<List<StateLockModel>> FindAllAsync();
+    Task<List<StateLockModel>> FindAllAsync();
 
-        Task CreateAsync(StateLockModel input);
+    Task CreateAsync(StateLockModel input);
 
-        Task<long> DeleteAsync(StateLockModel input);
-    }
+    Task<long> DeleteAsync(StateLockModel input);
 }
