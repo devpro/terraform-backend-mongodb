@@ -9,18 +9,8 @@ namespace Devpro.TerraformBackend.WebApi.Controllers
     [Authorize]
     [ApiController]
     [Route("state")]
-    public class StateController : ControllerBase
+    public class StateController(IStateRepository stateRepository, IStateLockRepository stateLockRepository) : ControllerBase
     {
-        private readonly IStateRepository _stateRepository;
-
-        private readonly IStateLockRepository _stateLockRepository;
-
-        public StateController(IStateRepository stateRepository, IStateLockRepository stateLockRepository)
-        {
-            _stateRepository = stateRepository;
-            _stateLockRepository = stateLockRepository;
-        }
-
         /// <summary>
         /// Get Terraform state value.
         /// </summary>
@@ -32,7 +22,7 @@ namespace Devpro.TerraformBackend.WebApi.Controllers
         public async Task<string> FindOne(string name, [FromQuery(Name = "ID")] string? lockId = "")
         {
             //TODO: check lock
-            return await _stateRepository.FindOneAsync(name);
+            return await stateRepository.FindOneAsync(name);
         }
 
         /// <summary>
@@ -48,7 +38,7 @@ namespace Devpro.TerraformBackend.WebApi.Controllers
         {
             //TODO: check lock
             var jsonInput = JsonSerializer.Serialize(input);
-            await _stateRepository.CreateAsync(name, jsonInput);
+            await stateRepository.CreateAsync(name, jsonInput);
         }
 
         [HttpGet("/locks", Name = "GetStateLocks")]
@@ -56,7 +46,7 @@ namespace Devpro.TerraformBackend.WebApi.Controllers
         public async Task<List<StateLockModel>> FindAllLocks([FromQuery] string? name = "")
         {
             //TODO: only for admins
-            return await _stateLockRepository.FindAllAsync();
+            return await stateLockRepository.FindAllAsync();
         }
 
         [HttpPost("{name}/lock", Name = "CreateStateLock")]
@@ -66,7 +56,7 @@ namespace Devpro.TerraformBackend.WebApi.Controllers
         public async Task Lock(string name, StateLockModel input)
         {
             input.Name = name;
-            await _stateLockRepository.CreateAsync(input);
+            await stateLockRepository.CreateAsync(input);
         }
 
         [HttpDelete("{name}/lock", Name = "DeleteStateLock")]
@@ -76,7 +66,7 @@ namespace Devpro.TerraformBackend.WebApi.Controllers
         public async Task Unlock(string name, [FromBody] StateLockModel input)
         {
             input.Name = name;
-            await _stateLockRepository.DeleteAsync(input);
+            await stateLockRepository.DeleteAsync(input);
         }
     }
 }

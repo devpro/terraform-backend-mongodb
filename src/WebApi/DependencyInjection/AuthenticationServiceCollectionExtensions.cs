@@ -8,11 +8,6 @@ namespace Devpro.TerraformBackend.WebApi.DependencyInjection
     {
         public static AuthenticationBuilder AddBasicAuthentication(this IServiceCollection services)
         {
-            if (services == null)
-            {
-                throw new ArgumentNullException(nameof(services));
-            }
-
             return services.AddAuthentication()
                 .AddScheme<AuthenticationSchemeOptions, BasicAuthenticationHandler>(BasicAuthenticationDefaults.AuthenticationScheme, null);
         }

@@ -17,7 +17,7 @@ namespace Devpro.TerraformBackend.WebApi.Authentication
                 return Task.FromResult(AuthenticateResult.Fail("Missing Authorization header"));
             }
 
-            var authorizationHeader = Request.Headers["Authorization"].ToString();
+            var authorizationHeader = Request.Headers.Authorization.ToString();
 
             // raises an error if the authorization header is not Basic
             if (!authorizationHeader.StartsWith("Basic ", StringComparison.OrdinalIgnoreCase))
@@ -27,7 +27,7 @@ namespace Devpro.TerraformBackend.WebApi.Authentication
 
             // decrypts the authorization header and split out the client id/secret which is separated by the first ':'
             var authBase64Decoded = Encoding.UTF8.GetString(Convert.FromBase64String(authorizationHeader.Replace("Basic ", "", StringComparison.OrdinalIgnoreCase)));
-            var authSplit = authBase64Decoded.Split(new[] { ':' }, 2);
+            var authSplit = authBase64Decoded.Split([':'], 2);
 
             // sends an error if no username and password
             if (authSplit.Length != 2)
@@ -55,10 +55,10 @@ namespace Devpro.TerraformBackend.WebApi.Authentication
             };
 
             // set the client ID as the name claim type
-            var claimsPrincipal = new ClaimsPrincipal(new ClaimsIdentity(client, new[]
-            {
+            var claimsPrincipal = new ClaimsPrincipal(new ClaimsIdentity(client,
+            [
                 new Claim(ClaimTypes.Name, clientId)
-            }));
+            ]));
 
             // returns a success result
             return Task.FromResult(AuthenticateResult.Success(new AuthenticationTicket(claimsPrincipal, Scheme.Name)));

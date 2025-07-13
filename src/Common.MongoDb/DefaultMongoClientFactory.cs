@@ -6,7 +6,7 @@ namespace Devpro.Common.MongoDb
 {
     public class DefaultMongoClientFactory : IMongoClientFactory
     {
-        public DefaultMongoClientFactory()
+        static DefaultMongoClientFactory()
         {
             RegisterConventions();
         }
@@ -22,7 +22,7 @@ namespace Devpro.Common.MongoDb
         /// <remarks>
         /// See https://github.com/mongodb/mongo-csharp-driver/tree/master/src/MongoDB.Bson/Serialization/Conventions
         /// </remarks>
-        protected virtual void RegisterConventions()
+        protected static void RegisterConventions()
         {
             var pack = new ConventionPack
             {
