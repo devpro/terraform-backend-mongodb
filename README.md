@@ -8,18 +8,24 @@
 Store [Terraform](https://www.terraform.io) state in [MongoDB](https://www.mongodb.com/), using
 [HTTP](https://www.terraform.io/language/settings/backends/http) [backend](https://github.com/hashicorp/terraform/tree/main/internal/backend/remote-state).
 
-## How to use
+Look at the [project development guide](CONTRIBUTING.md) for more technical details. You're more than welcome to contribute!
 
-* Create a MongoDB database (you can provision a cluster in MongoDB Atlas)
+## Quick start
+
+1. Create a MongoDB database (example with a local container but you can provision a cluster in MongoDB Atlas)
 
 ```bash
-# example on a MongoDB container running locally
-docker run --name mongodb -d -p 27017:27017 mongo:5.0
+# starts the container
+docker run --name mongodb -d -p 27017:27017 mongo:8.0
+# (optional) adds indexes for optimal performances
+docker run --rm --link mongodb \
+  -v "$(pwd)/scripts":/home/scripts mongo:8.0 \
+  bash -c "mongo mongodb://mongodb:27017/terraform_backend_dev /home/scripts/mongo-create-index.js"
 ```
 
-* Run the web API
+2. Run the web API
 
-* Update the Terraform file
+3. Update the Terraform file
 
 ```tf
 terraform {
@@ -37,48 +43,15 @@ terraform {
 }
 ```
 
-* Execute usual Terraform command lines
+4. Execute usual Terraform command lines
 
-* (Optional) Add MongoDB indexes for optimal performances
+## Samples
 
-```bash
-# example on a MongoDB container running locally
-docker run --rm --link mongodb \
-  -v "$(pwd)/scripts":/home/scripts mongo:5.0 \
-  bash -c "mongo mongodb://mongodb:27017/terraform_backend_dev /home/scripts/mongo-create-index.js"
-```
+* [Docker](samples/terraform-docker/README.md)
 
-## How to demonstrate
+## Alternatives & references
 
-* Run the [terraform-docker sample](samples/terraform-docker/README.md)
-
-## How to contribute
-
-This is a .NET 8 / C# codebase (open-source, cross-platform, free, object-oriented technologies)
-
-### Project structure
-
-Project name             | Technology | Project type
------------------------- | ---------- | --------------------------
-`Common.AspNetCore`      | .NET 8     | Library
-`Common.MongoDb`         | .NET 8     | Library
-`Common.Runtime`         | .NET 8     | Library
-`Domain`                 | .NET 8     | Library
-`Infrastructure.MongoDb` | .NET 8     | Library
-`WebApi`                 | ASP.NET 8  | Web application (REST API)
-
-### Packages (NuGet)
-
-Name                     | Description
------------------------- | ----------------------------
-`MongoDB.Bson`           | MongoDB BSON
-`MongoDB.Driver`         | MongoDB .NET Driver
-`Swashbuckle.AspNetCore` | OpenAPI / Swagger generation
-`System.Text.Json`       | JSON support
-
-## How to compare
-
-### Samples with other solutions
+### Terraform backend implementations
 
 * [GitLab](https://gitlab.com/gitlab-org/manage/import/gitlab/-/blob/master/doc/user/infrastructure/terraform_state.md)
   * [lib/api/terraform/state.rb](https://gitlab.com/gitlab-org/manage/import/gitlab/-/blob/master/lib/api/terraform/state.rb)
