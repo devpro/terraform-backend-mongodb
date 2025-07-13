@@ -23,3 +23,19 @@ Name                     | Description
 `MongoDB.Driver`         | MongoDB .NET Driver
 `Swashbuckle.AspNetCore` | OpenAPI / Swagger generation
 `System.Text.Json`       | JSON support
+
+## CI/CD pipelines
+
+GitHub Actions are triggered to automate the application lifecycle:
+
+- [CI](.github/workflows/ci.yaml) (Continuous Integration)
+- [PKG](.github/workflows/pkg.yaml) (Continuous Delivery)
+
+GitHub project has been configured, in General / Security / Secrets and Variables / Actions:
+
+- DOCKERHUB_TOKEN
+- DOCKERHUB_USERNAME
+- SONAR_HOST_URL
+- SONAR_ORG
+- SONAR_PROJECT_KEY
+- SONAR_TOKEN
