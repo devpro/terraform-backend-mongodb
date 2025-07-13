@@ -2,7 +2,7 @@
 
 [![CI](https://github.com/devpro/terraform-backend-mongodb/actions/workflows/ci.yaml/badge.svg?branch=main)](https://github.com/devpro/terraform-backend-mongodb/actions/workflows/ci.yaml)
 [![PKG](https://github.com/devpro/terraform-backend-mongodb/actions/workflows/pkg.yaml/badge.svg?branch=main)](https://github.com/devpro/terraform-backend-mongodb/actions/workflows/pkg.yaml)
-[![Quality Gate Status](https://sonarcloud.io/api/project_badges/measure?project=devpro.terraform-backend-mongodb&metric=alert_status)](https://sonarcloud.io/summary/new_code?id=devpro.terraform-backend-mongodb)
+[![Quality Gate Status](https://sonarcloud.io/api/project_badges/measure?project=devpro_terraform-backend-mongodb&metric=alert_status)](https://sonarcloud.io/summary/new_code?id=devpro_terraform-backend-mongodb)
 [![Docker Image Version](https://img.shields.io/docker/v/devprofr/terraform-backend-mongodb?label=Image&logo=docker)](https://hub.docker.com/r/devprofr/terraform-backend-mongodb)
 
 Store [Terraform](https://www.terraform.io) state in [MongoDB](https://www.mongodb.com/), using
