@@ -16,7 +16,7 @@ services:
       - MongoDb__ConnectionStringName=MongoDbLocal
       - MongoDb__DatabaseName=terraform_backend_dev
     ports:
-      - "9001:80"
+      - "9001:8080"
     depends_on:
       - mongodb
   mongodb:

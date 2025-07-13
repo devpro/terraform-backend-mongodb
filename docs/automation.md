@@ -11,9 +11,9 @@ which is defined in [`.gitlab-ci.yml`](../.gitlab-ci.yml) file.
 
 * Add the following variables
 
-Name | Value | Protected | Masked
----- | ----- | --------- | ------
-SONAR_ORGANIZATION | Sonar Organization | No | No
-SONAR_PROJECTKEY | Sonar Project Key | No | No
-SONAR_HOSTURL | Sonar Instance URL | No | No
-SONAR_TOKEN | Sonar Key | No | Yes
+Name               | Value              | Protected | Masked
+------------------ | ------------------ | --------- | ------
+SONAR_ORGANIZATION | Sonar Organization | No        | No
+SONAR_PROJECTKEY   | Sonar Project Key  | No        | No
+SONAR_HOSTURL      | Sonar Instance URL | No        | No
+SONAR_TOKEN        | Sonar Key          | No        | Yes

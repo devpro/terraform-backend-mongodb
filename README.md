@@ -3,7 +3,7 @@
 [![CI](https://github.com/devpro/terraform-backend-mongodb/actions/workflows/ci.yaml/badge.svg?branch=main)](https://github.com/devpro/terraform-backend-mongodb/actions/workflows/ci.yaml)
 [![PKG](https://github.com/devpro/terraform-backend-mongodb/actions/workflows/pkg.yaml/badge.svg?branch=main)](https://github.com/devpro/terraform-backend-mongodb/actions/workflows/pkg.yaml)
 [![Quality Gate Status](https://sonarcloud.io/api/project_badges/measure?project=devpro.terraform-backend-mongodb&metric=alert_status)](https://sonarcloud.io/summary/new_code?id=devpro.terraform-backend-mongodb)
-[![Docker Image Version](https://img.shields.io/docker/v/devprofr/terraform-backend-mongodb?label=Image)](https://hub.docker.com/r/devprofr/terraform-backend-mongodb)
+[![Docker Image Version](https://img.shields.io/docker/v/devprofr/terraform-backend-mongodb?label=Image&logo=docker)](https://hub.docker.com/r/devprofr/terraform-backend-mongodb)
 
 Store [Terraform](https://www.terraform.io) state in [MongoDB](https://www.mongodb.com/), using
 [HTTP](https://www.terraform.io/language/settings/backends/http) [backend](https://github.com/hashicorp/terraform/tree/main/internal/backend/remote-state).
@@ -54,26 +54,27 @@ docker run --rm --link mongodb \
 
 ## How to contribute
 
-This is a .NET 7 / C# codebase (open-source, cross-platform, free, object-oriented technologies)
+This is a .NET 8 / C# codebase (open-source, cross-platform, free, object-oriented technologies)
 
 ### Project structure
 
-Project name | Technology | Project type
------------- | ---------- | ------------
-`Common.AspNetCore` | .NET 7 | Library
-`Common.MongoDb` | .NET 7 | Library
-`Common.Runtime` | .NET 7 | Library
-`Domain` | .NET 7 | Library
-`Infrastructure.MongoDb` | .NET 7 | Library
-`WebApi` | ASP.NET 7 | Web application (REST API)
+Project name             | Technology | Project type
+------------------------ | ---------- | --------------------------
+`Common.AspNetCore`      | .NET 8     | Library
+`Common.MongoDb`         | .NET 8     | Library
+`Common.Runtime`         | .NET 8     | Library
+`Domain`                 | .NET 8     | Library
+`Infrastructure.MongoDb` | .NET 8     | Library
+`WebApi`                 | ASP.NET 8  | Web application (REST API)
 
 ### Packages (NuGet)
 
-Name | Description
----- | -----------
-`MongoDB.Bson`, `MongoDB.Driver` | MongoDB .NET Driver
+Name                     | Description
+------------------------ | ----------------------------
+`MongoDB.Bson`           | MongoDB BSON
+`MongoDB.Driver`         | MongoDB .NET Driver
 `Swashbuckle.AspNetCore` | OpenAPI / Swagger generation
-`System.Text.Json` | JSON support
+`System.Text.Json`       | JSON support
 
 ## How to compare
 
