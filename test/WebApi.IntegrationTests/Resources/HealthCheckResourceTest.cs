@@ -6,7 +6,8 @@ using Xunit;
 namespace Devpro.TerraformBackend.WebApi.IntegrationTests.Resources
 {
     [Trait("Category", "IntegrationTests")]
-    public class HealthCheckResourceTest(WebApplicationFactory<Program> factory) : IntegrationTestBase(factory)
+    public class HealthCheckResourceTest(WebApplicationFactory<Program> factory)
+        : IntegrationTestBase(factory)
     {
         [Fact]
         [Trait("Mode", "Readonly")]
