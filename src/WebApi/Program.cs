@@ -18,7 +18,7 @@ app.UseHttpsRedirection(configuration);
 app.UseAuthentication();
 app.UseAuthorization();
 app.MapControllers();
-app.MapHealthChecks(WebApiConfiguration.HealthCheckEndpoint);
+app.MapHealthChecks(WebApiConfiguration.HealthCheckEndpoint).AllowAnonymous();
 
 // runs the application
 app.Run();

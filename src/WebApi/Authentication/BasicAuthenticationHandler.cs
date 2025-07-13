@@ -47,7 +47,7 @@ public class BasicAuthenticationHandler(IOptionsMonitor<AuthenticationSchemeOpti
             return Task.FromResult(AuthenticateResult.Fail(string.Format("The secret is incorrect for the client '{0}'", clientId)));
         }
 
-        // authenicates the client using basic authentication
+        // authenticates the client using basic authentication
         var client = new BasicAuthenticationClient
         {
             AuthenticationType = BasicAuthenticationDefaults.AuthenticationScheme,

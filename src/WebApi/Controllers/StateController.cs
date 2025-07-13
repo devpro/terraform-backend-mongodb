@@ -34,11 +34,12 @@ public class StateController(IStateRepository stateRepository, IStateLockReposit
     [HttpPost("{name}", Name = "CreateState")]
     [ProducesResponseType(201)]
     [Consumes("application/json", "text/json")]
-    public async Task Create(string name, [FromBody] object input, [FromQuery(Name = "ID")] string? lockId = "")
+    public async Task<IActionResult> Create(string name, [FromBody] object input, [FromQuery(Name = "ID")] string? lockId = "")
     {
         //TODO: check lock
         var jsonInput = JsonSerializer.Serialize(input);
         await stateRepository.CreateAsync(name, jsonInput);
+        return CreatedAtRoute("GetState", new { name }, null);
     }
 
     [HttpGet("/locks", Name = "GetStateLocks")]
