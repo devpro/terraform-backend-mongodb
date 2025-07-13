@@ -26,10 +26,7 @@ namespace Devpro.Common.AspNetCore
 
         public override bool CanRead(InputFormatterContext context)
         {
-            if (context == null)
-            {
-                throw new ArgumentNullException(nameof(context));
-            }
+            ArgumentNullException.ThrowIfNull(context);
 
             var contentType = context.HttpContext.Request.ContentType;
             return string.IsNullOrEmpty(contentType)
