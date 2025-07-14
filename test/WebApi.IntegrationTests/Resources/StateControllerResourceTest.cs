@@ -23,20 +23,21 @@ public class StateControllerResourceTest(WebApplicationFactory<Program> factory)
     }
 
     [Fact]
-    public async Task StateResource_CreateNew_ReturnsCreated()
+    public async Task StateResource_CreateFindDelete_IsSuccess()
     {
         // Arrange
         var client = CreateClient(true);
         var name = Faker.Random.Word();
-        var lockId = Faker.Random.Guid().ToString();
         var payload = GeneratePayload();
 
-        // Act
-        var response = await client.PostAsync($"/state/{name}?ID={lockId}", payload);
-
-        // Assert
+        // Act & Assert
+        var createResponse = await client.PostAsync($"/state/{name}", payload);
         //TODO: test resource URL in response
-        await response.CheckResponseAndGetContent(HttpStatusCode.OK, null, string.Empty);
+        await createResponse.CheckResponseAndGetContent(HttpStatusCode.OK, null, string.Empty);
+        var findResponse = await client.GetAsync($"/state/{name}");
+        await findResponse.CheckResponseAndGetContent(HttpStatusCode.OK, "text/plain; charset=utf-8");
+        var deleteResponse = await client.DeleteAsync($"/state/{name}");
+        await deleteResponse.CheckResponseAndGetContent(HttpStatusCode.OK, null);
     }
 
     [Fact]

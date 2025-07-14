@@ -1,6 +1,12 @@
 # Terraform with local-exec
 
-## Run the sample
+## Setup
+
+Run the application, from the command line or the IDE.
+
+[Terraform binary](https://developer.hashicorp.com/terraform/install) is the only other tool required on the machine.
+
+## Workflow
 
 Go to the sample directory:
 
