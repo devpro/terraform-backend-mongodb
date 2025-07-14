@@ -47,14 +47,13 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "WebApi.IntegrationTests", "
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Common.AspNetCore.WebApi", "src\Common.AspNetCore.WebApi\Common.AspNetCore.WebApi.csproj", "{19336002-C959-4E76-B112-861F93CF6423}"
 EndProject
-Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "pipelines", "pipelines", "{02EA681E-C7D8-13C7-8484-4AC65E1B71E8}"
-	ProjectSection(SolutionItems) = preProject
-		.gitlab-ci.yml = .gitlab-ci.yml
-		.github\workflows\ci.yaml = .github\workflows\ci.yaml
-		.github\workflows\pkg.yaml = .github\workflows\pkg.yaml
-	EndProjectSection
-EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "1 - Framework", "1 - Framework", "{0C1E6968-B289-4378-84CF-B64E05E643A5}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "terraform-local-exec", "terraform-local-exec", "{02EA681E-C7D8-13C7-8484-4AC65E1B71E8}"
+	ProjectSection(SolutionItems) = preProject
+		samples\terraform-local-exec\main.tf = samples\terraform-local-exec\main.tf
+		samples\terraform-local-exec\README.md = samples\terraform-local-exec\README.md
+	EndProjectSection
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -105,7 +104,7 @@ Global
 		{7F01D180-1A34-4377-B4E5-C852D8302CE7} = {7B3738E0-6F86-4358-B55C-5AAD42B24F81}
 		{B055FFAF-8261-43B1-866A-12E289D5D7DC} = {6D13F54F-4547-49C7-8136-01BFB4BBEE1E}
 		{19336002-C959-4E76-B112-861F93CF6423} = {0C1E6968-B289-4378-84CF-B64E05E643A5}
-		{02EA681E-C7D8-13C7-8484-4AC65E1B71E8} = {7B3738E0-6F86-4358-B55C-5AAD42B24F81}
+		{02EA681E-C7D8-13C7-8484-4AC65E1B71E8} = {3C2E7F7E-1F8E-49D1-AD56-EC60BEB5299D}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {DC545534-6A10-475B-A0DA-3374CC025D82}
