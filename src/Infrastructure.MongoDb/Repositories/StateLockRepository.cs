@@ -40,8 +40,6 @@ namespace Devpro.TerraformBackend.Infrastructure.MongoDb.Repositories
 
         public async Task<StateLockModel> CreateAsync(StateLockModel input)
         {
-            input.Id = ObjectId.GenerateNewId().ToString();
-            input.Created = DateTime.UtcNow.ToString("yyyy-MM-ddTHH:mm:ss.fff+00:00");
             await _modelCollection.InsertOneAsync(input);
             return input;
         }

@@ -114,7 +114,7 @@ public class StateController(IStateRepository stateRepository, IStateLockReposit
         var existingLock = await stateLockRepository.FindOneAsync(name);
         if (existingLock != null)
         {
-            if (!string.IsNullOrEmpty(lockId))
+            if (string.IsNullOrEmpty(lockId))
             {
                 return StatusCode(423, new { Message = "The state is locked." });
             }

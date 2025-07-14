@@ -1,7 +1,5 @@
 ﻿using System.Net.Http.Headers;
 using Devpro.TerraformBackend.Domain.Models;
-using Microsoft.AspNetCore.Hosting;
-using Microsoft.Extensions.Configuration;
 
 namespace Devpro.TerraformBackend.WebApi.IntegrationTests;
 
@@ -15,7 +13,9 @@ public abstract class IntegrationTestBase(WebApplicationFactory<Program> factory
 
     protected Faker<StateModel> StateFaker { get; } = new Faker<StateModel>("en");
 
-    protected Faker<StateLockModel> StateLockFaker { get; } = new Faker<StateLockModel>("en");
+    protected Faker<StateLockModel> StateLockFaker { get; } = new Faker<StateLockModel>("en")
+        .RuleFor(u => u.Id, f => Guid.NewGuid().ToString())
+        .RuleFor(o => o.Created, f => DateTime.UtcNow.ToString("yyyy-MM-ddTHH:mm:ss.fff+00:00"));
 
     protected HttpClient CreateClient(bool isAuthorizationNeeded = false)
     {
