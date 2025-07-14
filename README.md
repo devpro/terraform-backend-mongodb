@@ -6,7 +6,7 @@
 [![Docker Image Version](https://img.shields.io/docker/v/devprofr/terraform-backend-mongodb?label=Image&logo=docker)](https://hub.docker.com/r/devprofr/terraform-backend-mongodb)
 
 Store [Terraform](https://www.terraform.io) state in [MongoDB](https://www.mongodb.com/), using
-[HTTP](https://www.terraform.io/language/settings/backends/http) [backend](https://github.com/hashicorp/terraform/tree/main/internal/backend/remote-state).
+[HTTP](https://developer.hashicorp.com/terraform/language/backend/http) [backend](https://github.com/hashicorp/terraform/tree/main/internal/backend/remote-state).
 
 Look at the [project development guide](CONTRIBUTING.md) for more technical details. You're more than welcome to contribute!
 

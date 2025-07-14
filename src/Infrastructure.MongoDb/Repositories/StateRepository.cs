@@ -40,5 +40,13 @@ namespace Devpro.TerraformBackend.Infrastructure.MongoDb.Repositories
 
             return document["value"].ToJson();
         }
+
+
+        public async Task<bool> DeleteAsync(string name)
+        {
+            var collection = GetCollection<BsonDocument>();
+            var deleteResult = await collection.DeleteOneAsync(new BsonDocument("name", name));
+            return deleteResult.DeletedCount > 0;
+        }
     }
 }

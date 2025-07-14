@@ -1,5 +1,4 @@
-﻿using System;
-using MongoDB.Bson.Serialization.Attributes;
+﻿using MongoDB.Bson.Serialization.Attributes;
 
 namespace Devpro.TerraformBackend.Domain.Models;
 
@@ -16,5 +15,5 @@ public class StateValueModel
 
     public object Outputs { get; set; } = new { };
 
-    public object[] Resources { get; set; } = Array.Empty<object>();
+    public object[] Resources { get; set; } = [];
 }

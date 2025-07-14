@@ -7,4 +7,6 @@ public interface IStateRepository
     Task<string> FindOneAsync(string name);
 
     Task CreateAsync(string name, string jsonInput);
+
+    Task<bool> DeleteAsync(string name);
 }

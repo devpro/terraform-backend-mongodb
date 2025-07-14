@@ -6,11 +6,9 @@ namespace Devpro.TerraformBackend.Domain.Repositories;
 
 public interface IStateLockRepository
 {
-    Task<StateLockModel> FindOneAsync(string id);
+    Task<StateLockModel> FindOneAsync(string name);
 
-    Task<List<StateLockModel>> FindAllAsync();
+    Task<StateLockModel> CreateAsync(StateLockModel input);
 
-    Task CreateAsync(StateLockModel input);
-
-    Task<long> DeleteAsync(StateLockModel input);
+    Task<bool> DeleteAsync(StateLockModel input);
 }

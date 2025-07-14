@@ -4,9 +4,16 @@ namespace Devpro.TerraformBackend.WebApi.IntegrationTests.Http;
 
 internal static class HttpResponseMessageExtensions
 {
-    public static async Task<string?> CheckResponseAndGetContent(this HttpResponseMessage response, HttpStatusCode expectedStatusCode, string? expectedContentType, string? expectedContent)
+    public static async Task<string?> CheckResponseAndGetContent(this HttpResponseMessage response,
+        HttpStatusCode expectedStatusCode, string? expectedContentType, string? expectedContent = null)
     {
-        response.StatusCode.Should().Be(expectedStatusCode);
+        var result = await response.Content.ReadAsStringAsync();
+
+        if (expectedContent != null)
+        {
+            result.Should().NotBeNull();
+            result.Should().Be(expectedContent);
+        }
 
         if (expectedContentType == null)
         {
@@ -18,17 +25,7 @@ internal static class HttpResponseMessageExtensions
             response.Content.Headers.ContentType?.ToString().Should().Be(expectedContentType);
         }
 
-        var result = await response.Content.ReadAsStringAsync();
-
-        if (expectedContent == null)
-        {
-            result.Should().BeNull();
-        }
-        else
-        {
-            result.Should().NotBeNull();
-            result.Should().Be(expectedContent);
-        }
+        response.StatusCode.Should().Be(expectedStatusCode);
 
         return result;
     }
