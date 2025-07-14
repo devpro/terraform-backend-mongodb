@@ -4,21 +4,30 @@ namespace Devpro.TerraformBackend.WebApi.DependencyInjection;
 
 internal static class BehaviorServiceCollectionExtensions
 {
-    internal static IServiceCollection AddBehaviors(this IServiceCollection services)
+    /// <summary>
+    /// Ensures that every time an invalid model state occurs in the API, a warning log is generated with the request path.
+    /// </summary>
+    /// <param name="services"></param>
+    /// <returns></returns>
+    internal static IServiceCollection AddInvalidModelStateLog(this IServiceCollection services)
     {
         services.PostConfigure<ApiBehaviorOptions>(options =>
         {
-            var builtInFactory = options.InvalidModelStateResponseFactory;
+            var defaultFactory = options.InvalidModelStateResponseFactory;
 
             options.InvalidModelStateResponseFactory = context =>
             {
                 var loggerFactory = context.HttpContext.RequestServices
                     .GetRequiredService<ILoggerFactory>();
-                var logger = loggerFactory.CreateLogger("PostConfigure");
+                var logger = loggerFactory.CreateLogger(nameof(BehaviorServiceCollectionExtensions));
 
-                logger.LogWarning("Invalid model {RequestPath}", context.HttpContext.Request.Path);
+                var errors = context.ModelState
+                    .Where(m => m.Value?.Errors.Any() == true)
+                    .Select(m => new { Field = m.Key, Errors = m.Value!.Errors.Select(e => e.ErrorMessage) });
 
-                return builtInFactory(context);
+                logger.LogWarning("Invalid model state for {RequestPath}. Validation errors {@ModelErrors}", context.HttpContext.Request.Path, errors);
+
+                return defaultFactory(context);
             };
         });
 
