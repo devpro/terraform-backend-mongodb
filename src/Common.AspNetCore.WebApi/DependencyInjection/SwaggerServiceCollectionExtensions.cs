@@ -1,6 +1,8 @@
-﻿using Microsoft.OpenApi.Models;
+﻿using Devpro.Common.AspNetCore.WebApi.Configuration;
+using Microsoft.Extensions.DependencyInjection;
+using Microsoft.OpenApi.Models;
 
-namespace Devpro.TerraformBackend.WebApi.DependencyInjection;
+namespace Devpro.Common.AspNetCore.WebApi.DependencyInjection;
 
 public static class SwaggerServiceCollectionExtensions
 {

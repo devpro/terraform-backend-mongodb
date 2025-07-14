@@ -9,7 +9,7 @@ builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGenWithBasicAuth(configuration);
 builder.Services.AddBasicAuthentication();
 builder.Services.AddHealthChecks();
-builder.Services.AddBehaviors();
+builder.Services.AddInvalidModelStateLog();
 
 // create the application and configures the HTTP request pipeline
 var app = builder.Build();

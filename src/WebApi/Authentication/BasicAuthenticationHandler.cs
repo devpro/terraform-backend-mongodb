@@ -12,7 +12,7 @@ public class BasicAuthenticationHandler(IOptionsMonitor<AuthenticationSchemeOpti
 {
     protected override Task<AuthenticateResult> HandleAuthenticateAsync()
     {
-        // raises an error if no authorization header
+        // checks authorization header
         if (!Request.Headers.ContainsKey("Authorization"))
         {
             return Task.FromResult(AuthenticateResult.Fail("Missing Authorization header"));
@@ -20,23 +20,20 @@ public class BasicAuthenticationHandler(IOptionsMonitor<AuthenticationSchemeOpti
 
         var authorizationHeader = Request.Headers.Authorization.ToString();
 
-        // raises an error if the authorization header is not Basic
+        // checks authorization header starts with Basic
         if (!authorizationHeader.StartsWith("Basic ", StringComparison.OrdinalIgnoreCase))
         {
             return Task.FromResult(AuthenticateResult.Fail("Authorization header does not start with 'Basic'"));
         }
 
-        // decrypts the authorization header and split out the client id/secret which is separated by the first ':'
+        // decrypts the authorization header and split out the client id/secret
         var authBase64Decoded = Encoding.UTF8.GetString(Convert.FromBase64String(authorizationHeader.Replace("Basic ", "", StringComparison.OrdinalIgnoreCase)));
         var authSplit = authBase64Decoded.Split([':'], 2);
-
-        // sends an error if no username and password
         if (authSplit.Length != 2)
         {
             return Task.FromResult(AuthenticateResult.Fail("Invalid Authorization header format"));
         }
 
-        // stores the client ID and secret
         var clientId = authSplit[0];
         var clientSecret = authSplit[1];
 
@@ -47,7 +44,6 @@ public class BasicAuthenticationHandler(IOptionsMonitor<AuthenticationSchemeOpti
             return Task.FromResult(AuthenticateResult.Fail(string.Format("The secret is incorrect for the client '{0}'", clientId)));
         }
 
-        // authenticates the client using basic authentication
         var client = new BasicAuthenticationClient
         {
             AuthenticationType = BasicAuthenticationDefaults.AuthenticationScheme,
@@ -55,13 +51,11 @@ public class BasicAuthenticationHandler(IOptionsMonitor<AuthenticationSchemeOpti
             Name = clientId
         };
 
-        // set the client ID as the name claim type
         var claimsPrincipal = new ClaimsPrincipal(new ClaimsIdentity(client,
         [
             new Claim(ClaimTypes.Name, clientId)
         ]));
 
-        // returns a success result
         return Task.FromResult(AuthenticateResult.Success(new AuthenticationTicket(claimsPrincipal, Scheme.Name)));
     }
 }

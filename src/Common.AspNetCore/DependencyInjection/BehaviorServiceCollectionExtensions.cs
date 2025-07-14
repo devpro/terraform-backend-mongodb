@@ -1,15 +1,18 @@
-﻿using Microsoft.AspNetCore.Mvc;
+﻿using System.Linq;
+using Microsoft.AspNetCore.Mvc;
+using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Logging;
 
-namespace Devpro.TerraformBackend.WebApi.DependencyInjection;
+namespace Devpro.Common.AspNetCore.DependencyInjection;
 
-internal static class BehaviorServiceCollectionExtensions
+public static class BehaviorServiceCollectionExtensions
 {
     /// <summary>
     /// Ensures that every time an invalid model state occurs in the API, a warning log is generated with the request path.
     /// </summary>
     /// <param name="services"></param>
     /// <returns></returns>
-    internal static IServiceCollection AddInvalidModelStateLog(this IServiceCollection services)
+    public static IServiceCollection AddInvalidModelStateLog(this IServiceCollection services)
     {
         services.PostConfigure<ApiBehaviorOptions>(options =>
         {

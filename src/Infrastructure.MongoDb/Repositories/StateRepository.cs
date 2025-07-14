@@ -8,13 +8,9 @@ using MongoDB.Driver;
 
 namespace Devpro.TerraformBackend.Infrastructure.MongoDb.Repositories
 {
-    public class StateRepository : RepositoryBase, IStateRepository
+    public class StateRepository(IMongoClientFactory mongoClientFactory, ILogger<StateRepository> logger, MongoDbConfiguration configuration)
+        : RepositoryBase(mongoClientFactory, logger, configuration), IStateRepository
     {
-        public StateRepository(IMongoClientFactory mongoClientFactory, ILogger<StateRepository> logger, MongoDbConfiguration configuration)
-            : base(mongoClientFactory, logger, configuration)
-        {
-        }
-
         protected override string CollectionName => "tf_state";
 
         public async Task CreateAsync(string name, string jsonInput)

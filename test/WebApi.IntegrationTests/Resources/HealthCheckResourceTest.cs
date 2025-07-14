@@ -1,7 +1,4 @@
-﻿using System.Threading.Tasks;
-using FluentAssertions;
-using Microsoft.AspNetCore.Mvc.Testing;
-using Xunit;
+﻿using Devpro.TerraformBackend.WebApi.IntegrationTests.Http;
 
 namespace Devpro.TerraformBackend.WebApi.IntegrationTests.Resources
 {
@@ -20,12 +17,7 @@ namespace Devpro.TerraformBackend.WebApi.IntegrationTests.Resources
             var response = await client.GetAsync("/health");
 
             // Assert
-            response.StatusCode.Should().Be(System.Net.HttpStatusCode.OK);
-            response.Content.Headers.ContentType.Should().NotBeNull();
-            response.Content.Headers.ContentType?.ToString().Should().Be("text/plain");
-            var result = await response.Content.ReadAsStringAsync();
-            result.Should().NotBeNull();
-            result.Should().Be("Healthy");
+            await response.CheckResponseAndGetContent(System.Net.HttpStatusCode.OK, "text/plain", "Healthy");
         }
     }
 }
