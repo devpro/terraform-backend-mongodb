@@ -12,7 +12,7 @@ public class StateLockModel
     [BsonId]
     [BsonRepresentation(BsonType.String)]
     [JsonPropertyName("ID")]
-    public string Id { get; set; } = string.Empty;
+    public string Id { get; set; } = null!;
 
     /// <summary>
     /// 
