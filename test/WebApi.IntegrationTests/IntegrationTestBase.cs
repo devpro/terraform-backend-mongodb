@@ -33,16 +33,6 @@ public abstract class IntegrationTestBase(WebApplicationFactory<Program> factory
         return client;
     }
 
-    protected StringContent GeneratePayload()
-    {
-        var dummy = new
-        {
-            Property1 = Faker.Random.String(),
-            Property2 = Faker.Random.Int()
-        };
-        return Serialize(dummy);
-    }
-
     protected static StringContent Serialize<T>(T value, string mediaType = "application/json")
     {
         return new StringContent(JsonSerializer.Serialize(value), Encoding.UTF8, mediaType);
