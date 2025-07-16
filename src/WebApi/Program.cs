@@ -1,8 +1,6 @@
-﻿// creates the builder
+﻿// creates the web application builder and adds services to the container
 var builder = WebApplication.CreateBuilder(args);
 var configuration = new ApplicationConfiguration(builder.Configuration);
-
-// adds services to the container
 builder.Services.AddControllers(x => x.InputFormatters.Insert(0, new RawRequestBodyFormatter()));
 builder.Services.AddInfrastructure(configuration);
 builder.Services.AddEndpointsApiExplorer();
@@ -11,7 +9,7 @@ builder.Services.AddBasicAuthentication();
 builder.Services.AddHealthChecks();
 builder.Services.AddInvalidModelStateLog();
 
-// create the application and configures the HTTP request pipeline
+// creates the application and configures the HTTP request pipeline
 var app = builder.Build();
 app.UseSwagger(configuration);
 app.UseHttpsRedirection(configuration);

@@ -15,6 +15,11 @@ public class StateLockModel
     public string Id { get; set; } = string.Empty;
 
     /// <summary>
+    /// 
+    /// </summary>
+    public string Tenant { get; set; } = string.Empty;
+
+    /// <summary>
     /// Name of the Terraform state.
     /// </summary>
     public string Name { get; set; } = string.Empty;

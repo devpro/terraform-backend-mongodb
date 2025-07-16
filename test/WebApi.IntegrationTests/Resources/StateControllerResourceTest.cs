@@ -7,6 +7,8 @@ namespace Devpro.TerraformBackend.WebApi.IntegrationTests.Resources;
 public class StateControllerResourceTest(WebApplicationFactory<Program> factory)
     : IntegrationTestBase(factory)
 {
+    private string tenant = "dummy";
+
     [Fact]
     [Trait("Mode", "Readonly")]
     public async Task StateResource_GetNotExisting_ReturnsNoContent()
@@ -16,7 +18,7 @@ public class StateControllerResourceTest(WebApplicationFactory<Program> factory)
         var name = Faker.Random.Word();
 
         // Act
-        var response = await client.GetAsync($"/state/{name}");
+        var response = await client.GetAsync($"/{tenant}/state/{name}");
 
         // Assert
         await response.CheckResponseAndGetContent(HttpStatusCode.NoContent, null);
@@ -31,12 +33,12 @@ public class StateControllerResourceTest(WebApplicationFactory<Program> factory)
         var state = StateFaker.Generate();
 
         // Act & Assert
-        var createResponse = await client.PostAsync($"/state/{name}", Serialize(state));
+        var createResponse = await client.PostAsync($"/{tenant}/state/{name}", Serialize(state));
         //TODO: test resource URL in response
         await createResponse.CheckResponseAndGetContent(HttpStatusCode.OK, null, string.Empty);
-        var findResponse = await client.GetAsync($"/state/{name}");
+        var findResponse = await client.GetAsync($"/{tenant}/state/{name}");
         await findResponse.CheckResponseAndGetContent(HttpStatusCode.OK, "text/plain; charset=utf-8");
-        var deleteResponse = await client.DeleteAsync($"/state/{name}");
+        var deleteResponse = await client.DeleteAsync($"/{tenant}/state/{name}");
         await deleteResponse.CheckResponseAndGetContent(HttpStatusCode.OK, null);
     }
 
@@ -50,18 +52,18 @@ public class StateControllerResourceTest(WebApplicationFactory<Program> factory)
         var stateLock = StateLockFaker.Generate();
 
         // Act & Assert
-        var createLockResponse = await client.PostAsync($"/state/{name}/lock", Serialize(stateLock));
+        var createLockResponse = await client.PostAsync($"/{tenant}/state/{name}/lock", Serialize(stateLock));
         await createLockResponse.CheckResponseAndGetContent(HttpStatusCode.OK, "application/json; charset=utf-8", null);
-        var deleteLockRequest = new HttpRequestMessage(HttpMethod.Delete, $"/state/{name}/lock")
+        var missingLockIdUpdateResponse = await client.PostAsync($"/{tenant}/state/{name}", Serialize(state));
+        await missingLockIdUpdateResponse.CheckResponseAndGetContent(HttpStatusCode.Locked, "application/json; charset=utf-8", "{\"message\":\"The state is locked.\"}");
+        var wrongLockIdUpdateResponse = await client.PostAsync($"/{tenant}/state/{name}?ID=1234", Serialize(state));
+        await wrongLockIdUpdateResponse.CheckResponseAndGetContent(HttpStatusCode.Conflict, "text/plain; charset=utf-8", "LockId doesn't match with the existing lock");
+        var updateResponse = await client.PostAsync($"/{tenant}/state/{name}?ID={stateLock.Id}", Serialize(state));
+        await updateResponse.CheckResponseAndGetContent(HttpStatusCode.OK, null, string.Empty);
+        var deleteLockRequest = new HttpRequestMessage(HttpMethod.Delete, $"/{tenant}/state/{name}/lock")
         {
             Content = Serialize(stateLock)
         };
-        var missingLockIdUpdateResponse = await client.PostAsync($"/state/{name}", Serialize(state));
-        await missingLockIdUpdateResponse.CheckResponseAndGetContent(HttpStatusCode.Locked, "application/json; charset=utf-8", "{\"message\":\"The state is locked.\"}");
-        var wrongLockIdUpdateResponse = await client.PostAsync($"/state/{name}?ID=1234", Serialize(state));
-        await wrongLockIdUpdateResponse.CheckResponseAndGetContent(HttpStatusCode.Conflict, "text/plain; charset=utf-8", "LockId doesn't match with the existing lock");
-        var updateResponse = await client.PostAsync($"/state/{name}?ID={stateLock.Id}", Serialize(state));
-        await updateResponse.CheckResponseAndGetContent(HttpStatusCode.OK, null, string.Empty);
         var deleteLockResponse = await client.SendAsync(deleteLockRequest);
         await deleteLockResponse.CheckResponseAndGetContent(HttpStatusCode.OK, null);
     }
