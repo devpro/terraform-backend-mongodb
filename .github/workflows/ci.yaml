@@ -35,6 +35,13 @@ jobs:
           path: workflow-parts
       - name: Start MongoDB
         uses: ./workflow-parts/mongodb/start
+      - name: Initialize database
+        run: |
+          mongosh mongodb://localhost:27017/terraform_backend_dev scripts/mongo-create-index.js
+          sudo apt-get -y install apache2-utils
+          ./scripts/mongo-create-user.sh admin admin123 dummy
+          mongosh mongodb://localhost:27017/terraform_backend_dev scripts/add-user.js
+        shell: bash
       - name: Build, lint & test
         uses: ./workflow-parts/dotnet/build-lint-test
         with:

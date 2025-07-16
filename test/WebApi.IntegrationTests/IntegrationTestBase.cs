@@ -29,7 +29,7 @@ public abstract class IntegrationTestBase(WebApplicationFactory<Program> factory
         if (isAuthorizationNeeded)
         {
             client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Basic",
-                Convert.ToBase64String(Encoding.ASCII.GetBytes(string.Format("{0}:{1}", "admin", "admin"))));
+                Convert.ToBase64String(Encoding.ASCII.GetBytes(string.Format("{0}:{1}", "admin", "admin123"))));
         }
 
         return client;
