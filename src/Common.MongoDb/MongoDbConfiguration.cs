@@ -1,9 +1,8 @@
-﻿namespace Devpro.Common.MongoDb
-{
-    public class MongoDbConfiguration
-    {
-        public string ConnectionString { get; set; } = string.Empty;
+﻿namespace Devpro.Common.MongoDb;
 
-        public string DatabaseName { get; set; } = string.Empty;
-    }
+public class MongoDbConfiguration
+{
+    public string ConnectionString { get; set; } = string.Empty;
+
+    public string DatabaseName { get; set; } = string.Empty;
 }

@@ -1,51 +1,46 @@
-﻿using System.Collections.Generic;
-using System.Threading.Tasks;
+﻿using System.Threading.Tasks;
 using Devpro.Common.MongoDb;
 using Devpro.TerraformBackend.Domain.Models;
 using Devpro.TerraformBackend.Domain.Repositories;
 using Microsoft.Extensions.Logging;
 using MongoDB.Driver;
 
-namespace Devpro.TerraformBackend.Infrastructure.MongoDb.Repositories
+namespace Devpro.TerraformBackend.Infrastructure.MongoDb.Repositories;
+
+public class StateLockRepository : RepositoryBase, IStateLockRepository
 {
-    public class StateLockRepository : RepositoryBase, IStateLockRepository
+    private readonly IMongoCollection<StateLockModel> _modelCollection;
+
+    public StateLockRepository(IMongoClientFactory mongoClientFactory, ILogger<StateLockRepository> logger, MongoDbConfiguration configuration)
+        : base(mongoClientFactory, logger, configuration)
     {
-        //private readonly IMongoCollection<BsonDocument> _bsonCollection;
+        _modelCollection = GetCollection<StateLockModel>();
+    }
 
-        private readonly IMongoCollection<StateLockModel> _modelCollection;
+    protected override string CollectionName => "tf_state_lock";
 
-        public StateLockRepository(IMongoClientFactory mongoClientFactory, ILogger<StateLockRepository> logger, MongoDbConfiguration configuration)
-            : base(mongoClientFactory, logger, configuration)
-        {
-            //_bsonCollection = GetCollection<BsonDocument>();
-            _modelCollection = GetCollection<StateLockModel>();
-        }
+    public async Task<StateLockModel?> FindOneAsync(string tenant, string name)
+    {
+        return await _modelCollection.Find(x => x.Name == name).FirstOrDefaultAsync();
+    }
 
-        protected override string CollectionName => "tf_state_lock";
+    //public async Task<List<StateLockModel>> FindAllAsync()
+    //{
+    //    //var documents = await _bsonCollection.Find(new BsonDocument()).ToListAsync();
+    //    //return documents.Select(x => BsonSerializer.Deserialize<StateLockModel>(x)).ToList();
 
-        public async Task<StateLockModel> FindOneAsync(string id)
-        {
-            return await _modelCollection.Find(x => x.Id == id).FirstOrDefaultAsync();
-        }
+    //    return await _modelCollection.Find(_ => true).ToListAsync();
+    //}
 
-        public async Task<List<StateLockModel>> FindAllAsync()
-        {
-            //var documents = await _bsonCollection.Find(new BsonDocument()).ToListAsync();
-            //return documents.Select(x => BsonSerializer.Deserialize<StateLockModel>(x)).ToList();
+    public async Task<StateLockModel> CreateAsync(StateLockModel input)
+    {
+        await _modelCollection.InsertOneAsync(input);
+        return input;
+    }
 
-            return await _modelCollection.Find(_ => true).ToListAsync();
-        }
-
-        public async Task CreateAsync(StateLockModel input)
-        {
-            //TODO: check a lock doesn't exist already
-            await _modelCollection.InsertOneAsync(input);
-        }
-
-        public async Task<long> DeleteAsync(StateLockModel input)
-        {
-            var result = await _modelCollection.DeleteOneAsync(x => x.Id == input.Id && x.Name == input.Name);
-            return result.DeletedCount;
-        }
+    public async Task<bool> DeleteAsync(StateLockModel input)
+    {
+        var result = await _modelCollection.DeleteOneAsync(x => x.Tenant == input.Tenant && x.Name == input.Name && x.Id == input.Id);
+        return result.DeletedCount > 0;
     }
 }

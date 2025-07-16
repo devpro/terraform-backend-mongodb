@@ -1,32 +1,30 @@
-# Terraform backend management in MongoDB
+# MongoDB HTTP backend for Terraform/OpenTofu state
 
 [![CI](https://github.com/devpro/terraform-backend-mongodb/actions/workflows/ci.yaml/badge.svg?branch=main)](https://github.com/devpro/terraform-backend-mongodb/actions/workflows/ci.yaml)
 [![PKG](https://github.com/devpro/terraform-backend-mongodb/actions/workflows/pkg.yaml/badge.svg?branch=main)](https://github.com/devpro/terraform-backend-mongodb/actions/workflows/pkg.yaml)
-[![Quality Gate Status](https://sonarcloud.io/api/project_badges/measure?project=devpro.terraform-backend-mongodb&metric=alert_status)](https://sonarcloud.io/summary/new_code?id=devpro.terraform-backend-mongodb)
+[![Quality Gate Status](https://sonarcloud.io/api/project_badges/measure?project=devpro_terraform-backend-mongodb&metric=alert_status)](https://sonarcloud.io/summary/new_code?id=devpro_terraform-backend-mongodb)
 [![Docker Image Version](https://img.shields.io/docker/v/devprofr/terraform-backend-mongodb?label=Image&logo=docker)](https://hub.docker.com/r/devprofr/terraform-backend-mongodb)
 
-Store [Terraform](https://www.terraform.io) state in [MongoDB](https://www.mongodb.com/), using
-[HTTP](https://www.terraform.io/language/settings/backends/http) [backend](https://github.com/hashicorp/terraform/tree/main/internal/backend/remote-state).
+Manage Terraform/OpenTofu state through a secured REST API and take advatange of MongoDB greatness!
 
-## How to use
+The [project development guide](CONTRIBUTING.md) provides the implementation details.
 
-* Create a MongoDB database (you can provision a cluster in MongoDB Atlas)
+## Quick start
 
-```bash
-# example on a MongoDB container running locally
-docker run --name mongodb -d -p 27017:27017 mongo:5.0
-```
+1. Make sure a you have access to a MongoDB database
 
-* Run the web API
+2. Configure the application with the MongoDB database connection information
 
-* Update the Terraform file
+2. Run the web API
+
+3. Update the Terraform file
 
 ```tf
 terraform {
   backend "http" {
-    address                = "<webapi_url>/state/<project_name>"
-    lock_address           = "<webapi_url>/state/<project_name>/lock"
-    unlock_address         = "<webapi_url>/state/<project_name>/lock"
+    address                = "<webapi_url>/<tenant>/state/<project_name>"
+    lock_address           = "<webapi_url>/<tenant>/state/<project_name>/lock"
+    unlock_address         = "<webapi_url>/<tenant>/state/<project_name>/lock"
     lock_method            = "POST"
     unlock_method          = "DELETE"
     username               = "<api_username>"
@@ -37,53 +35,9 @@ terraform {
 }
 ```
 
-* Execute usual Terraform command lines
+4. Execute usual Terraform command lines
 
-* (Optional) Add MongoDB indexes for optimal performances
+## Samples
 
-```bash
-# example on a MongoDB container running locally
-docker run --rm --link mongodb \
-  -v "$(pwd)/scripts":/home/scripts mongo:5.0 \
-  bash -c "mongo mongodb://mongodb:27017/terraform_backend_dev /home/scripts/mongo-create-index.js"
-```
-
-## How to demonstrate
-
-* Run the [terraform-docker sample](samples/terraform-docker/README.md)
-
-## How to contribute
-
-This is a .NET 8 / C# codebase (open-source, cross-platform, free, object-oriented technologies)
-
-### Project structure
-
-Project name             | Technology | Project type
------------------------- | ---------- | --------------------------
-`Common.AspNetCore`      | .NET 8     | Library
-`Common.MongoDb`         | .NET 8     | Library
-`Common.Runtime`         | .NET 8     | Library
-`Domain`                 | .NET 8     | Library
-`Infrastructure.MongoDb` | .NET 8     | Library
-`WebApi`                 | ASP.NET 8  | Web application (REST API)
-
-### Packages (NuGet)
-
-Name                     | Description
------------------------- | ----------------------------
-`MongoDB.Bson`           | MongoDB BSON
-`MongoDB.Driver`         | MongoDB .NET Driver
-`Swashbuckle.AspNetCore` | OpenAPI / Swagger generation
-`System.Text.Json`       | JSON support
-
-## How to compare
-
-### Samples with other solutions
-
-* [GitLab](https://gitlab.com/gitlab-org/manage/import/gitlab/-/blob/master/doc/user/infrastructure/terraform_state.md)
-  * [lib/api/terraform/state.rb](https://gitlab.com/gitlab-org/manage/import/gitlab/-/blob/master/lib/api/terraform/state.rb)
-* HTTP
-  * [akshay/terraform-http-backend-pass](https://git.coop/akshay/terraform-http-backend-pass)
-  * [bhoriuchi/terraform-backend-http](https://github.com/bhoriuchi/terraform-backend-http)
-* git
-  * [plumber-cd/terraform-backend-git](https://github.com/plumber-cd/terraform-backend-git)
+* [Make local actions on files](samples/local-files/README.md)
+* [Run NGINX container with Docker](samples/docker-nginx/README.md)

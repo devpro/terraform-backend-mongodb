@@ -1,21 +1,19 @@
-﻿using System;
-using MongoDB.Bson.Serialization.Attributes;
+﻿using MongoDB.Bson.Serialization.Attributes;
 
-namespace Devpro.TerraformBackend.Domain.Models
+namespace Devpro.TerraformBackend.Domain.Models;
+
+public class StateValueModel
 {
-    public class StateValueModel
-    {
-        public int Version { get; set; } = 0;
+    public int Version { get; set; } = 0;
 
-        [BsonElement("terraform_version")]
-        public string TerraformVersion { get; set; } = string.Empty;
+    [BsonElement("terraform_version")]
+    public string TerraformVersion { get; set; } = string.Empty;
 
-        public int Serial { get; set; } = 0;
+    public int Serial { get; set; } = 0;
 
-        public string Lineage { get; set; } = string.Empty;
+    public string Lineage { get; set; } = string.Empty;
 
-        public object Outputs { get; set; } = new { };
+    public object Outputs { get; set; } = new { };
 
-        public object[] Resources { get; set; } = Array.Empty<object>();
-    }
+    public object[] Resources { get; set; } = [];
 }

@@ -1,19 +1,14 @@
 ﻿using Devpro.Common.MongoDb;
 
-namespace Devpro.TerraformBackend.WebApi
-{
-    public class ApplicationConfiguration : WebApiConfiguration
-    {
-        public ApplicationConfiguration(IConfigurationRoot configurationRoot)
-            : base(configurationRoot)
-        {
-        }
+namespace Devpro.TerraformBackend.WebApi;
 
-        public MongoDbConfiguration MongoDbConfiguration =>
-            new()
-            {
-                ConnectionString = ConfigurationRoot.GetConnectionString(TryGetSection("MongoDb:ConnectionStringName")?.Get<string>() ?? string.Empty) ?? string.Empty,
-                DatabaseName = TryGetSection("MongoDb:DatabaseName").Get<string>() ?? string.Empty
-            };
-    }
+public class ApplicationConfiguration(IConfigurationRoot configurationRoot)
+    : WebApiConfiguration(configurationRoot)
+{
+    public MongoDbConfiguration MongoDbConfiguration =>
+        new()
+        {
+            ConnectionString = ConfigurationRoot.GetConnectionString(TryGetSection("MongoDb:ConnectionStringName")?.Get<string>() ?? string.Empty) ?? string.Empty,
+            DatabaseName = TryGetSection("MongoDb:DatabaseName").Get<string>() ?? string.Empty
+        };
 }

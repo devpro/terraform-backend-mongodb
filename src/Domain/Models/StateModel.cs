@@ -2,18 +2,20 @@
 using MongoDB.Bson;
 using MongoDB.Bson.Serialization.Attributes;
 
-namespace Devpro.TerraformBackend.Domain.Models
+namespace Devpro.TerraformBackend.Domain.Models;
+
+public class StateModel
 {
-    public class StateModel
-    {
-        [BsonId]
-        [BsonRepresentation(BsonType.ObjectId)]
-        public string Id { get; set; } = string.Empty;
+    [BsonId]
+    [BsonRepresentation(BsonType.ObjectId)]
+    public string Id { get; set; } = string.Empty;
 
-        public string Name { get; set; } = string.Empty;
+    public string Tenant { get; set; } = string.Empty;
 
-        public DateTime CreatedAt { get; set; } = DateTime.MinValue;
+    public string Name { get; set; } = string.Empty;
 
-        public StateValueModel Value { get; set; } = new StateValueModel();
-    }
+    [BsonElement("created_at")]
+    public DateTime CreatedAt { get; set; } = DateTime.MinValue;
+
+    public StateValueModel Value { get; set; } = new StateValueModel();
 }

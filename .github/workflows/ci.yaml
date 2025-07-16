@@ -24,17 +24,24 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout repository
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
         with:
           fetch-depth: 0
       - name: Checkout workflow parts
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
         with:
           repository: devpro/github-workflow-parts
           ref: feature/sonar-login-deprecation
           path: workflow-parts
       - name: Start MongoDB
         uses: ./workflow-parts/mongodb/start
+      - name: Initialize database
+        run: |
+          mongosh mongodb://localhost:27017/terraform_backend_dev scripts/mongo-create-index.js
+          sudo apt-get -y install apache2-utils
+          ./scripts/mongo-create-user.sh admin admin123 dummy
+          mongosh mongodb://localhost:27017/terraform_backend_dev scripts/add-user.js
+        shell: bash
       - name: Build, lint & test
         uses: ./workflow-parts/dotnet/build-lint-test
         with:
@@ -61,10 +68,10 @@ jobs:
         uses: ./workflow-parts/docker/build-scan
         with:
           docker_file: 'src/WebApi/Dockerfile'
-          image_tag: 1.0.${{ github.run_id }}
+          image_tag: 1.1.${{ github.run_id }}
           image_path: 'docker.io/devprofr'
           image_name: terraform-backend-mongodb
-          max_high_cves: 16
-          max_medium_cves: 11
+          max_high_cves: 0
+          max_medium_cves: 0
     env:
       GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
