@@ -29,13 +29,13 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "samples", "samples", "{3C2E
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Common.AspNetCore", "src\Common.AspNetCore\Common.AspNetCore.csproj", "{F23098F5-355B-46F0-BABE-3D6E23D8EED7}"
 EndProject
-Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "terraform-docker", "terraform-docker", "{001CB9EB-2F7E-4288-BA9B-1E01ED43B8FF}"
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "docker-nginx", "docker-nginx", "{001CB9EB-2F7E-4288-BA9B-1E01ED43B8FF}"
 	ProjectSection(SolutionItems) = preProject
-		samples\terraform-docker\main.tf = samples\terraform-docker\main.tf
-		samples\terraform-docker\outputs.tf = samples\terraform-docker\outputs.tf
-		samples\terraform-docker\providers.tf = samples\terraform-docker\providers.tf
-		samples\terraform-docker\README.md = samples\terraform-docker\README.md
-		samples\terraform-docker\variables.tf = samples\terraform-docker\variables.tf
+		samples\docker-nginx\main.tf = samples\docker-nginx\main.tf
+		samples\docker-nginx\outputs.tf = samples\docker-nginx\outputs.tf
+		samples\docker-nginx\providers.tf = samples\docker-nginx\providers.tf
+		samples\docker-nginx\README.md = samples\docker-nginx\README.md
+		samples\docker-nginx\variables.tf = samples\docker-nginx\variables.tf
 	EndProjectSection
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "scripts", "scripts", "{7F01D180-1A34-4377-B4E5-C852D8302CE7}"
@@ -49,10 +49,10 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Common.AspNetCore.WebApi", 
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "1 - Framework", "1 - Framework", "{0C1E6968-B289-4378-84CF-B64E05E643A5}"
 EndProject
-Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "terraform-local", "terraform-local", "{02EA681E-C7D8-13C7-8484-4AC65E1B71E8}"
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "local-files", "local-files", "{02EA681E-C7D8-13C7-8484-4AC65E1B71E8}"
 	ProjectSection(SolutionItems) = preProject
-		samples\terraform-local\main.tf = samples\terraform-local\main.tf
-		samples\terraform-local\README.md = samples\terraform-local\README.md
+		samples\local-files\main.tf = samples\local-files\main.tf
+		samples\local-files\README.md = samples\local-files\README.md
 	EndProjectSection
 EndProject
 Global

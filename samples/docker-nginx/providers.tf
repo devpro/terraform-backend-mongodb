@@ -4,9 +4,9 @@ terraform {
   # https://developer.hashicorp.com/terraform/language/settings/backends/http#configuration-variables
   backend "http" {
     # port can be 5293 (project run from VS) or 9001 (docker compose)
-    address                = "http://localhost:5293/state/demo_devpro"
-    lock_address           = "http://localhost:5293/state/demo_devpro/lock"
-    unlock_address         = "http://localhost:5293/state/demo_devpro/lock"
+    address                = "http://localhost:5293/sample/state/docker-nginx"
+    lock_address           = "http://localhost:5293/sample/state/docker-nginx/lock"
+    unlock_address         = "http://localhost:5293/sample/state/docker-nginx/lock"
     lock_method            = "POST"
     unlock_method          = "DELETE"
     username               = "admin"
@@ -18,7 +18,7 @@ terraform {
   required_providers {
     docker = {
       source = "kreuzwerker/docker"
-      version = "~> 3.0.1"
+      version = "~> 3.6.2"
     }
   }
 }

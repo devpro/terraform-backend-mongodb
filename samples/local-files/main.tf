@@ -1,8 +1,8 @@
 terraform {
   backend "http" {
-    address                = "http://localhost:5293/state/demo_localexec"
-    lock_address           = "http://localhost:5293/state/demo_localexec/lock"
-    unlock_address         = "http://localhost:5293/state/demo_localexec/lock"
+    address                = "http://localhost:5293/sample/state/local-files"
+    lock_address           = "http://localhost:5293/sample/state/local-files/lock"
+    unlock_address         = "http://localhost:5293/sample/state/local-files/lock"
     lock_method            = "POST"
     unlock_method          = "DELETE"
     username               = "admin"
