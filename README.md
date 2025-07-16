@@ -1,27 +1,20 @@
-# Terraform backend management in MongoDB
+# MongoDB backend for Terraform/OpenTofu state
 
 [![CI](https://github.com/devpro/terraform-backend-mongodb/actions/workflows/ci.yaml/badge.svg?branch=main)](https://github.com/devpro/terraform-backend-mongodb/actions/workflows/ci.yaml)
 [![PKG](https://github.com/devpro/terraform-backend-mongodb/actions/workflows/pkg.yaml/badge.svg?branch=main)](https://github.com/devpro/terraform-backend-mongodb/actions/workflows/pkg.yaml)
 [![Quality Gate Status](https://sonarcloud.io/api/project_badges/measure?project=devpro_terraform-backend-mongodb&metric=alert_status)](https://sonarcloud.io/summary/new_code?id=devpro_terraform-backend-mongodb)
 [![Docker Image Version](https://img.shields.io/docker/v/devprofr/terraform-backend-mongodb?label=Image&logo=docker)](https://hub.docker.com/r/devprofr/terraform-backend-mongodb)
 
-Store [Terraform](https://www.terraform.io) state in [MongoDB](https://www.mongodb.com/), using
-[HTTP](https://developer.hashicorp.com/terraform/language/backend/http) [backend](https://github.com/hashicorp/terraform/tree/main/internal/backend/remote-state).
+Store Terraform/OpenTofu state in a MongoDB database thanks to his HTTP backend.
 
-Look at the [project development guide](CONTRIBUTING.md) for more technical details. You're more than welcome to contribute!
+Look at the [project development guide](CONTRIBUTING.md) for more technical details.
+You're more than welcome to contribute!
 
 ## Quick start
 
-1. Create a MongoDB database (example with a local container but you can provision a cluster in MongoDB Atlas)
+1. Make sure a you have access to a MongoDB database
 
-```bash
-# starts the container
-docker run --name mongodb -d -p 27017:27017 mongo:8.0
-# (optional) adds indexes for optimal performances
-docker run --rm --link mongodb \
-  -v "$(pwd)/scripts":/home/scripts mongo:8.0 \
-  bash -c "mongo mongodb://mongodb:27017/terraform_backend_dev /home/scripts/mongo-create-index.js"
-```
+2. Configure the application with the MongoDB database connection information
 
 2. Run the web API
 
@@ -47,16 +40,5 @@ terraform {
 
 ## Samples
 
-* [Docker](samples/terraform-docker/README.md)
-
-## Alternatives & references
-
-### Terraform backend implementations
-
-* [GitLab](https://gitlab.com/gitlab-org/manage/import/gitlab/-/blob/master/doc/user/infrastructure/terraform_state.md)
-  * [lib/api/terraform/state.rb](https://gitlab.com/gitlab-org/manage/import/gitlab/-/blob/master/lib/api/terraform/state.rb)
-* HTTP
-  * [akshay/terraform-http-backend-pass](https://git.coop/akshay/terraform-http-backend-pass)
-  * [bhoriuchi/terraform-backend-http](https://github.com/bhoriuchi/terraform-backend-http)
-* git
-  * [plumber-cd/terraform-backend-git](https://github.com/plumber-cd/terraform-backend-git)
+* [Execute local actions](samples/terraform-local/README.md)
+* [Manage Docker images](samples/terraform-docker/README.md)

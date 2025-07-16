@@ -49,10 +49,10 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Common.AspNetCore.WebApi", 
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "1 - Framework", "1 - Framework", "{0C1E6968-B289-4378-84CF-B64E05E643A5}"
 EndProject
-Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "terraform-local-exec", "terraform-local-exec", "{02EA681E-C7D8-13C7-8484-4AC65E1B71E8}"
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "terraform-local", "terraform-local", "{02EA681E-C7D8-13C7-8484-4AC65E1B71E8}"
 	ProjectSection(SolutionItems) = preProject
-		samples\terraform-local-exec\main.tf = samples\terraform-local-exec\main.tf
-		samples\terraform-local-exec\README.md = samples\terraform-local-exec\README.md
+		samples\terraform-local\main.tf = samples\terraform-local\main.tf
+		samples\terraform-local\README.md = samples\terraform-local\README.md
 	EndProjectSection
 EndProject
 Global
