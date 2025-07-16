@@ -19,7 +19,7 @@ public class StateLockRepository : RepositoryBase, IStateLockRepository
 
     protected override string CollectionName => "tf_state_lock";
 
-    public async Task<StateLockModel> FindOneAsync(string tenant, string name)
+    public async Task<StateLockModel?> FindOneAsync(string tenant, string name)
     {
         return await _modelCollection.Find(x => x.Name == name).FirstOrDefaultAsync();
     }

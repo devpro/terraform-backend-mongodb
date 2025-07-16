@@ -14,6 +14,7 @@ public class StateModel
 
     public string Name { get; set; } = string.Empty;
 
+    [BsonElement("created_at")]
     public DateTime CreatedAt { get; set; } = DateTime.MinValue;
 
     public StateValueModel Value { get; set; } = new StateValueModel();

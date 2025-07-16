@@ -72,7 +72,12 @@ docker run --name mongodb -d -p 27017:27017 mongo:8.0
 # (optional) adds indexes for optimal performances
 docker run --rm --link mongodb \
   -v "$(pwd)/scripts":/home/scripts mongo:8.0 \
-  bash -c "mongo mongodb://mongodb:27017/terraform_backend_dev /home/scripts/mongo-create-index.js"
+  bash -c "mongosh mongodb://mongodb:27017/terraform_backend_dev /home/scripts/mongo-create-index.js"
+# creates one user
+./scripts/mongo-create-user.sh admin admin123 dummy
+docker run --rm --link mongodb \
+  -v "$(pwd)/scripts":/home/scripts mongo:8.0 \
+  bash -c "mongosh mongodb://mongodb:27017/terraform_backend_dev /home/scripts/add-user.js"
 ```
 
 Run the web API (example with the command line but an IDE like Visual Studio or Rider would be nice to be able to debug):

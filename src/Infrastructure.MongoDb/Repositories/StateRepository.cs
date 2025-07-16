@@ -34,14 +34,14 @@ public class StateRepository : RepositoryBase, IStateRepository
         await _bsonCollection.InsertOneAsync(document);
     }
 
-    public async Task<string> FindOneAsync(string tenant, string name)
+    public async Task<string?> FindOneAsync(string tenant, string name)
     {
         var document = await _bsonCollection.Find(GetFilter(tenant, name))
             .Sort(Builders<BsonDocument>.Sort.Descending("createdAt"))
             .FirstOrDefaultAsync();
         if (document == null)
         {
-            return string.Empty;
+            return null;
         }
 
         return document["value"].ToJson();

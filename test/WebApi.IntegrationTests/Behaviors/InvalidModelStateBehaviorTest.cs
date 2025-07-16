@@ -1,8 +1,4 @@
-﻿using System.Net;
-using System.Net.Http.Json;
-using Bogus.DataSets;
-using Devpro.TerraformBackend.WebApi.IntegrationTests.Http;
-using Microsoft.AspNetCore.Mvc;
+﻿using Devpro.TerraformBackend.WebApi.IntegrationTests.Http;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using Moq;

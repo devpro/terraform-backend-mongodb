@@ -6,7 +6,7 @@ namespace Devpro.TerraformBackend.Domain.Repositories;
 
 public interface IStateLockRepository
 {
-    Task<StateLockModel> FindOneAsync(string tenant, string name);
+    Task<StateLockModel?> FindOneAsync(string tenant, string name);
 
     Task<StateLockModel> CreateAsync(StateLockModel input);
 
