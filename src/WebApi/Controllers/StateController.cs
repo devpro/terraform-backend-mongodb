@@ -1,6 +1,7 @@
 ﻿using System.Text.Json;
 using Devpro.TerraformBackend.Domain.Models;
 using Devpro.TerraformBackend.Domain.Repositories;
+using Devpro.TerraformBackend.WebApi.Filters;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
@@ -9,7 +10,9 @@ namespace Devpro.TerraformBackend.WebApi.Controllers;
 [Authorize]
 [ApiController]
 [Route("{tenant}/state")]
-public class StateController(IStateRepository stateRepository, IStateLockRepository stateLockRepository) : ControllerBase
+[TypeFilter(typeof(TenantAuthorizationFilter))]
+public class StateController(IStateRepository stateRepository, IStateLockRepository stateLockRepository)
+    : ControllerBase
 {
     /// <summary>
     /// Get Terraform state value.

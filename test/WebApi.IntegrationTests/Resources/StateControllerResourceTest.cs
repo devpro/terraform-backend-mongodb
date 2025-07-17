@@ -25,6 +25,21 @@ public class StateControllerResourceTest(WebApplicationFactory<Program> factory)
     }
 
     [Fact]
+    [Trait("Mode", "Readonly")]
+    public async Task StateResource_GetWrongTenant_ReturnsUnauthorized()
+    {
+        // Arrange
+        var client = CreateClient(true);
+        var name = Faker.Random.Word();
+
+        // Act
+        var response = await client.GetAsync($"/acme/state/{name}");
+
+        // Assert
+        await response.CheckResponseAndGetContent(HttpStatusCode.Unauthorized, "application/problem+json; charset=utf-8");
+    }
+
+    [Fact]
     public async Task StateResource_CreateFindDelete_IsSuccess()
     {
         // Arrange
