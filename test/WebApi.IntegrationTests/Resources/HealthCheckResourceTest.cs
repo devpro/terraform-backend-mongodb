@@ -1,6 +1,6 @@
-﻿using Devpro.TerraformBackend.WebApi.IntegrationTests.Http;
+﻿using Farseer.TerraformBackend.WebApi.IntegrationTests.Http;
 
-namespace Devpro.TerraformBackend.WebApi.IntegrationTests.Resources;
+namespace Farseer.TerraformBackend.WebApi.IntegrationTests.Resources;
 
 [Trait("Category", "IntegrationTests")]
 public class HealthCheckResourceTest(WebApplicationFactory<Program> factory)

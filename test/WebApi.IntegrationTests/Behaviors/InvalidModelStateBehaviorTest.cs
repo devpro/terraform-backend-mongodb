@@ -1,9 +1,9 @@
-﻿using Devpro.TerraformBackend.WebApi.IntegrationTests.Http;
+﻿using Farseer.TerraformBackend.WebApi.IntegrationTests.Http;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using Moq;
 
-namespace Devpro.TerraformBackend.WebApi.IntegrationTests.Behaviors;
+namespace Farseer.TerraformBackend.WebApi.IntegrationTests.Behaviors;
 
 [Trait("Category", "IntegrationTests")]
 public class InvalidModelStateBehaviorTest(WebApplicationFactory<Program> factory)

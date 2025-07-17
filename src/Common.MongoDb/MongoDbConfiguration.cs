@@ -1,4 +1,4 @@
-﻿namespace Devpro.Common.MongoDb;
+﻿namespace Farseer.Common.MongoDb;
 
 public class MongoDbConfiguration
 {

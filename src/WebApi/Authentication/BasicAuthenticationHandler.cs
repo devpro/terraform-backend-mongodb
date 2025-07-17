@@ -1,12 +1,12 @@
 ﻿using System.Security.Claims;
 using System.Text;
 using System.Text.Encodings.Web;
-using Devpro.Common.AspNetCore.WebApi.Authentication;
-using Devpro.TerraformBackend.Domain.Repositories;
+using Farseer.Common.AspNetCore.WebApi.Authentication;
+using Farseer.TerraformBackend.Domain.Repositories;
 using Microsoft.AspNetCore.Authentication;
 using Microsoft.Extensions.Options;
 
-namespace Devpro.TerraformBackend.WebApi.Authentication;
+namespace Farseer.TerraformBackend.WebApi.Authentication;
 
 public class BasicAuthenticationHandler(IOptionsMonitor<AuthenticationSchemeOptions> options, ILoggerFactory logger, UrlEncoder encoder, IUserRepository userRepository)
     : AuthenticationHandler<AuthenticationSchemeOptions>(options, logger, encoder)

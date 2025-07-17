@@ -1,6 +1,6 @@
 ﻿using Microsoft.AspNetCore.Authorization;
 
-namespace Devpro.Common.AspNetCore.WebApi.Authentication;
+namespace Farseer.Common.AspNetCore.WebApi.Authentication;
 
 public class BasicAuthorizationAttribute : AuthorizeAttribute
 {

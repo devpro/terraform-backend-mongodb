@@ -1,8 +1,8 @@
-﻿using Devpro.Common.AspNetCore.WebApi.Configuration;
+﻿using Farseer.Common.AspNetCore.WebApi.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.OpenApi.Models;
 
-namespace Devpro.Common.AspNetCore.WebApi.DependencyInjection;
+namespace Farseer.Common.AspNetCore.WebApi.DependencyInjection;
 
 public static class SwaggerServiceCollectionExtensions
 {

@@ -1,6 +1,6 @@
 ﻿using MongoDB.Bson.Serialization.Attributes;
 
-namespace Devpro.TerraformBackend.Domain.Models;
+namespace Farseer.TerraformBackend.Domain.Models;
 
 public class StateValueModel
 {

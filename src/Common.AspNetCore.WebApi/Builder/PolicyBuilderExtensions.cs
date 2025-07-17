@@ -1,7 +1,7 @@
-﻿using Devpro.Common.AspNetCore.WebApi.Configuration;
+﻿using Farseer.Common.AspNetCore.WebApi.Configuration;
 using Microsoft.AspNetCore.Builder;
 
-namespace Devpro.Common.AspNetCore.WebApi.Builder;
+namespace Farseer.Common.AspNetCore.WebApi.Builder;
 
 public static class PolicyBuilderExtensions
 {

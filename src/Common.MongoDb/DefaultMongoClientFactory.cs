@@ -2,7 +2,7 @@
 using MongoDB.Bson.Serialization.Conventions;
 using MongoDB.Driver;
 
-namespace Devpro.Common.MongoDb;
+namespace Farseer.Common.MongoDb;
 
 public class DefaultMongoClientFactory : IMongoClientFactory
 {

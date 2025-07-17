@@ -2,8 +2,8 @@
 
   <PropertyGroup>
     <TargetFramework>net8.0</TargetFramework>
-    <AssemblyName>Devpro.Common.MongoDb</AssemblyName>
-    <RootNamespace>Devpro.Common.MongoDb</RootNamespace>
+    <AssemblyName>Farseer.Common.MongoDb</AssemblyName>
+    <RootNamespace>Farseer.Common.MongoDb</RootNamespace>
     <ProjectGuid>{49BF313A-4ED3-4BD2-9AEE-E44A5ED19C0C}</ProjectGuid>
     <Nullable>enable</Nullable>
   </PropertyGroup>

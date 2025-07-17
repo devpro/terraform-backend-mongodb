@@ -1,7 +1,7 @@
 ﻿using System.Threading.Tasks;
-using Devpro.TerraformBackend.Domain.Models;
+using Farseer.TerraformBackend.Domain.Models;
 
-namespace Devpro.TerraformBackend.Domain.Repositories;
+namespace Farseer.TerraformBackend.Domain.Repositories;
 
 public interface IUserRepository
 {

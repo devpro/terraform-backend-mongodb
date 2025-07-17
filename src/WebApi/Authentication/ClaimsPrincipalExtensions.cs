@@ -1,6 +1,6 @@
 ﻿using System.Security.Claims;
 
-namespace Devpro.TerraformBackend.WebApi.Authentication;
+namespace Farseer.TerraformBackend.WebApi.Authentication;
 
 public static class ClaimsPrincipalExtensions
 {

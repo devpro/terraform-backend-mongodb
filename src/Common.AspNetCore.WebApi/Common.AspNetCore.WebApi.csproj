@@ -2,8 +2,8 @@
 
   <PropertyGroup>
     <TargetFramework>net8.0</TargetFramework>
-    <AssemblyName>Devpro.Common.AspNetCore.WebApi</AssemblyName>
-    <RootNamespace>Devpro.Common.AspNetCore.WebApi</RootNamespace>
+    <AssemblyName>Farseer.Common.AspNetCore.WebApi</AssemblyName>
+    <RootNamespace>Farseer.Common.AspNetCore.WebApi</RootNamespace>
     <ProjectGuid>{19336002-C959-4E76-B112-861F93CF6423}</ProjectGuid>
     <ImplicitUsings>enable</ImplicitUsings>
     <Nullable>enable</Nullable>

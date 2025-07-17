@@ -1,6 +1,6 @@
 ﻿using System.Net;
 
-namespace Devpro.TerraformBackend.WebApi.IntegrationTests.Http;
+namespace Farseer.TerraformBackend.WebApi.IntegrationTests.Http;
 
 internal static class HttpResponseMessageExtensions
 {

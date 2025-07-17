@@ -9,10 +9,10 @@ services:
       - Application__IsHttpsRedirectionEnabled=false
       - Application__IsOpenTelemetryEnabled=false
       - Application__IsSwaggerEnabled=true
-      - ConnectionStrings__MongoDbLocal=mongodb://mongodb:27017/?readPreference=primary&appname=DevproTerraformBackendWebApi&directConnection=true&ssl=false
+      - ConnectionStrings__MongoDbLocal=mongodb://mongodb:27017/?readPreference=primary&appname=FarseerTerraformBackendWebApi&directConnection=true&ssl=false
       - Logging__LogLevel__Default=Debug
       - Logging__LogLevel__Microsoft__AspNetCore=Information
-      - Logging__LogLevel__Devpro=Debug
+      - Logging__LogLevel__Farseer=Debug
       - MongoDb__ConnectionStringName=MongoDbLocal
       - MongoDb__DatabaseName=terraform_backend_dev
     ports:

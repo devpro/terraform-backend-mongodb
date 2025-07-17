@@ -1,6 +1,6 @@
 ﻿using Microsoft.Extensions.DependencyInjection.Extensions;
 
-namespace Devpro.TerraformBackend.WebApi.DependencyInjection;
+namespace Farseer.TerraformBackend.WebApi.DependencyInjection;
 
 internal static class InfrastructureServiceCollectionExtensions
 {

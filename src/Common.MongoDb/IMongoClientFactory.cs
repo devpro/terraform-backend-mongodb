@@ -1,6 +1,6 @@
 ﻿using MongoDB.Driver;
 
-namespace Devpro.Common.MongoDb;
+namespace Farseer.Common.MongoDb;
 
 /// <summary>
 /// Avoids calling "new" in application code.

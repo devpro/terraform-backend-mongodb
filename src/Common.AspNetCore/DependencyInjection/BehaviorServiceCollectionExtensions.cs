@@ -3,7 +3,7 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 
-namespace Devpro.Common.AspNetCore.DependencyInjection;
+namespace Farseer.Common.AspNetCore.DependencyInjection;
 
 public static class BehaviorServiceCollectionExtensions
 {

@@ -1,8 +1,8 @@
-﻿using Devpro.TerraformBackend.WebApi.Authentication;
+﻿using Farseer.TerraformBackend.WebApi.Authentication;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Filters;
 
-namespace Devpro.TerraformBackend.WebApi.Filters;
+namespace Farseer.TerraformBackend.WebApi.Filters;
 
 public class TenantAuthorizationFilter : IActionFilter
 {

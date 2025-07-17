@@ -2,17 +2,13 @@
 
   <PropertyGroup>
     <TargetFramework>net8.0</TargetFramework>
-    <AssemblyName>Devpro.TerraformBackend.WebApi</AssemblyName>
-    <RootNamespace>Devpro.TerraformBackend.WebApi</RootNamespace>
+    <AssemblyName>Farseer.TerraformBackend.WebApi</AssemblyName>
+    <RootNamespace>Farseer.TerraformBackend.WebApi</RootNamespace>
     <ProjectGuid>{5CD7A689-5ADB-4207-972E-6FA881AF1B1C}</ProjectGuid>
     <Nullable>enable</Nullable>
     <ImplicitUsings>enable</ImplicitUsings>
     <UserSecretsId>78fb2134-a177-45da-a7e1-5800154c5f5b</UserSecretsId>
   </PropertyGroup>
-
-  <ItemGroup>
-    <PackageReference Include="Swashbuckle.AspNetCore" Version="9.0.3" />
-  </ItemGroup>
 
   <ItemGroup>
     <ProjectReference Include="..\Common.AspNetCore.WebApi\Common.AspNetCore.WebApi.csproj" />

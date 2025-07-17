@@ -2,8 +2,8 @@
 
   <PropertyGroup>
     <TargetFramework>net8.0</TargetFramework>
-    <AssemblyName>Devpro.TerraformBackend.Domain</AssemblyName>
-    <RootNamespace>Devpro.TerraformBackend.Domain</RootNamespace>
+    <AssemblyName>Farseer.TerraformBackend.Domain</AssemblyName>
+    <RootNamespace>Farseer.TerraformBackend.Domain</RootNamespace>
     <ProjectGuid>{A5CAD112-C1E6-442B-BE0E-37C697030636}</ProjectGuid>
     <Nullable>enable</Nullable>
   </PropertyGroup>
