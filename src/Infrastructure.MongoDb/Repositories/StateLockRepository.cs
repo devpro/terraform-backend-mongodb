@@ -24,14 +24,6 @@ public class StateLockRepository : RepositoryBase, IStateLockRepository
         return await _modelCollection.Find(x => x.Name == name).FirstOrDefaultAsync();
     }
 
-    //public async Task<List<StateLockModel>> FindAllAsync()
-    //{
-    //    //var documents = await _bsonCollection.Find(new BsonDocument()).ToListAsync();
-    //    //return documents.Select(x => BsonSerializer.Deserialize<StateLockModel>(x)).ToList();
-
-    //    return await _modelCollection.Find(_ => true).ToListAsync();
-    //}
-
     public async Task<StateLockModel> CreateAsync(StateLockModel input)
     {
         await _modelCollection.InsertOneAsync(input);
