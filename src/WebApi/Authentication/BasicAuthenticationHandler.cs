@@ -49,13 +49,13 @@ public class BasicAuthenticationHandler(IOptionsMonitor<AuthenticationSchemeOpti
         {
             AuthenticationType = BasicAuthenticationDefaults.AuthenticationScheme,
             IsAuthenticated = true,
-            Name = clientId
+            Name = user.Username
         };
 
         var claimsPrincipal = new ClaimsPrincipal(new ClaimsIdentity(client,
         [
-            new Claim(ClaimTypes.Name, clientId)
-            //TODO: add tenant (to be checked in state actions)
+            new Claim(ClaimTypes.Name, user.Username),
+            new Claim(ClaimsPrincipalExtensions.Tenant, user.Tenant)
         ]));
 
         return AuthenticateResult.Success(new AuthenticationTicket(claimsPrincipal, Scheme.Name));

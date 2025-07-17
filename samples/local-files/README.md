@@ -5,7 +5,7 @@
 The following tools must be available from the command line:
 
 - [.NET](https://dotnet.microsoft.com/download) or an IDE (Visual Studio or Rider)
-- [Terraform](https://developer.hashicorp.com/terraform/install) or [OpenTofy](https://opentofu.org/docs/intro/install/)
+- [Terraform](https://developer.hashicorp.com/terraform/install) or [OpenTofu](https://opentofu.org/docs/intro/install/)
 
 ## Workflow
 

@@ -87,3 +87,9 @@ dotnet run --project src/WebApi
 ```
 
 Open Swagger in a browser: [localhost:5293/swagger](http://localhost:5293/swagger).
+
+## Backlog
+
+### New features
+
+* Store only one version of the state in tf_state and save the others in tf_state_revision

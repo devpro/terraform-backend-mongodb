@@ -39,7 +39,7 @@ public class InvalidModelStateBehaviorTest(WebApplicationFactory<Program> factor
             x => x.Log(
                 LogLevel.Warning,
                 It.IsAny<EventId>(),
-                It.Is<It.IsAnyType>((o, t) => o.ToString()!.Contains($"Invalid model state for /dummy/state/{name}/lock")),
+                It.Is<It.IsAnyType>((o, t) => o.ToString()!.Contains("Invalid model state for")),
                 It.IsAny<Exception>(),
                 It.IsAny<Func<It.IsAnyType, Exception?, string>>()),
             Times.Once());

@@ -1,7 +1,6 @@
 ﻿using System;
 using System.Threading.Tasks;
 using Devpro.Common.MongoDb;
-using Devpro.TerraformBackend.Domain.Models;
 using Devpro.TerraformBackend.Domain.Repositories;
 using Microsoft.Extensions.Logging;
 using MongoDB.Bson;
