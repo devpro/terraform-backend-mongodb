@@ -1,8 +1,8 @@
 # Project development guide
 
-## Design
+## Application
 
-The application is entirely based on open-source, cross-platform (Linux/Windows), highly performant, free, object-oriented technologies: .NET / C#.
+The code is entirely based on open-source, cross-platform (Linux/Windows), highly performant, free, object-oriented technologies: .NET / C#.
 
 ### Projects
 
@@ -24,24 +24,27 @@ Name                     | Description
 `Swashbuckle.AspNetCore` | OpenAPI / Swagger generation
 `System.Text.Json`       | JSON support
 
-### Documentation
+### Clients
 
-* [OpenTofu](https://opentofu.org/)
-* [MongoDB](https://www.mongodb.com/)
-* [Terraform](https://www.terraform.io)
-  * [HTTP backend](https://developer.hashicorp.com/terraform/language/backend/http)
-  * [Remote state backend](https://github.com/hashicorp/terraform/tree/main/internal/backend/remote-state).
+- [OpenTofu](https://opentofu.org/)
+- [Terraform](https://www.terraform.io)
+  - [HTTP backend](https://developer.hashicorp.com/terraform/language/backend/http)
+  - [Remote state backend](https://github.com/hashicorp/terraform/tree/main/internal/backend/remote-state)
+
+### Backing services
+
+- [MongoDB](https://www.mongodb.com/)
 
 ### Other community implementations
 
-* [GitLab](https://gitlab.com/gitlab-org/manage/import/gitlab/-/blob/master/doc/user/infrastructure/terraform_state.md)
-  * [lib/api/terraform/state.rb](https://gitlab.com/gitlab-org/manage/import/gitlab/-/blob/master/lib/api/terraform/state.rb)
-* HTTP
-  * [akshay/terraform-http-backend-pass](https://git.coop/akshay/terraform-http-backend-pass)
-  * [bhoriuchi/terraform-backend-http](https://github.com/bhoriuchi/terraform-backend-http)
-  * [nimbolus/terraform-backend](https://github.com/nimbolus/terraform-backend)
-* git
-  * [plumber-cd/terraform-backend-git](https://github.com/plumber-cd/terraform-backend-git)
+- [GitLab](https://gitlab.com/gitlab-org/manage/import/gitlab/-/blob/master/doc/user/infrastructure/terraform_state.md)
+  - [lib/api/terraform/state.rb](https://gitlab.com/gitlab-org/manage/import/gitlab/-/blob/master/lib/api/terraform/state.rb)
+- HTTP
+  - [akshay/terraform-http-backend-pass](https://git.coop/akshay/terraform-http-backend-pass)
+  - [bhoriuchi/terraform-backend-http](https://github.com/bhoriuchi/terraform-backend-http)
+  - [nimbolus/terraform-backend](https://github.com/nimbolus/terraform-backend)
+- git
+  - [plumber-cd/terraform-backend-git](https://github.com/plumber-cd/terraform-backend-git)
 
 ## Automation
 
@@ -89,8 +92,12 @@ dotnet run --project src/WebApi
 
 Open Swagger in a browser: [localhost:5293/swagger](http://localhost:5293/swagger).
 
-## Backlog
+## Documentation
 
-### New features
+The documentation is a static website built with [Material for MkDocs](https://squidfunk.github.io/mkdocs-material/).
 
-* Store only one version of the state in tf_state and save the others in tf_state_revision
+Run locally with:
+
+```bash
+docker run --rm -it -p 8000:8000 -v ${PWD}:/docs squidfunk/mkdocs-material
+```

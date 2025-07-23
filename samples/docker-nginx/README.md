@@ -10,7 +10,7 @@ The following tools must be available from the command line:
 - [.NET](https://dotnet.microsoft.com/download) or an IDE (Visual Studio or Rider)
 - [Terraform](https://developer.hashicorp.com/terraform/install) or [OpenTofu](https://opentofu.org/docs/intro/install/)
 - Docker
- 
+
 ## Workflow
 
 Run the application (example given for information but feel free to start from the IDE):

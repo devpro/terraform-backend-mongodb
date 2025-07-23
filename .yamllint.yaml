@@ -1,0 +1,10 @@
+# ref. https://yamllint.readthedocs.io/en/stable/configuration.html
+extends: default
+rules:
+  document-start: disable
+  line-length:
+    level: warning
+    max: 120
+  truthy: disable
+  tags:
+    disable: true
