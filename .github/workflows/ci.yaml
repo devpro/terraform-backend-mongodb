@@ -1,14 +1,16 @@
 # purpose: run Continuous Integration (build, unit test, lint, scan)
-# variables: [ SONAR_HOST_URL, SONAR_ORG, SONAR_PROJECT_KEY ]
-# secrets: [ SONAR_TOKEN ]
+# variables: [SONAR_HOST_URL, SONAR_ORG, SONAR_PROJECT_KEY]
+# secrets: [SONAR_TOKEN]
 
 name: CI
 
 on:
   push:
-    branches: ["main"]
+    branches:
+      - main
   pull_request:
-    branches: ["main"]
+    branches:
+      - main
   workflow_dispatch: {}
 
 concurrency:
@@ -35,7 +37,7 @@ jobs:
           path: workflow-parts
       - name: Start MongoDB
         uses: ./workflow-parts/mongodb/start
-      - name: Initialize database
+      - name: Initialize database (indexes, tenants & users)
         run: |
           mongosh mongodb://localhost:27017/terraform_backend_dev scripts/mongo-create-index.js
           sudo apt-get -y install apache2-utils

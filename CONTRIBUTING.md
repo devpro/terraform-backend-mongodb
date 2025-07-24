@@ -46,24 +46,6 @@ Name                     | Description
 - git
   - [plumber-cd/terraform-backend-git](https://github.com/plumber-cd/terraform-backend-git)
 
-## Automation
-
-### Build (CI/CD pipelines)
-
-GitHub Actions are triggered to automate the integration and delivery of the application:
-
-- [CI](.github/workflows/ci.yaml)
-- [PKG](.github/workflows/pkg.yaml)
-
-GitHub project has been configured, in **General** / **Security** / **Secrets and Variables** / **Actions**:
-
-- DOCKERHUB_TOKEN
-- DOCKERHUB_USERNAME
-- SONAR_HOST_URL
-- SONAR_ORG
-- SONAR_PROJECT_KEY
-- SONAR_TOKEN
-
 ## Procedures
 
 ### Run locally the application

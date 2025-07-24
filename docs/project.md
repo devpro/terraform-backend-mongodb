@@ -1,5 +1,24 @@
 # Project
 
+## Automation
+
+### CI/CD pipelines
+
+GitHub Actions are triggered to automate the integration and delivery of the application:
+
+- [CI](../.github/workflows/ci.yaml)
+- [Pages](../.github/workflows/pages.yaml)
+- [PKG](../.github/workflows/pkg.yaml)
+
+GitHub configuration (**General** / **Security** / **Secrets and Variables** / **Actions**):
+
+- DOCKERHUB_TOKEN
+- DOCKERHUB_USERNAME
+- SONAR_HOST_URL
+- SONAR_ORG
+- SONAR_PROJECT_KEY
+- SONAR_TOKEN
+
 ## Backlog
 
 ### V2.0
