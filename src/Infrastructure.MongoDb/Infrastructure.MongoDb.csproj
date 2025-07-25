@@ -2,8 +2,8 @@
 
   <PropertyGroup>
     <TargetFramework>net8.0</TargetFramework>
-    <AssemblyName>Farseer.TerraformBackend.Infrastructure.MongoDb</AssemblyName>
-    <RootNamespace>Farseer.TerraformBackend.Infrastructure.MongoDb</RootNamespace>
+    <AssemblyName>Devpro.TerraformBackend.Infrastructure.MongoDb</AssemblyName>
+    <RootNamespace>Devpro.TerraformBackend.Infrastructure.MongoDb</RootNamespace>
     <ProjectGuid>{0429A41A-2D3A-42D4-8736-5FC0F6F0FF0C}</ProjectGuid>
     <Nullable>enable</Nullable>
   </PropertyGroup>

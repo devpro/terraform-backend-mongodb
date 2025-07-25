@@ -2,8 +2,8 @@
 
   <PropertyGroup>
     <TargetFramework>net8.0</TargetFramework>
-    <AssemblyName>Farseer.TerraformBackend.WebApi.IntegrationTests</AssemblyName>
-    <RootNamespace>Farseer.TerraformBackend.WebApi.IntegrationTests</RootNamespace>
+    <AssemblyName>Devpro.TerraformBackend.WebApi.IntegrationTests</AssemblyName>
+    <RootNamespace>Devpro.TerraformBackend.WebApi.IntegrationTests</RootNamespace>
     <ProjectGuid>{B055FFAF-8261-43B1-866A-12E289D5D7DC}</ProjectGuid>
     <Nullable>enable</Nullable>
     <ImplicitUsings>enable</ImplicitUsings>

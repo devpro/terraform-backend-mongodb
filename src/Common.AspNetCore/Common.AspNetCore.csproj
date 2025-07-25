@@ -2,8 +2,8 @@
 
   <PropertyGroup>
     <TargetFramework>net8.0</TargetFramework>
-    <AssemblyName>Farseer.Common.AspNetCore</AssemblyName>
-    <RootNamespace>Farseer.Common.AspNetCore</RootNamespace>
+    <AssemblyName>Devpro.Common.AspNetCore</AssemblyName>
+    <RootNamespace>Devpro.Common.AspNetCore</RootNamespace>
     <ProjectGuid>{F23098F5-355B-46F0-BABE-3D6E23D8EED7}</ProjectGuid>
     <Nullable>enable</Nullable>
   </PropertyGroup>

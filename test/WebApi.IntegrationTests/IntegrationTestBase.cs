@@ -1,8 +1,8 @@
 ﻿using System.Net.Http.Headers;
-using Farseer.TerraformBackend.Domain.Models;
+using Devpro.TerraformBackend.Domain.Models;
 using Microsoft.AspNetCore.Hosting;
 
-namespace Farseer.TerraformBackend.WebApi.IntegrationTests;
+namespace Devpro.TerraformBackend.WebApi.IntegrationTests;
 
 /// <summary>
 /// Ref. https://learn.microsoft.com/en-us/aspnet/core/test/integration-tests

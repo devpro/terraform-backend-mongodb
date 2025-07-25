@@ -2,7 +2,7 @@
 using MongoDB.Bson;
 using MongoDB.Bson.Serialization.Attributes;
 
-namespace Farseer.TerraformBackend.Domain.Models;
+namespace Devpro.TerraformBackend.Domain.Models;
 
 public class StateLockModel
 {
@@ -15,7 +15,7 @@ public class StateLockModel
     public string Id { get; set; } = null!;
 
     /// <summary>
-    /// 
+    ///
     /// </summary>
     public string Tenant { get; set; } = string.Empty;
 

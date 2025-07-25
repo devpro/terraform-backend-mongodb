@@ -1,7 +1,7 @@
 ﻿using System.Threading.Tasks;
-using Farseer.TerraformBackend.Domain.Models;
+using Devpro.TerraformBackend.Domain.Models;
 
-namespace Farseer.TerraformBackend.Domain.Repositories;
+namespace Devpro.TerraformBackend.Domain.Repositories;
 
 public interface IStateLockRepository
 {

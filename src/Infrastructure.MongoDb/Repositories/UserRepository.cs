@@ -1,11 +1,11 @@
 ﻿using System.Threading.Tasks;
-using Farseer.Common.MongoDb;
-using Farseer.TerraformBackend.Domain.Models;
-using Farseer.TerraformBackend.Domain.Repositories;
+using Devpro.Common.MongoDb;
+using Devpro.TerraformBackend.Domain.Models;
+using Devpro.TerraformBackend.Domain.Repositories;
 using Microsoft.Extensions.Logging;
 using MongoDB.Driver;
 
-namespace Farseer.TerraformBackend.Infrastructure.MongoDb.Repositories;
+namespace Devpro.TerraformBackend.Infrastructure.MongoDb.Repositories;
 
 public class UserRepository : RepositoryBase, IUserRepository
 {

@@ -1,6 +1,6 @@
 ﻿using System.Security.Principal;
 
-namespace Farseer.Common.AspNetCore.WebApi.Authentication;
+namespace Devpro.Common.AspNetCore.WebApi.Authentication;
 
 public class BasicAuthenticationClient : IIdentity
 {

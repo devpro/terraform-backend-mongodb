@@ -1,8 +1,8 @@
-﻿using Farseer.Common.AspNetCore.WebApi.Authentication;
-using Farseer.TerraformBackend.WebApi.Authentication;
+﻿using Devpro.Common.AspNetCore.WebApi.Authentication;
+using Devpro.TerraformBackend.WebApi.Authentication;
 using Microsoft.AspNetCore.Authentication;
 
-namespace Farseer.TerraformBackend.WebApi.DependencyInjection;
+namespace Devpro.TerraformBackend.WebApi.DependencyInjection;
 
 public static class AuthenticationServiceCollectionExtensions
 {

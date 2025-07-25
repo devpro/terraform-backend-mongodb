@@ -1,7 +1,7 @@
 ﻿using Microsoft.Extensions.Logging;
 using MongoDB.Driver;
 
-namespace Farseer.Common.MongoDb;
+namespace Devpro.Common.MongoDb;
 
 public abstract class RepositoryBase
 {

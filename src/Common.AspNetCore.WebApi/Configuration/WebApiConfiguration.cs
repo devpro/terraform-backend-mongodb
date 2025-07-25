@@ -1,7 +1,7 @@
 ﻿using Microsoft.Extensions.Configuration;
 using Microsoft.OpenApi.Models;
 
-namespace Farseer.Common.AspNetCore.WebApi.Configuration;
+namespace Devpro.Common.AspNetCore.WebApi.Configuration;
 
 public class WebApiConfiguration(IConfigurationRoot configurationRoot)
 {

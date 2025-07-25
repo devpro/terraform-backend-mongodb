@@ -1,6 +1,6 @@
 ﻿using System.Threading.Tasks;
 
-namespace Farseer.TerraformBackend.Domain.Repositories;
+namespace Devpro.TerraformBackend.Domain.Repositories;
 
 public interface IStateRepository
 {

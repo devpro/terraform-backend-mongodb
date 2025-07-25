@@ -1,11 +1,11 @@
 ﻿using System.Text.Json;
-using Farseer.TerraformBackend.Domain.Models;
-using Farseer.TerraformBackend.Domain.Repositories;
-using Farseer.TerraformBackend.WebApi.Filters;
+using Devpro.TerraformBackend.Domain.Models;
+using Devpro.TerraformBackend.Domain.Repositories;
+using Devpro.TerraformBackend.WebApi.Filters;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
-namespace Farseer.TerraformBackend.WebApi.Controllers;
+namespace Devpro.TerraformBackend.WebApi.Controllers;
 
 [Authorize]
 [ApiController]

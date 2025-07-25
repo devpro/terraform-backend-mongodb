@@ -4,7 +4,7 @@ using System.Threading.Tasks;
 using Microsoft.AspNetCore.Mvc.Formatters;
 using Microsoft.Net.Http.Headers;
 
-namespace Farseer.Common.AspNetCore.Formatters;
+namespace Devpro.Common.AspNetCore.Formatters;
 
 /// <summary>
 /// ASP.NET Core input formatter to manage raw request bodies.

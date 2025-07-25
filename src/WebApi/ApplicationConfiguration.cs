@@ -1,6 +1,6 @@
-﻿using Farseer.Common.MongoDb;
+﻿using Devpro.Common.MongoDb;
 
-namespace Farseer.TerraformBackend.WebApi;
+namespace Devpro.TerraformBackend.WebApi;
 
 public class ApplicationConfiguration(IConfigurationRoot configurationRoot)
     : WebApiConfiguration(configurationRoot)

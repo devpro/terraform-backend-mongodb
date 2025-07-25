@@ -1,7 +1,7 @@
-﻿using Farseer.Common.AspNetCore.WebApi.Configuration;
+﻿using Devpro.Common.AspNetCore.WebApi.Configuration;
 using Microsoft.AspNetCore.Builder;
 
-namespace Farseer.Common.AspNetCore.WebApi.Builder;
+namespace Devpro.Common.AspNetCore.WebApi.Builder;
 
 public static class SwaggerBuilderExtensions
 {

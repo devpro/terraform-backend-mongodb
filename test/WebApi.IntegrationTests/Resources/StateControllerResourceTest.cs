@@ -1,7 +1,7 @@
 ﻿using System.Net;
-using Farseer.TerraformBackend.WebApi.IntegrationTests.Http;
+using Devpro.TerraformBackend.WebApi.IntegrationTests.Http;
 
-namespace Farseer.TerraformBackend.WebApi.IntegrationTests.Resources;
+namespace Devpro.TerraformBackend.WebApi.IntegrationTests.Resources;
 
 [Trait("Category", "IntegrationTests")]
 public class StateControllerResourceTest(WebApplicationFactory<Program> factory)

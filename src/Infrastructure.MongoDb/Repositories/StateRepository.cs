@@ -1,12 +1,12 @@
 ﻿using System;
 using System.Threading.Tasks;
-using Farseer.Common.MongoDb;
-using Farseer.TerraformBackend.Domain.Repositories;
+using Devpro.Common.MongoDb;
+using Devpro.TerraformBackend.Domain.Repositories;
 using Microsoft.Extensions.Logging;
 using MongoDB.Bson;
 using MongoDB.Driver;
 
-namespace Farseer.TerraformBackend.Infrastructure.MongoDb.Repositories;
+namespace Devpro.TerraformBackend.Infrastructure.MongoDb.Repositories;
 
 public class StateRepository : RepositoryBase, IStateRepository
 {

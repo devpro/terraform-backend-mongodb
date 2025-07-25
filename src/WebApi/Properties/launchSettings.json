@@ -9,7 +9,7 @@
         "ASPNETCORE_ENVIRONMENT": "Development",
         "Application__IsHttpsRedirectionEnabled": "false",
         "Application__IsSwaggerEnabled": "true",
-        "Logging__LogLevel__Farseer": "Debug"
+        "Logging__LogLevel__Devpro": "Debug"
       },
       "dotnetRunMessages": true,
       "applicationUrl": "http://localhost:5293"
@@ -22,7 +22,7 @@
         "ASPNETCORE_ENVIRONMENT": "Development",
         "Application__IsHttpsRedirectionEnabled": "true",
         "Application__IsSwaggerEnabled": "true",
-        "Logging__LogLevel__Farseer": "Debug"
+        "Logging__LogLevel__Devpro": "Debug"
       },
       "dotnetRunMessages": true,
       "applicationUrl": "https://localhost:7293;http://localhost:5293"

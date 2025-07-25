@@ -2,8 +2,8 @@
 
   <PropertyGroup>
     <TargetFramework>net8.0</TargetFramework>
-    <AssemblyName>Farseer.TerraformBackend.WebApi</AssemblyName>
-    <RootNamespace>Farseer.TerraformBackend.WebApi</RootNamespace>
+    <AssemblyName>Devpro.TerraformBackend.WebApi</AssemblyName>
+    <RootNamespace>Devpro.TerraformBackend.WebApi</RootNamespace>
     <ProjectGuid>{5CD7A689-5ADB-4207-972E-6FA881AF1B1C}</ProjectGuid>
     <Nullable>enable</Nullable>
     <ImplicitUsings>enable</ImplicitUsings>
