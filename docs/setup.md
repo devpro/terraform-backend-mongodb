@@ -8,8 +8,8 @@ Make sure you have access to a MongoDB database (with a connection string contai
 
 The MongoDB server can run:
 
-- On a machine from the binary
-- On multiple machines from the binary
+- On a machine from binaries
+- On multiple machines binaries
 - In a container
 - In a Kubernetes cluster
 - In MongoDB Atlas (free tier available!)
@@ -22,11 +22,19 @@ The MongoDB server can run:
 
 Add indexes for optimal performances:
 
-```bash
-docker run --rm --link mongodb \
-  -v "$(pwd)/scripts":/home/scripts mongo:8.0 \
-  bash -c "mongosh mongodb://<dbserver>:<dbport>/<dbname> /home/scripts/mongo-create-index.js"
-```
+=== "Container (Docker)"
+
+    ```bash
+    docker run --rm --link mongodb \
+      -v "$(pwd)/scripts":/home/scripts mongo:8.0 \
+      bash -c "mongosh mongodb://<dbserver>:<dbport>/<dbname> /home/scripts/mongo-create-index.js"
+    ```
+
+=== "Client (mongosh)"
+
+    ```bash
+    mongosh mongodb://<dbserver>:<dbport>/<dbname> ./scripts/mongo-create-index.js
+    ```
 
 ## Installation
 

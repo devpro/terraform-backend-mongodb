@@ -10,8 +10,8 @@ Manage Terraform/OpenTofu state through a secured REST API and take advatange of
 
 ## Getting started
 
-Best place to start is the [documentation](https://devpro.github.io/terraform-backend-mongodb/).
+Best place to start is the [documentation website](https://devpro.github.io/terraform-backend-mongodb/).
 
 ## Going further
 
-Technical implementation is described in the [project development guide](CONTRIBUTING.md).
+Technical implementation is described in the [contribution guide](CONTRIBUTING.md).

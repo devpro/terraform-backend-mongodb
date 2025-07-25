@@ -13,7 +13,7 @@ Before looking at all the options, let's do a quick demonstration of the applica
 === "Kubernetes (Helm)"
 
     ```bash
-    docker ...
+    helm upgrade --install tfbackend https://github.com/devpro/helm-charts/releases/download/terraform-backend-mongodb-0.1.0/terraform-backend-mongodb-0.1.0.tgz --create-namespace --namespace tfbackend
     ```
 
 ## Samples

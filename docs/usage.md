@@ -4,14 +4,23 @@
 
 API calls are secured through tenant isolation and user authentication, which are stored in the MongoDB database.
 
-You can add a user with the following script (replace the parameters):
+You can add a user with the following commands (replace the parameters):
 
-```bash
-./scripts/mongo-create-user.sh myusername mypassword mytenant
-docker run --rm --link mongodb \
-  -v "$(pwd)/scripts":/home/scripts mongo:8.0 \
-  bash -c "mongosh mongodb://<dbserver>:<dbport>/<dbname> /home/scripts/add-user.js"
-```
+=== "Container (Docker)"
+
+    ```bash
+    ./scripts/mongo-create-user.sh myusername mypassword mytenant
+    docker run --rm --link mongodb \
+      -v "$(pwd)/scripts":/home/scripts mongo:8.0 \
+      bash -c "mongosh mongodb://<dbserver>:<dbport>/<dbname> /home/scripts/add-user.js"
+    ```
+
+=== "Client (mongosh)"
+
+    ```bash
+    ./scripts/mongo-create-user.sh myusername mypassword mytenant
+    mongosh mongodb://<dbserver>:<dbport>/<dbname> ./scripts/add-user.js
+    ```
 
 ## Client configuration
 
