@@ -9,30 +9,32 @@ public class WebApiConfiguration(IConfigurationRoot configurationRoot)
 
     // flags
 
-    public bool IsOpenTelemetryEnabled => TryGetSection("Application:IsOpenTelemetryEnabled").Get<bool>();
+    public bool IsOpenTelemetryEnabled => TryGetSection<bool>("Application:IsOpenTelemetryEnabled");
 
-    public bool IsHttpsRedirectionEnabled => TryGetSection("Application:IsHttpsRedirectionEnabled").Get<bool>();
+    public bool IsHttpsRedirectionEnabled => TryGetSection<bool>("Application:IsHttpsRedirectionEnabled");
 
-    public bool IsSwaggerEnabled => TryGetSection("Application:IsSwaggerEnabled").Get<bool>();
+    public bool IsSwaggerEnabled => TryGetSection<bool>("Application:IsSwaggerEnabled");
 
 
     // definitions
 
     public static string HealthCheckEndpoint => "/health";
 
-    public OpenApiInfo OpenApi => TryGetSection("OpenApi").Get<OpenApiInfo>() ?? throw new Exception("");
+    public OpenApiInfo OpenApi => TryGetSection<OpenApiInfo>("OpenApi");
 
-    public string OpenTelemetryService => TryGetSection("OpenTelemetry:ServiceName").Get<string>() ?? "";
+    public string OpenTelemetryService => TryGetSection<string>("OpenTelemetry:ServiceName");
 
     // infrastructure
 
-    public string OpenTelemetryCollectorEndpoint => TryGetSection("OpenTelemetry:CollectorEndpoint").Get<string>() ?? "";
+    public string OpenTelemetryCollectorEndpoint => TryGetSection<string>("OpenTelemetry:CollectorEndpoint");
 
     // protected methods
 
-    protected IConfigurationSection TryGetSection(string sectionKey)
+    protected T TryGetSection<T>(string sectionKey)
     {
-        return ConfigurationRoot.GetSection(sectionKey)
-            ?? throw new ArgumentException("Missing section \"" + sectionKey + "\" in configuration", nameof(sectionKey));
+        var section = ConfigurationRoot.GetSection(sectionKey)
+            ?? throw new ArgumentException($"Missing section \"{sectionKey}\" in configuration", nameof(sectionKey));
+        return section.Get<T>()
+            ?? throw new ArgumentException($"Section \"{sectionKey}\" value cannot be read as \"{nameof(T)}\"", nameof(sectionKey));
     }
 }
