@@ -6,9 +6,11 @@
 
 GitHub Actions are triggered to automate the integration and delivery of the application:
 
-- [CI](../.github/workflows/ci.yaml)
-- [Pages](../.github/workflows/pages.yaml)
-- [PKG](../.github/workflows/pkg.yaml)
+Role      | Definition file
+----------|-------------------------------
+**CI**    | `.github/workflows/ci.yaml`
+**Pages** | `.github/workflows/pages.yaml`
+**PKG**   | `.github/workflows/pkg.yaml`
 
 GitHub configuration (**General** / **Security** / **Secrets and Variables** / **Actions**):
 

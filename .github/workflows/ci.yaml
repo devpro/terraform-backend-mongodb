@@ -39,11 +39,13 @@ jobs:
         uses: ./workflow-parts/mongodb/start
       - name: Initialize database (indexes, tenants & users)
         run: |
-          mongosh mongodb://localhost:27017/terraform_backend_dev scripts/mongo-create-index.js
           sudo apt-get -y install apache2-utils
-          ./scripts/mongo-create-user.sh admin admin123 dummy
-          mongosh mongodb://localhost:27017/terraform_backend_dev scripts/add-user.js
+          docker run --name mongodb -d -p 27017:27017 mongo:8.0
+          ./scripts/tfbeadm create-indexes
+          ./scripts/tfbeadm create-user admin admin123 dummy
         shell: bash
+        env:
+          MONGODB_URI: mongodb://localhost:27017/terraform_backend_dev
       - name: Build, lint & test
         uses: ./workflow-parts/dotnet/build-lint-test
         with:

@@ -22,19 +22,15 @@ The MongoDB server can run:
 
 Add indexes for optimal performances:
 
-=== "Container (Docker)"
+```bash
+MONGODB_URI=mongodb://<myserver>:27017/<mydb>
+curl -O https://raw.githubusercontent.com/devpro/terraform-backend-mongodb/refs/heads/main/scripts/tfbeadm
+tfbeadm create-indexes
+```
 
-    ```bash
-    docker run --rm --link mongodb \
-      -v "$(pwd)/scripts":/home/scripts mongo:8.0 \
-      bash -c "mongosh mongodb://<dbserver>:<dbport>/<dbname> /home/scripts/mongo-create-index.js"
-    ```
+!!! warning
 
-=== "Client (mongosh)"
-
-    ```bash
-    mongosh mongodb://<dbserver>:<dbport>/<dbname> ./scripts/mongo-create-index.js
-    ```
+    `mongosh` or `Docker` packages must be available on the machine running the commands
 
 ## Installation
 
@@ -48,5 +44,41 @@ helm repo add devpro https://devpro.github.io/helm-charts
 helm repo update
 
 # installs the chart
-helm upgrade --install tfbackend devpro/terraform-backend-mongodb --create-namespace --namespace tfbackend
+helm upgrade --install tfbackend devpro/terraform-backend-mongodb [-f values.yaml] --create-namespace --namespace tfbackend
 ```
+
+Values file examples:
+
+=== "Embedded MongoDB chart"
+
+    ```yaml
+    mongodb:
+      enabled: true
+      auth:
+        rootPassword: admin
+    webapi:
+      db:
+        connectionString: mongodb://root:admin@tfbackend-mongodb:27017/terraform_backend_beta?authSource=admin
+        databaseName: terraform_backend_beta
+    ```
+
+=== "Traefik Ingress with Let's Encrypt cert-manager issuer"
+
+    ```yaml
+    webapi:
+      host: tfbackend.mydomain
+    ingress:
+      enabled: true
+      className: traefik
+      annotations:
+        cert-manager.io/cluster-issuer: letsencrypt-prod
+    ```
+
+=== "Development environment with Swagger"
+
+    ```yaml
+    dotnet:
+      environment: Development
+      enableSwagger: true
+      enableOpenTelemetry: false
+    ```

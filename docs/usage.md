@@ -6,21 +6,11 @@ API calls are secured through tenant isolation and user authentication, which ar
 
 You can add a user with the following commands (replace the parameters):
 
-=== "Container (Docker)"
-
-    ```bash
-    ./scripts/mongo-create-user.sh myusername mypassword mytenant
-    docker run --rm --link mongodb \
-      -v "$(pwd)/scripts":/home/scripts mongo:8.0 \
-      bash -c "mongosh mongodb://<dbserver>:<dbport>/<dbname> /home/scripts/add-user.js"
-    ```
-
-=== "Client (mongosh)"
-
-    ```bash
-    ./scripts/mongo-create-user.sh myusername mypassword mytenant
-    mongosh mongodb://<dbserver>:<dbport>/<dbname> ./scripts/add-user.js
-    ```
+```bash
+MONGODB_URI=mongodb://<myserver>:27017/<mydb>
+curl -O https://raw.githubusercontent.com/devpro/terraform-backend-mongodb/refs/heads/main/scripts/tfbeadm
+tfbeadm create-user <myusername> <mypassword> <mytenant>
+```
 
 ## Client configuration
 
