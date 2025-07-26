@@ -1,0 +1,202 @@
+#!/bin/bash
+
+MONGODB_URI="${MONGODB_URI:-mongodb://mongodb:27017/test}"
+#MONGODB_CONTAINERNAME
+MONGODB_VERSION="${MONGODB_VERSION:-8.0}"
+
+MONGODB_INDEX_COMMANDS=(
+  'db.tf_state.createIndex({"tenant": 1, "name": 1})'
+  'db.tf_state_lock.createIndex({"tenant": 1, "name": 1}, {unique: true})'
+  'db.user.createIndex({"username": 1}, {unique: true})'
+)
+
+log_info() {
+  local message="$1"
+  echo -e "$message"
+}
+
+log_header() {
+  local message="$1"
+  echo -e "\033[1;34m$message\033[0m" # blue
+}
+
+log_success() {
+  local message="$1"
+  echo -e "\033[1;32m$message\033[0m" # green
+}
+
+log_warn() {
+  local message="$1"
+  echo -e "\033[1;33mWarn: $message\033[0m" # yello
+}
+
+log_error() {
+  local message="$1"
+  echo -e "\033[1;31mError: $message\033[0m" # red
+}
+
+usage() {
+  echo -e "\033[1;34mUsage:\033[0m $0 [command] [arguments...]"
+  echo -e "\033[1;34mCommands:\033[0m"
+  echo "  create-indexes                             : Create indexes in database"
+  echo "  create-user <username> <password> <tenant> : Create user in database"
+  echo "  help                                       : Show this help message"
+  # echo "  (no arguments)                             : Run in interactive mode"
+  exit 1
+}
+
+check_command() {
+  local cmd=$1
+  if command -v "$cmd" &> /dev/null; then
+    return 0
+  else
+    return 1
+  fi
+}
+
+check_htpasswd() {
+  if ! command -v htpasswd &> /dev/null; then
+      log_error "htpasswd is not installed."
+      log_info "Please install apache2-utils (on Debian/Ubuntu) or httpd-tools (on CentOS/RHEL)."
+      log_info "Installation commands:"
+      log_info "  Debian/Ubuntu: sudo apt-get install apache2-utils"
+      log_info "  CentOS/RHEL: sudo yum install httpd-tools"
+      exit 1
+  fi
+}
+
+execute_mongosh() {
+  local mongodb_cmd="$1"
+  if check_command "mongosh"; then
+    execute_mongosh_package "$mongodb_cmd" || return 1
+  else
+    if check_command "docker"; then
+      if [[ -n "$MONGODB_CONTAINERNAME" ]]; then
+        execute_mongosh_docker_link "$mongodb_cmd" || return 1
+      else
+        execute_mongosh_docker "$mongodb_cmd" || return 1
+      fi
+    else
+      echo "Error: Neither mongosh nor Docker is installed. Please install one to proceed."
+      return 1
+    fi
+  fi
+}
+
+execute_mongosh_package() {
+  local mongodb_cmd="$1"
+  log_info "Executing MongoDB command in the shell: $mongodb_cmd"
+  if output=$(mongosh "$MONGODB_URI" --quiet --eval "$mongodb_cmd" 2>&1); then
+    log_info "Output:\n$output"
+  else
+    log_warn "$output"
+    return 1
+  fi
+}
+
+execute_mongosh_docker() {
+  local mongodb_cmd="$1"
+  log_info "Executing MongoDB command in a container: $mongodb_cmd"
+  if output=$(docker run --rm "mongo:$MONGODB_VERSION" bash -c "mongosh \"$MONGODB_URI\" --quiet --eval \"$mongodb_cmd\"" 2>&1); then
+    log_info "Output:\n$output"
+  else
+    log_warn "$output"
+    return 1
+  fi
+}
+
+execute_mongosh_docker_link() {
+  local mongodb_cmd="$1"
+  log_info "Executing MongoDB command in a container with a link: $mongodb_cmd"
+  if output=$(docker run --rm --link "$MONGODB_CONTAINERNAME" "mongo:$MONGODB_VERSION" bash -c "mongosh \"$MONGODB_URI\" --quiet --eval \"$mongodb_cmd\"" 2>&1); then
+    log_info "Output:\n$output"
+  else
+    log_warn "$output"
+    return 1
+  fi
+}
+
+create_indexes() {
+  local status=0
+  log_header "Creating predefined MongoDB indexes"
+  for cmd in "${MONGODB_INDEX_COMMANDS[@]}"; do
+    execute_mongosh "$cmd" || status=1
+  done
+  if [ $status -eq 0 ]; then
+    log_success "All indexes created successfully"
+  else
+    log_error "One or more index creations failed"
+  fi
+  return $status
+}
+
+create_user() {
+  local username=$1
+  local password=$2
+  local tenant=$3
+  log_header "Creating user"
+
+  hash=$(htpasswd -bnBC 10 "" "$password" | tr -d ':\n')
+  if [ $? -ne 0 ] || [ -z "$hash" ]; then
+    log_error "Failed to generate BCrypt hash"
+    exit 1
+  fi
+
+  creation_command=$(cat <<EOF
+db.user.insertOne({
+    username: '$username',
+    password_hash: '$(printf "%q" "$hash")',
+    tenant: '$tenant'
+})
+EOF
+  )
+
+  if execute_mongosh "$creation_command"; then
+    log_success "User created successfully"
+  else
+    log_error "User created failed"
+    exit 1
+  fi
+}
+
+# checks for command-line arguments
+if [ $# -gt 0 ]; then
+  case "$1" in
+    "create-indexes")
+      create_indexes
+      exit $?
+      ;;
+    "create-user")
+      check_htpasswd
+      shift
+      if [ -z "$1" ]; then
+        log_error "No username provided"
+        usage
+      fi
+      username="$1"
+      shift
+      if [ -z "$1" ]; then
+        log_error "No password provided"
+        usage
+      fi
+      password="$1"
+      shift
+      if [ -z "$1" ]; then
+        log_error "No tenant provided"
+        usage
+      fi
+      tenant="$1"
+      create_user "$username" "$password" "$tenant"
+      exit $?
+      ;;
+    "help")
+      usage
+      ;;
+    *)
+      log_error "Invalid command: $1"
+      usage
+      ;;
+  esac
+fi
+
+usage

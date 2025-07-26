@@ -15,7 +15,7 @@ public class StateLockModel
     public string Id { get; set; } = null!;
 
     /// <summary>
-    /// 
+    ///
     /// </summary>
     public string Tenant { get; set; } = string.Empty;
 

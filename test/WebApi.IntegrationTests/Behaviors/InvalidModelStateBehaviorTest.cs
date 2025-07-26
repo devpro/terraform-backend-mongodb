@@ -26,7 +26,7 @@ public class InvalidModelStateBehaviorTest(WebApplicationFactory<Program> factor
             });
         });
         var invalidModel = new { Name = (string?)null };
-        var name = Faker.Random.Word();
+        var name = Faker.Random.AlphaNumeric(8);
 
         // Act
         var response = await client.PostAsync($"/dummy/state/{name}/lock", Serialize(invalidModel));

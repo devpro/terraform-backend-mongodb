@@ -1,0 +1,5 @@
+# ref. https://github.com/DavidAnson/markdownlint
+default: true
+MD013:
+  line_length: 240
+MD046: false

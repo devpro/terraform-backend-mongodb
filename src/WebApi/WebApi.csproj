@@ -11,10 +11,6 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="Swashbuckle.AspNetCore" Version="9.0.3" />
-  </ItemGroup>
-
-  <ItemGroup>
     <ProjectReference Include="..\Common.AspNetCore.WebApi\Common.AspNetCore.WebApi.csproj" />
     <ProjectReference Include="..\Common.AspNetCore\Common.AspNetCore.csproj" />
     <ProjectReference Include="..\Infrastructure.MongoDb\Infrastructure.MongoDb.csproj" />
