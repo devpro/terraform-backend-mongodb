@@ -39,8 +39,6 @@ jobs:
         uses: ./workflow-parts/mongodb/start
       - name: Initialize database (indexes, tenants & users)
         run: |
-          sudo apt-get -y install apache2-utils
-          docker run --name mongodb -d -p 27017:27017 mongo:8.0
           ./scripts/tfbeadm create-indexes
           ./scripts/tfbeadm create-user admin admin123 dummy
         shell: bash
