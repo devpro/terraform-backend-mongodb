@@ -356,6 +356,3 @@ appsettings.Development.json
 .terraform/
 .terraform.lock.hcl
 errored.tfstate
-
-# temp script files
-scripts/add-user.js

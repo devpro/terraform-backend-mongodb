@@ -1,10 +1,8 @@
 # Contribution guide
 
-## Application
+## Application codebase
 
-The code is entirely based on open-source, cross-platform (Linux/Windows), highly performant, free, object-oriented technologies: .NET / C#.
-
-### Projects
+### .NET projects
 
 Project name               | Technology | Project type
 ---------------------------|------------|---------------------------
@@ -15,7 +13,7 @@ Project name               | Technology | Project type
 `Infrastructure.MongoDb`   | .NET 8     | Library
 `WebApi`                   | ASP.NET 8  | Web application (REST API)
 
-### Packages (NuGet)
+### .NET packages (NuGet)
 
 Name                     | Description
 -------------------------|-----------------------------
@@ -24,16 +22,10 @@ Name                     | Description
 `Swashbuckle.AspNetCore` | OpenAPI / Swagger generation
 `System.Text.Json`       | JSON support
 
-### Clients
+### Terraform specifications
 
-- [OpenTofu](https://opentofu.org/)
-- [Terraform](https://www.terraform.io)
-  - [HTTP backend](https://developer.hashicorp.com/terraform/language/backend/http)
-  - [Remote state backend](https://github.com/hashicorp/terraform/tree/main/internal/backend/remote-state)
-
-### Backing services
-
-- [MongoDB](https://www.mongodb.com/)
+- [HTTP backend](https://developer.hashicorp.com/terraform/language/backend/http)
+- [Remote state backend](https://github.com/hashicorp/terraform/tree/main/internal/backend/remote-state)
 
 ### Other community implementations
 
@@ -74,7 +66,7 @@ dotnet run --project src/WebApi
 
 Open Swagger in a browser: [localhost:5293/swagger](http://localhost:5293/swagger).
 
-## Documentation
+## Documentation codebase
 
 The documentation is a static website built with [Material for MkDocs](https://squidfunk.github.io/mkdocs-material/).
 

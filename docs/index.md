@@ -1,6 +1,6 @@
 # Welcome
 
-This project provides an HTTP backend for Terraform and OpenTofu that will save and manage state data in a MongoDB database.
+This project provides an HTTP backend for [Terraform](https://www.terraform.io) and [OpenTofu](https://opentofu.org/) that will save and manage state data in a [MongoDB](https://www.mongodb.com/) database.
 
 As the state is a JSON content, it makes sense to use the best-in-class database technology to work with it.
 
