@@ -1,15 +1,13 @@
 #!/bin/bash
 
-# tfbackend-cli create-index
-# tfbackend-cli create-user myusername mypassword mytenant
-
-MONGODB_URI="${MONGODB_URI:-mongodb://mongodb:27017}"
-MONGODB_DB="${MONGODB_DB:-test}"
-MONGODB_CONTAINERNAME="${MONGODB_CONTAINERNAME:-mongodb}"
+MONGODB_URI="${MONGODB_URI:-mongodb://mongodb:27017/test}"
+#MONGODB_CONTAINERNAME
+MONGODB_VERSION="${MONGODB_VERSION:-8.0}"
 
 MONGODB_INDEX_COMMANDS=(
   'db.tf_state.createIndex({"tenant": 1, "name": 1})'
-  'db.tf_state_lock.createIndex({"tenant": 1, "name": 1})'
+  'db.tf_state_lock.createIndex({"tenant": 1, "name": 1}, {unique: true})'
+  'db.user.createIndex({"username": 1}, {unique: true})'
 )
 
 log_info() {
@@ -40,7 +38,7 @@ log_error() {
 usage() {
   echo -e "\033[1;34mUsage:\033[0m $0 [command] [arguments...]"
   echo -e "\033[1;34mCommands:\033[0m"
-  echo "  create-index                               : Create indexes in database"
+  echo "  create-indexes                             : Create indexes in database"
   echo "  create-user <username> <password> <tenant> : Create user in database"
   echo "  help                                       : Show this help message"
   # echo "  (no arguments)                             : Run in interactive mode"
@@ -68,23 +66,27 @@ check_htpasswd() {
 }
 
 execute_mongosh() {
-  local mongo_cmd="$1"
+  local mongodb_cmd="$1"
   if check_command "mongosh"; then
-    execute_mongosh_package "$mongo_cmd" || exit 1
+    execute_mongosh_package "$mongodb_cmd" || return 1
   else
     if check_command "docker"; then
-      execute_mongosh_docker "$mongo_cmd" || exit 1
+      if [[ -n "$MONGODB_CONTAINERNAME" ]]; then
+        execute_mongosh_docker_link "$mongodb_cmd" || return 1
+      else
+        execute_mongosh_docker "$mongodb_cmd" || return 1
+      fi
     else
       echo "Error: Neither mongosh nor Docker is installed. Please install one to proceed."
-      exit 1
+      return 1
     fi
   fi
 }
 
 execute_mongosh_package() {
-  local mongo_cmd="$1"
-  log_info "Executing MongoDB command in the shell: $mongo_cmd"
-  if output=$(mongosh "$MONGODB_URI/$MONGODB_DB" --quiet --eval "$mongo_cmd" 2>&1); then
+  local mongodb_cmd="$1"
+  log_info "Executing MongoDB command in the shell: $mongodb_cmd"
+  if output=$(mongosh "$MONGODB_URI" --quiet --eval "$mongodb_cmd" 2>&1); then
     log_info "Output:\n$output"
   else
     log_warn "$output"
@@ -93,9 +95,9 @@ execute_mongosh_package() {
 }
 
 execute_mongosh_docker() {
-  local mongo_cmd="$1"
-  log_info "Executing MongoDB command in a container: $mongo_cmd"
-  if output=$(docker run --rm --link "$MONGODB_CONTAINERNAME" mongo:8.0 bash -c "mongosh \"$MONGODB_URI/$MONGODB_DB\" --quiet --eval \"$mongo_cmd\"" 2>&1); then
+  local mongodb_cmd="$1"
+  log_info "Executing MongoDB command in a container: $mongodb_cmd"
+  if output=$(docker run --rm "mongo:$MONGODB_VERSION" bash -c "mongosh \"$MONGODB_URI\" --quiet --eval \"$mongodb_cmd\"" 2>&1); then
     log_info "Output:\n$output"
   else
     log_warn "$output"
@@ -103,7 +105,18 @@ execute_mongosh_docker() {
   fi
 }
 
-create_mongodb_indexes() {
+execute_mongosh_docker_link() {
+  local mongodb_cmd="$1"
+  log_info "Executing MongoDB command in a container with a link: $mongodb_cmd"
+  if output=$(docker run --rm --link "$MONGODB_CONTAINERNAME" "mongo:$MONGODB_VERSION" bash -c "mongosh \"$MONGODB_URI\" --quiet --eval \"$mongodb_cmd\"" 2>&1); then
+    log_info "Output:\n$output"
+  else
+    log_warn "$output"
+    return 1
+  fi
+}
+
+create_indexes() {
   local status=0
   log_header "Creating predefined MongoDB indexes"
   for cmd in "${MONGODB_INDEX_COMMANDS[@]}"; do
@@ -121,6 +134,7 @@ create_user() {
   local username=$1
   local password=$2
   local tenant=$3
+  log_header "Creating user"
 
   hash=$(htpasswd -bnBC 10 "" "$password" | tr -d ':\n')
   if [ $? -ne 0 ] || [ -z "$hash" ]; then
@@ -137,15 +151,19 @@ db.user.insertOne({
 EOF
   )
 
-  execute_mongosh "$creation_command" || return 1
-  execute_mongosh "db.user.createIndex({\"username\": 1}, {unique: true})" || return 1
+  if execute_mongosh "$creation_command"; then
+    log_success "User created successfully"
+  else
+    log_error "User created failed"
+    exit 1
+  fi
 }
 
 # checks for command-line arguments
 if [ $# -gt 0 ]; then
   case "$1" in
-    "create-index")
-      create_mongodb_indexes
+    "create-indexes")
+      create_indexes
       exit $?
       ;;
     "create-user")
