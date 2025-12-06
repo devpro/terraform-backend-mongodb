@@ -29,7 +29,7 @@ jobs:
           container_username: ${{ secrets.DOCKERHUB_USERNAME }}
           container_password: ${{ secrets.DOCKERHUB_TOKEN }}
           docker_file: 'src/WebApi/Dockerfile'
-          image_tag: 1.1.${{ github.run_id }}
+          image_tag: 1.2.${{ github.run_id }}
           image_path: 'docker.io/devprofr'
           image_name: terraform-backend-mongodb
           create_latest: ${{ github.ref_name == 'main' }}

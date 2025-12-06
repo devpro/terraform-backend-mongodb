@@ -70,7 +70,7 @@ jobs:
         uses: ./workflow-parts/docker/build-scan
         with:
           docker_file: 'src/WebApi/Dockerfile'
-          image_tag: 1.1.${{ github.run_id }}
+          image_tag: 1.2.${{ github.run_id }}
           image_path: 'docker.io/devprofr'
           image_name: terraform-backend-mongodb
           max_high_cves: 0
