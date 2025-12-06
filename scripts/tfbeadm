@@ -1,7 +1,6 @@
 #!/bin/bash
 
-MONGODB_URI="${MONGODB_URI:-mongodb://mongodb:27017/test}"
-#MONGODB_CONTAINERNAME
+MONGODB_URI="${MONGODB_URI:-mongodb://mongodb:27017/terraform_backend_dev}"
 MONGODB_VERSION="${MONGODB_VERSION:-8.0}"
 
 MONGODB_INDEX_COMMANDS=(

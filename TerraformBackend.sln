@@ -40,8 +40,7 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "docker-nginx", "docker-ngin
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "scripts", "scripts", "{7F01D180-1A34-4377-B4E5-C852D8302CE7}"
 	ProjectSection(SolutionItems) = preProject
-		scripts\mongo-create-index.js = scripts\mongo-create-index.js
-		scripts\mongo-create-user.sh = scripts\mongo-create-user.sh
+		scripts\tfbeadm = scripts\tfbeadm
 	EndProjectSection
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "WebApi.IntegrationTests", "test\WebApi.IntegrationTests\WebApi.IntegrationTests.csproj", "{B055FFAF-8261-43B1-866A-12E289D5D7DC}"

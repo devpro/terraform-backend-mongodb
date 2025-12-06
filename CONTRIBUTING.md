@@ -45,10 +45,9 @@ Name                     | Description
 Run MongoDB in a database and add the indexes and test tenant/user:
 
 ```bash
-docker run --name mongodb -d -p 27017:27017 mongo:8.0
-MONGODB_CONTAINERNAME=mongodb
-./scripts/tfbeadm create-indexes
-./scripts/tfbeadm create-user admin admin123 dummy
+docker run --name mongodb -d -p 27017:27017 mongo:8.2
+MONGODB_CONTAINERNAME=mongodb ./scripts/tfbeadm create-indexes
+MONGODB_CONTAINERNAME=mongodb ./scripts/tfbeadm create-user admin admin123 dummy
 ```
 
 Run the web API (example with the command line but an IDE like Visual Studio or Rider would be nice to be able to debug):
@@ -57,7 +56,7 @@ Run the web API (example with the command line but an IDE like Visual Studio or 
 dotnet run --project src/WebApi
 ```
 
-Open Swagger in a browser: [localhost:5293/swagger](http://localhost:5293/swagger).
+Open Swagger in a browser: [localhost:5293/swagger](http://localhost:5293/swagger), or [localhost:5000/swagger](http://localhost:5000/swagger) from Visual Studio debug.
 
 ## Documentation codebase
 
