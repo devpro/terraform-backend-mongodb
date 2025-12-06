@@ -1,18 +1,24 @@
 # Project
 
+## Design
+
+### Programming languages
+
+The code is mainly written in C# / .NET: open-source, cross-platform (Linux/Windows), highly performant, object-oriented.
+
 ## Automation
 
 ### CI/CD pipelines
 
 GitHub Actions are triggered to automate the integration and delivery of the application:
 
-Role      | Definition file
-----------|-------------------------------
-**CI**    | `.github/workflows/ci.yaml`
-**Pages** | `.github/workflows/pages.yaml`
-**PKG**   | `.github/workflows/pkg.yaml`
+Name      | Role                     | Definition file
+----------|--------------------------|----------------------------
+**CI**    | Continuous Integration   | `.github/workflows/ci.yaml`
+**PKG**   | Continuous Delivery      | `.github/workflows/pkg.yaml`
+**Pages** | Continuous Documentation | `.github/workflows/pages.yaml`
 
-GitHub configuration (**General** / **Security** / **Secrets and Variables** / **Actions**):
+GitHub Variables are defined (in **General** / **Security** / **Secrets and Variables** / **Actions**):
 
 - DOCKERHUB_TOKEN
 - DOCKERHUB_USERNAME
@@ -23,15 +29,9 @@ GitHub configuration (**General** / **Security** / **Secrets and Variables** / *
 
 ## Backlog
 
-### V2.0
+### V2.0 (coming in 2026)
 
-New features:
+Feature requests:
 
 - :material-square: Store in the database only one version of the state in tf_state (the latest) and save the others in tf_state_revision
 - :material-square: Send traces, logs, metrics to OpenTelemetry Collector
-
-## Design
-
-### Programming languages
-
-The code is mainly written in C# / .NET: open-source, cross-platform (Linux/Windows), highly performant, object-oriented.

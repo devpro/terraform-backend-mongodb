@@ -7,7 +7,9 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "0 - Solution Items", "0 - S
 	ProjectSection(SolutionItems) = preProject
 		.editorconfig = .editorconfig
 		.gitignore = .gitignore
+		.gitlab-ci.yml = .gitlab-ci.yml
 		compose.yaml = compose.yaml
+		compose.override.yaml = compose.override.yaml
 		CONTRIBUTING.md = CONTRIBUTING.md
 		Directory.Build.props = Directory.Build.props
 		README.md = README.md
@@ -53,6 +55,15 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "local-files", "local-files"
 	ProjectSection(SolutionItems) = preProject
 		samples\local-files\main.tf = samples\local-files\main.tf
 		samples\local-files\README.md = samples\local-files\README.md
+	EndProjectSection
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "docs", "docs", "{FF437226-25A3-491B-B433-F4760EC45D25}"
+	ProjectSection(SolutionItems) = preProject
+		docs\index.md = docs\index.md
+		docs\project.md = docs\project.md
+		docs\quickstart.md = docs\quickstart.md
+		docs\setup.md = docs\setup.md
+		docs\usage.md = docs\usage.md
 	EndProjectSection
 EndProject
 Global
@@ -105,6 +116,7 @@ Global
 		{B055FFAF-8261-43B1-866A-12E289D5D7DC} = {6D13F54F-4547-49C7-8136-01BFB4BBEE1E}
 		{19336002-C959-4E76-B112-861F93CF6423} = {0C1E6968-B289-4378-84CF-B64E05E643A5}
 		{02EA681E-C7D8-13C7-8484-4AC65E1B71E8} = {3C2E7F7E-1F8E-49D1-AD56-EC60BEB5299D}
+		{FF437226-25A3-491B-B433-F4760EC45D25} = {7B3738E0-6F86-4358-B55C-5AAD42B24F81}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {DC545534-6A10-475B-A0DA-3374CC025D82}

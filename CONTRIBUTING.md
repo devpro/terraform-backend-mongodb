@@ -1,8 +1,8 @@
 # Contribution guide
 
-## Application codebase
+## Understand the codebase
 
-### .NET projects
+The application source code is in the following .NET projects:
 
 Project name               | Technology  | Project type
 ---------------------------|-------------|---------------------------
@@ -13,7 +13,7 @@ Project name               | Technology  | Project type
 `Infrastructure.MongoDb`   | .NET 10     | Library
 `WebApi`                   | ASP.NET 10  | Web application (REST API)
 
-### .NET packages (NuGet)
+The application is using the following .NET packages (via NuGet):
 
 Name                     | Description
 -------------------------|-----------------------------
@@ -22,12 +22,12 @@ Name                     | Description
 `Swashbuckle.AspNetCore` | OpenAPI / Swagger generation
 `System.Text.Json`       | JSON support
 
-### Terraform specifications
+The code was made by looking at Terraform specifications:
 
 - [HTTP backend](https://developer.hashicorp.com/terraform/language/backend/http)
 - [Remote state backend](https://github.com/hashicorp/terraform/tree/main/internal/backend/remote-state)
 
-### Other community implementations
+The may was partially inspired by looking at other implementations:
 
 - [GitLab](https://gitlab.com/gitlab-org/manage/import/gitlab/-/blob/master/doc/user/infrastructure/terraform_state.md)
   - [lib/api/terraform/state.rb](https://gitlab.com/gitlab-org/manage/import/gitlab/-/blob/master/lib/api/terraform/state.rb)
@@ -38,27 +38,69 @@ Name                     | Description
 - git
   - [plumber-cd/terraform-backend-git](https://github.com/plumber-cd/terraform-backend-git)
 
-## Procedures
+## Debug the application
 
-### Run locally the application
-
-Run MongoDB in a database and add the indexes and test tenant/user:
+A MongoDB must be running - the easiest way to do it is through a container (here with Docker CLI/engine):
 
 ```bash
 docker run --name mongodb -d -p 27017:27017 mongo:8.2
-MONGODB_CONTAINERNAME=mongodb ./scripts/tfbeadm create-indexes
+```
+
+Add the test user:
+
+```bash
 MONGODB_CONTAINERNAME=mongodb ./scripts/tfbeadm create-user admin admin123 dummy
 ```
 
-Run the web API (example with the command line but an IDE like Visual Studio or Rider would be nice to be able to debug):
+Run the web API from the build files:
 
 ```bash
 dotnet run --project src/WebApi
 ```
 
-Open Swagger in a browser: [localhost:5293/swagger](http://localhost:5293/swagger), or [localhost:5000/swagger](http://localhost:5000/swagger) from Visual Studio debug.
+Open Swagger in a browser: [localhost:5293/swagger](http://localhost:5293/swagger).
 
-## Documentation codebase
+Or, debug from an IDE, such as Visual Studio Community 2022 or Rider - and open [localhost:5000/swagger](http://localhost:5000/swagger).
+
+Once you're done, stop the container:
+
+```bash
+docker stop mongodb
+```
+
+## Run the application from the source in a container
+
+If you just want to run the application, the easiest way is through containers (application + database) - there is a Docker compose file for it:
+
+```bash
+docker compose up --build
+```
+
+Add the test user:
+
+```bash
+docker compose run --rm dbinit
+```
+
+Open [localhost:9001/swagger](http://localhost:9001/swagger)
+
+## Use the Swagger website
+
+If you see an error, make sure to refresh the cache of the page, it can happen if the version of the application has changed.
+
+Assuming you successfully reached the Swagger website, you need to authenticate by clicking on **Authorize** and use username=admin, and password=admin123.
+
+Then, you can try the different commands.
+
+## Run the tests
+
+Test projects are run in the CI pipeline to ensure no regression are introduced with new versions - you can (should) run with:
+
+```bash
+dotnet test
+```
+
+## Preview the documentation website
 
 The documentation is a static website built with [Material for MkDocs](https://squidfunk.github.io/mkdocs-material/).
 
@@ -67,3 +109,5 @@ Run locally with:
 ```bash
 docker run --rm -it -p 8000:8000 -v ${PWD}:/docs squidfunk/mkdocs-material
 ```
+
+Open [localhost:8000](http://localhost:8000/).

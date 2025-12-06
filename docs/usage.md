@@ -7,9 +7,8 @@ API calls are secured through tenant isolation and user authentication, which ar
 You can add a user with the following commands (replace the parameters):
 
 ```bash
-MONGODB_URI=mongodb://<myserver>:27017/<mydb>
 curl -O https://raw.githubusercontent.com/devpro/terraform-backend-mongodb/refs/heads/main/scripts/tfbeadm
-tfbeadm create-user <myusername> <mypassword> <mytenant>
+MONGODB_URI=mongodb://<myserver>:27017/<mydb> tfbeadm create-user <myusername> <mypassword> <mytenant>
 ```
 
 ## Client configuration

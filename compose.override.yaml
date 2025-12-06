@@ -1,0 +1,23 @@
+services:
+  webapi:
+    image: terraform-backend-mongodb:local
+    build:
+      context: .
+      dockerfile: ./src/WebApi/Dockerfile
+
+  dbinit:
+    image: mongo:8.2
+    depends_on:
+      - mongodb
+    volumes:
+      - ./scripts:/scripts
+    command: >
+      sh -c "
+        apt-get update
+        apt-get install -y apache2-utils
+        ./scripts/tfbeadm create-user admin admin123 dummy
+      "
+    profiles: ["init"]
+
+volumes:
+  db-data:
