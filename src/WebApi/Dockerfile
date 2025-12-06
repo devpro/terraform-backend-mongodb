@@ -1,10 +1,10 @@
-FROM registry.suse.com/bci/dotnet-aspnet:8.0 AS base
+FROM registry.suse.com/bci/dotnet-aspnet:10.0 AS base
 USER app
 WORKDIR /app
 EXPOSE 8080
 EXPOSE 8081
 
-FROM registry.suse.com/bci/dotnet-sdk:8.0 AS build
+FROM registry.suse.com/bci/dotnet-sdk:10.0 AS build
 ARG BUILD_CONFIGURATION=Release
 WORKDIR /src
 COPY ["src/", "./"]
