@@ -1,7 +1,7 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
-    <TargetFramework>net8.0</TargetFramework>
+    <TargetFramework>net10.0</TargetFramework>
     <AssemblyName>Devpro.Common.AspNetCore.WebApi</AssemblyName>
     <RootNamespace>Devpro.Common.AspNetCore.WebApi</RootNamespace>
     <ProjectGuid>{19336002-C959-4E76-B112-861F93CF6423}</ProjectGuid>

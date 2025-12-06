@@ -4,14 +4,14 @@
 
 ### .NET projects
 
-Project name               | Technology | Project type
----------------------------|------------|---------------------------
-`Common.AspNetCore`        | .NET 8     | Library
-`Common.AspNetCore.WebApi` | .NET 8     | Library
-`Common.MongoDb`           | .NET 8     | Library
-`Domain`                   | .NET 8     | Library
-`Infrastructure.MongoDb`   | .NET 8     | Library
-`WebApi`                   | ASP.NET 8  | Web application (REST API)
+Project name               | Technology  | Project type
+---------------------------|-------------|---------------------------
+`Common.AspNetCore`        | .NET 10     | Library
+`Common.AspNetCore.WebApi` | .NET 10     | Library
+`Common.MongoDb`           | .NET 10     | Library
+`Domain`                   | .NET 10     | Library
+`Infrastructure.MongoDb`   | .NET 10     | Library
+`WebApi`                   | ASP.NET 10  | Web application (REST API)
 
 ### .NET packages (NuGet)
 
