@@ -10,7 +10,7 @@
 
   <ItemGroup>
     <PackageReference Include="MongoDB.Bson" Version="3.4.0" />
-    <PackageReference Include="System.Text.Json" Version="9.0.7" />
+    <PackageReference Include="System.Text.Json" Version="10.0.0" />
   </ItemGroup>
 
 </Project>
