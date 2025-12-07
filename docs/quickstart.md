@@ -1,19 +1,8 @@
 # Quickstart
 
-Let's do a quick demonstration of the application.
+## Demo
 
-## Make sure requirements are met
-
-[Terraform](https://developer.hashicorp.com/terraform/install), or [OpenTofu](https://opentofu.org/docs/intro/install/), must be available from the command line.
-
-## Run the application and the database in containers
-
-=== "Docker"
-
-    ```bash
-    curl -O https://raw.githubusercontent.com/devpro/terraform-backend-mongodb/refs/heads/main/compose.yaml
-    docker compose up
-    ```
+This is the exhaustive list of steps to use Terraform Backend MongoDB.
 
 <!-- 
 TODO: add other options
@@ -28,52 +17,66 @@ TODO: add other options
 
     ```bash
     helm upgrade --install tfbackend \
-      https://github.com/devpro/helm-charts/releases/download/terraform-backend-mongodb-0.1.0/terraform-backend-mongodb-0.1.0.tgz \
-      --create-namespace --namespace tfbackend
+        https://github.com/devpro/helm-charts/releases/download/terraform-backend-mongodb-0.1.0/terraform-backend-mongodb-0.1.0.tgz \
+        --create-namespace --namespace tfbackend
     ```
-
 -->
 
-## Create a user to authenticate calls
+1. Make sure requirements are met:
 
-=== "Docker"
+    - [Terraform](https://developer.hashicorp.com/terraform/install), or [OpenTofu](https://opentofu.org/docs/intro/install/), must be available from the command line.
+
+2. Run the application and the database in containers
+
+    === "Docker"
+
+        ```bash
+        curl -O https://raw.githubusercontent.com/devpro/terraform-backend-mongodb/refs/heads/main/compose.yaml
+        docker compose up
+        ```
+
+    
+
+3. Create a user to authenticate calls
+
+    === "Docker"
+
+        ```bash
+        curl -O https://raw.githubusercontent.com/devpro/terraform-backend-mongodb/refs/heads/main/scripts/tfbeadm
+        MONGODB_CONTAINERNAME=tfbackmdb-mongodb-1 MONGODB_CONTAINERNETWORK=tfbackmdb_default tfbeadm create-user admin admin123 dummy
+        ```
+
+4. Update Terraform backend (copy of an already configured simple sample)
+
+    === "Docker"
+
+        ```bash
+        curl -O https://raw.githubusercontent.com/devpro/terraform-backend-mongodb/refs/heads/main/samples/local-files/main.tf
+        ```
+
+5. Initiatize Terraform
 
     ```bash
-    curl -O https://raw.githubusercontent.com/devpro/terraform-backend-mongodb/refs/heads/main/scripts/tfbeadm
-    MONGODB_CONTAINERNAME=tfbackmdb-mongodb-1 MONGODB_CONTAINERNETWORK=tfbackmdb_default tfbeadm create-user admin admin123 dummy
+    terraform init
     ```
 
-## Create Terraform files
-
-=== "Docker"
+6. Apply changes
 
     ```bash
-    curl -O https://raw.githubusercontent.com/devpro/terraform-backend-mongodb/refs/heads/main/samples/local-files/main.tf
+    terraform apply
     ```
 
-## Initiatize Terraform
+7. Query the state database
 
-```bash
-terraform init
-```
+    === "Docker"
 
-## Create the resources
+        ```bash
+        docker run --rm --link "tfbackmdb-mongodb-1" --network "tfbackmdb_default" "mongo:8.2" \
+          bash -c "mongosh \"mongodb://mongodb:27017/terraform_backend_dev\" --eval 'db.tf_state.find().projection({tenant: 1, name: 1, createdAt: 1, \"value.version\": 1, \"value.resources.type\": 1, \"value.resources.name\": 1})'"
+        ```
 
-```bash
-terraform apply
-```
-
-## Query the state database
-
-=== "Docker"
+8. Destroy the resources
 
     ```bash
-    docker run --rm --link "tfbackmdb-mongodb-1" --network "tfbackmdb_default" "mongo:8.2" \
-      bash -c "mongosh \"mongodb://mongodb:27017/terraform_backend_dev\" --eval 'db.tf_state.find().projection({tenant: 1, name: 1, createdAt: 1, \"value.version\": 1, \"value.resources.type\": 1, \"value.resources.name\": 1})'"
+    terraform destroy
     ```
-
-## Destroy the resources
-
-```bash
-terraform destroy
-```
