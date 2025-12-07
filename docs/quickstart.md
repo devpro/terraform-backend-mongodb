@@ -2,7 +2,7 @@
 
 ## Demo
 
-This is the exhaustive list of steps to use Terraform Backend MongoDB.
+This is a complete walkthrough to see Terraform Backend MongoDB in action.
 
 <!-- 
 TODO: add other options
@@ -20,13 +20,16 @@ TODO: add other options
         https://github.com/devpro/helm-charts/releases/download/terraform-backend-mongodb-0.1.0/terraform-backend-mongodb-0.1.0.tgz \
         --create-namespace --namespace tfbackend
     ```
+
+[OpenTofu](https://opentofu.org/docs/intro/install/)
 -->
 
-1. Make sure requirements are met:
+1. Make sure the following tools are available from the commande line:
 
-    - [Terraform](https://developer.hashicorp.com/terraform/install), or [OpenTofu](https://opentofu.org/docs/intro/install/), must be available from the command line.
+    - [Docker](https://docs.docker.com/engine/install/)
+    - [Terraform](https://developer.hashicorp.com/terraform/install)
 
-2. Run the application and the database in containers
+2. Run the application and the database in containers:
 
     === "Docker"
 
@@ -35,9 +38,7 @@ TODO: add other options
         docker compose up
         ```
 
-    
-
-3. Create a user to authenticate calls
+3. Create a user to authenticate calls:
 
     === "Docker"
 
@@ -46,7 +47,7 @@ TODO: add other options
         MONGODB_CONTAINERNAME=tfbackmdb-mongodb-1 MONGODB_CONTAINERNETWORK=tfbackmdb_default tfbeadm create-user admin admin123 dummy
         ```
 
-4. Update Terraform backend (copy of an already configured simple sample)
+4. Write Terraform files from a pre-configured sample:
 
     === "Docker"
 
@@ -54,19 +55,19 @@ TODO: add other options
         curl -O https://raw.githubusercontent.com/devpro/terraform-backend-mongodb/refs/heads/main/samples/local-files/main.tf
         ```
 
-5. Initiatize Terraform
+5. Prepare the working directory for use with Terraform:
 
     ```bash
     terraform init
     ```
 
-6. Apply changes
+6. Performs the operations indicated in Terraform project files:
 
     ```bash
     terraform apply
     ```
 
-7. Query the state database
+7. Query the state database to see the Terraform state information:
 
     === "Docker"
 
@@ -75,7 +76,7 @@ TODO: add other options
           bash -c "mongosh \"mongodb://mongodb:27017/terraform_backend_dev\" --eval 'db.tf_state.find().projection({tenant: 1, name: 1, createdAt: 1, \"value.version\": 1, \"value.resources.type\": 1, \"value.resources.name\": 1})'"
         ```
 
-8. Destroy the resources
+8. Destroy the resources that were created with Terraform:
 
     ```bash
     terraform destroy

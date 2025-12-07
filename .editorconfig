@@ -19,6 +19,9 @@ trim_trailing_whitespace = true
 [*.md]
 trim_trailing_whitespace = false
 
+[CNAME]
+insert_final_newline = false
+
 [*.cs]
 dotnet_sort_system_directives_first = true
 # Avoid "this." and "Me." if not necessary
@@ -149,6 +152,3 @@ csharp_space_between_square_brackets = false
 csharp_prefer_braces = true:silent
 csharp_preserve_single_line_blocks = true
 csharp_preserve_single_line_statements = true
-
-[CNAME]
-insert_final_newline = false

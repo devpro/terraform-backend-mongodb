@@ -1,15 +1,29 @@
 # Welcome
 
-This project provides an HTTP backend for [Terraform](https://www.terraform.io), and [OpenTofu](https://opentofu.org/), to save the state data in a [MongoDB](https://www.mongodb.com/) database.
+A simple, standards-compliant HTTP backend for [Terraform](https://www.terraform.io) (and [Terraform](https://www.terraform.io)) that stores state files in MongoDB.
 
-As the state is a JSON content, it just makes sense to use the best-in-class technology to store it!
+!!! tip
+
+	Instead of relying on vendor-specific storage or local files, this backend lets you use MongoDB - a mature, horizontally scalable document database - as the storage layer for your Terraform state.
+	
+	Since Terraform state is already JSON, MongoDB is a natural and efficient fit.
 
 ## Key features
 
-1. Highly available, performant, no vendor lock-in, storage system
-2. Secured access to sensitive information, with tenant isolation
-3. Integrate real data in your infrastructure management system
+- **Full Terraform HTTP backend compliance** - works out-of-the-box with terraform `{ backend "http" }` (and OpenTofu)
+- **Leverages MongoDB strengths** - high availability, replication, sharding, and strong performance for JSON documents
+- **No vendor lock-in** - you control your MongoDB cluster (self-hosted, Atlas, Cosmos DB, etc.)
+- **Fine-grained access control** - per-workspace (tenant) isolation
+- **State file encryption at rest** - optional server-side encryption using MongoDB's native encrypted storage engine or client-side encryption
+- **Locking support implemented** - Terraform checks and prevents concurrent modifications
+- **Minimal dependencies** - simple open-source code, shipped in an image using SUSE BCI for security and performance
+- **Audit trail** - all state operations logged with workspace, user/agent, and timestamp
 
-## High-level view
+## When to use this backend
 
-![High level schema](assets/images/high-level.png)
+- You already run MongoDB in your organization
+- You want a highly available, globally distributed state store without adding another vendor
+- You need strong RBAC and encryption controls that MongoDB already provides
+- You prefer running one binary in Kubernetes or as a Docker container instead of managing S3
+- You want to use the valuable Terraform state information in your infrastructure management system
+- You want to simplify the infrastructure automation with a single, highly available source of truth

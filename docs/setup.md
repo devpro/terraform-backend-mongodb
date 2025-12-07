@@ -4,14 +4,14 @@
 
 ### Database server
 
-Make sure you have access to a MongoDB database (with a connection string containing a user that have admin permissions).
+The application needs a MongoDB database that can be hosted in a:
 
-The MongoDB server can run:
+- MongoDB Cluster managed by Atlas (easiest solution, free tier available)
+- MongoDB Replica Set running from release binaries on one or multiple servers
+- MongoDB Replica Set running in containers from MongoDB container image (available on DockerHub)
+- Kubernetes cluster using MongoDB Community or Enterprise Kubernetes Operator
 
-- In a MongoDB Cluster managed by Atlas (easiest solution, free tier available)
-- In one or multiple servers from release binaries
-- In one or multiple containes from MongoDB container image (available on DockerHub)
-- In a Kubernetes cluster using MongoDB Community or Enterprise Kubernetes operator
+Once the database is available, grab the connection string for a user with admin permissions.
 
 !!! tip
 
@@ -21,14 +21,24 @@ The MongoDB server can run:
 
 Add indexes for optimal performances:
 
-```bash
-curl -O https://raw.githubusercontent.com/devpro/terraform-backend-mongodb/refs/heads/main/scripts/tfbeadm
-MONGODB_URI=mongodb://<myserver>:27017/<mydb> tfbeadm create-indexes
-```
+=== "Commands"
 
-!!! warning
+    ```js
+    db.tf_state.createIndex({"tenant": 1, "name": 1})
+    db.tf_state_lock.createIndex({"tenant": 1, "name": 1}, {unique: true})
+    db.user.createIndex({"username": 1}, {unique: true})
+    ```
 
-    `mongosh` or `Docker` must be available on the machine running the commands
+=== "Script"
+
+    ```bash
+    curl -O https://raw.githubusercontent.com/devpro/terraform-backend-mongodb/refs/heads/main/scripts/tfbeadm
+    MONGODB_URI=mongodb://<myserver>:27017/<mydb> tfbeadm create-indexes
+    ```
+
+    !!! warning
+
+        `mongosh` or `Docker` must be available on the machine running the commands
 
 ## Installation
 

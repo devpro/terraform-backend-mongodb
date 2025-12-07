@@ -112,6 +112,12 @@ docker run --rm -it -p 8000:8000 -v ${PWD}:/docs squidfunk/mkdocs-material
 
 Open [localhost:8000](http://localhost:8000/).
 
+You can also use hot reload to view changes without having to restart the container:
+
+```bash
+docker run --rm -it -p 8000:8000 -v "${PWD}:/docs" squidfunk/mkdocs-material serve --dev-addr=0.0.0.0:8000 --livereload --dirtyreload --watch docs --watch mkdocs.yml
+```
+
 ## Understand the application lifecycle automation
 
 GitHub Actions are triggered to automate the integration and delivery of the application:
