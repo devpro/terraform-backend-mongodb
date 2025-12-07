@@ -60,6 +60,7 @@ EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "docs", "docs", "{FF437226-25A3-491B-B433-F4760EC45D25}"
 	ProjectSection(SolutionItems) = preProject
 		docs\index.md = docs\index.md
+		mkdocs.yml = mkdocs.yml
 		docs\project.md = docs\project.md
 		docs\quickstart.md = docs\quickstart.md
 		docs\setup.md = docs\setup.md
