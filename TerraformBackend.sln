@@ -8,8 +8,8 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "0 - Solution Items", "0 - S
 		.editorconfig = .editorconfig
 		.gitignore = .gitignore
 		.gitlab-ci.yml = .gitlab-ci.yml
-		compose.yaml = compose.yaml
 		compose.override.yaml = compose.override.yaml
+		compose.yaml = compose.yaml
 		CONTRIBUTING.md = CONTRIBUTING.md
 		Directory.Build.props = Directory.Build.props
 		README.md = README.md
@@ -59,6 +59,7 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "local-files", "local-files"
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "docs", "docs", "{FF437226-25A3-491B-B433-F4760EC45D25}"
 	ProjectSection(SolutionItems) = preProject
+		docs\CNAME = docs\CNAME
 		docs\index.md = docs\index.md
 		mkdocs.yml = mkdocs.yml
 		docs\project.md = docs\project.md
