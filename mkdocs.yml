@@ -27,6 +27,7 @@ extra:
   generator: false
 nav:
   - index.md
+  - architecture.md
   - quickstart.md
   - setup.md
   - usage.md
