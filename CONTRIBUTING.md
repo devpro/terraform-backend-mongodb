@@ -1,6 +1,6 @@
 # Contribution guide
 
-## Understand the codebase
+## Go through the codebase
 
 The application source code is in the following .NET projects:
 
@@ -52,7 +52,7 @@ Add the test user:
 MONGODB_CONTAINERNAME=mongodb ./scripts/tfbeadm create-user admin admin123 dummy
 ```
 
-Run the web API from the build files:
+Run the web API from the build files ([.NET 10](https://dotnet.microsoft.com/download) must be installed):
 
 ```bash
 dotnet run --project src/WebApi
@@ -68,7 +68,7 @@ Once you're done, stop the container:
 docker stop mongodb
 ```
 
-## Run the application from the source in a container
+## Run the application from the sources in a container
 
 If you just want to run the application, the easiest way is through containers (application + database) - there is a Docker compose file for it:
 
@@ -111,3 +111,22 @@ docker run --rm -it -p 8000:8000 -v ${PWD}:/docs squidfunk/mkdocs-material
 ```
 
 Open [localhost:8000](http://localhost:8000/).
+
+## Understand the application lifecycle automation
+
+GitHub Actions are triggered to automate the integration and delivery of the application:
+
+Name      | Role                     | Definition file
+----------|--------------------------|----------------------------
+**CI**    | Continuous Integration   | `.github/workflows/ci.yaml`
+**PKG**   | Continuous Delivery      | `.github/workflows/pkg.yaml`
+**Pages** | Continuous Documentation | `.github/workflows/pages.yaml`
+
+GitHub Variables are defined (in **General** / **Security** / **Secrets and Variables** / **Actions**):
+
+- `DOCKERHUB_TOKEN`
+- `DOCKERHUB_USERNAME`
+- `SONAR_HOST_URL`
+- `SONAR_ORG`
+- `SONAR_PROJECT_KEY`
+- `SONAR_TOKEN`

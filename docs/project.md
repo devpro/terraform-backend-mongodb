@@ -2,30 +2,19 @@
 
 ## Design
 
-### Programming languages
-
-The code is mainly written in C# / .NET: open-source, cross-platform (Linux/Windows), highly performant, object-oriented.
+The application is written in C# / .NET: open-source, cross-platform (Linux/Windows), highly performant, object-oriented.
 
 ## Automation
 
-### CI/CD pipelines
+Application lifecycle management is done through GitHub.
 
-GitHub Actions are triggered to automate the integration and delivery of the application:
+GitHub Actions are triggered to automate the integration and delivery of the application.
 
-Name      | Role                     | Definition file
-----------|--------------------------|----------------------------
-**CI**    | Continuous Integration   | `.github/workflows/ci.yaml`
-**PKG**   | Continuous Delivery      | `.github/workflows/pkg.yaml`
-**Pages** | Continuous Documentation | `.github/workflows/pages.yaml`
-
-GitHub Variables are defined (in **General** / **Security** / **Secrets and Variables** / **Actions**):
-
-- DOCKERHUB_TOKEN
-- DOCKERHUB_USERNAME
-- SONAR_HOST_URL
-- SONAR_ORG
-- SONAR_PROJECT_KEY
-- SONAR_TOKEN
+Name      | Role                     | Actions
+----------|--------------------------|-----------------------------------------------------
+**CI**    | Continuous Integration   | Checks the quality of the code and any vulnerability
+**PKG**   | Continuous Delivery      | Build the artifacts (container image)
+**Pages** | Continuous Documentation | Build and deploy the documentation
 
 ## Backlog
 
