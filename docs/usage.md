@@ -4,12 +4,11 @@
 
 API calls are secured through tenant isolation and user authentication, which are stored in the MongoDB database.
 
-You can add a user with the following commands (replace the parameters):
+Users must be added to the database with this script:
 
 ```bash
-MONGODB_URI=mongodb://<myserver>:27017/<mydb>
 curl -O https://raw.githubusercontent.com/devpro/terraform-backend-mongodb/refs/heads/main/scripts/tfbeadm
-tfbeadm create-user <myusername> <mypassword> <mytenant>
+MONGODB_URI=mongodb://<myserver>:27017/<mydb> tfbeadm create-user <myusername> <mypassword> <mytenant>
 ```
 
 ## Client configuration
@@ -31,4 +30,4 @@ terraform {
 }
 ```
 
-And now, you can take advantage of a MongoDB backend for your Terraform/OpenTofu actions!
+You're now ready!

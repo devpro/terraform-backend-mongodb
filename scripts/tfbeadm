@@ -1,8 +1,7 @@
 #!/bin/bash
 
-MONGODB_URI="${MONGODB_URI:-mongodb://mongodb:27017/test}"
-#MONGODB_CONTAINERNAME
-MONGODB_VERSION="${MONGODB_VERSION:-8.0}"
+MONGODB_URI="${MONGODB_URI:-mongodb://mongodb:27017/terraform_backend_dev}"
+MONGODB_VERSION="${MONGODB_VERSION:-8.2}"
 
 MONGODB_INDEX_COMMANDS=(
   'db.tf_state.createIndex({"tenant": 1, "name": 1})'
@@ -108,7 +107,7 @@ execute_mongosh_docker() {
 execute_mongosh_docker_link() {
   local mongodb_cmd="$1"
   log_info "Executing MongoDB command in a container with a link: $mongodb_cmd"
-  if output=$(docker run --rm --link "$MONGODB_CONTAINERNAME" "mongo:$MONGODB_VERSION" bash -c "mongosh \"$MONGODB_URI\" --quiet --eval \"$mongodb_cmd\"" 2>&1); then
+  if output=$(docker run --rm --link "$MONGODB_CONTAINERNAME" --network "$MONGODB_CONTAINERNETWORK" "mongo:$MONGODB_VERSION" bash -c "mongosh \"$MONGODB_URI\" --quiet --eval \"$mongodb_cmd\"" 2>&1); then
     log_info "Output:\n$output"
   else
     log_warn "$output"

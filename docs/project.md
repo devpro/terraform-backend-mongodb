@@ -1,37 +1,26 @@
 # Project
 
+## Design
+
+The application is written in C# / .NET: open-source, cross-platform (Linux/Windows), highly performant, object-oriented.
+
 ## Automation
 
-### CI/CD pipelines
+Application lifecycle management is done through GitHub.
 
-GitHub Actions are triggered to automate the integration and delivery of the application:
+GitHub Actions are triggered to automate the integration and delivery of the application.
 
-Role      | Definition file
-----------|-------------------------------
-**CI**    | `.github/workflows/ci.yaml`
-**Pages** | `.github/workflows/pages.yaml`
-**PKG**   | `.github/workflows/pkg.yaml`
-
-GitHub configuration (**General** / **Security** / **Secrets and Variables** / **Actions**):
-
-- DOCKERHUB_TOKEN
-- DOCKERHUB_USERNAME
-- SONAR_HOST_URL
-- SONAR_ORG
-- SONAR_PROJECT_KEY
-- SONAR_TOKEN
+Name      | Role                     | Actions
+----------|--------------------------|-----------------------------------------------------
+**CI**    | Continuous Integration   | Checks the quality of the code and any vulnerability
+**PKG**   | Continuous Delivery      | Build the artifacts (container image)
+**Pages** | Continuous Documentation | Build and deploy the documentation
 
 ## Backlog
 
-### V2.0
+### V2.0 (coming in 2026)
 
-New features:
+Feature requests:
 
 - :material-square: Store in the database only one version of the state in tf_state (the latest) and save the others in tf_state_revision
 - :material-square: Send traces, logs, metrics to OpenTelemetry Collector
-
-## Design
-
-### Programming languages
-
-The code is mainly written in C# / .NET: open-source, cross-platform (Linux/Windows), highly performant, object-oriented.

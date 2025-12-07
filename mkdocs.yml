@@ -10,6 +10,7 @@ theme:
     - navigation.tabs
     - navigation.path
     - toc.integrate
+    - content.code.copy
   palette:
     - media: "(prefers-color-scheme: dark)"
       scheme: slate

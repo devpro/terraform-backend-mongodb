@@ -8,13 +8,12 @@ Make sure you have access to a MongoDB database (with a connection string contai
 
 The MongoDB server can run:
 
-- On a machine from binaries
-- On multiple machines binaries
-- In a container
-- In a Kubernetes cluster
-- In MongoDB Atlas (free tier available!)
+- In a MongoDB Cluster managed by Atlas (easiest solution, free tier available)
+- In one or multiple servers from release binaries
+- In one or multiple containes from MongoDB container image (available on DockerHub)
+- In a Kubernetes cluster using MongoDB Community or Enterprise Kubernetes operator
 
-!!! warning
+!!! tip
 
     Double check any network/security restrictions such as MongoDB IP access list as the application needs to access the MongoDB server
 
@@ -23,14 +22,13 @@ The MongoDB server can run:
 Add indexes for optimal performances:
 
 ```bash
-MONGODB_URI=mongodb://<myserver>:27017/<mydb>
 curl -O https://raw.githubusercontent.com/devpro/terraform-backend-mongodb/refs/heads/main/scripts/tfbeadm
-tfbeadm create-indexes
+MONGODB_URI=mongodb://<myserver>:27017/<mydb> tfbeadm create-indexes
 ```
 
 !!! warning
 
-    `mongosh` or `Docker` packages must be available on the machine running the commands
+    `mongosh` or `Docker` must be available on the machine running the commands
 
 ## Installation
 
@@ -48,19 +46,6 @@ helm upgrade --install tfbackend devpro/terraform-backend-mongodb [-f values.yam
 ```
 
 Values file examples:
-
-=== "Embedded MongoDB chart"
-
-    ```yaml
-    mongodb:
-      enabled: true
-      auth:
-        rootPassword: admin
-    webapi:
-      db:
-        connectionString: mongodb://root:admin@tfbackend-mongodb:27017/terraform_backend_beta?authSource=admin
-        databaseName: terraform_backend_beta
-    ```
 
 === "Traefik Ingress with Let's Encrypt cert-manager issuer"
 
@@ -81,4 +66,17 @@ Values file examples:
       environment: Development
       enableSwagger: true
       enableOpenTelemetry: false
+    ```
+
+=== "Embedded MongoDB chart"
+
+    ```yaml
+    mongodb:
+      enabled: true
+      auth:
+        rootPassword: admin
+    webapi:
+      db:
+        connectionString: mongodb://root:admin@tfbackend-mongodb:27017/terraform_backend_beta?authSource=admin
+        databaseName: terraform_backend_beta
     ```

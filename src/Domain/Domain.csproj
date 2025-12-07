@@ -1,7 +1,7 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
-    <TargetFramework>net8.0</TargetFramework>
+    <TargetFramework>net10.0</TargetFramework>
     <AssemblyName>Devpro.TerraformBackend.Domain</AssemblyName>
     <RootNamespace>Devpro.TerraformBackend.Domain</RootNamespace>
     <ProjectGuid>{A5CAD112-C1E6-442B-BE0E-37C697030636}</ProjectGuid>
@@ -10,7 +10,6 @@
 
   <ItemGroup>
     <PackageReference Include="MongoDB.Bson" Version="3.4.0" />
-    <PackageReference Include="System.Text.Json" Version="9.0.7" />
   </ItemGroup>
 
 </Project>

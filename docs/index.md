@@ -1,11 +1,15 @@
 # Welcome
 
-This project provides an HTTP backend for [Terraform](https://www.terraform.io) and [OpenTofu](https://opentofu.org/) that will save and manage state data in a [MongoDB](https://www.mongodb.com/) database.
+This project provides an HTTP backend for [Terraform](https://www.terraform.io), and [OpenTofu](https://opentofu.org/), to save the state data in a [MongoDB](https://www.mongodb.com/) database.
 
-As the state is a JSON content, it makes sense to use the best-in-class database technology to work with it.
+As the state is a JSON content, it just makes sense to use the best-in-class technology to store it!
 
-The goal is to:
+## Key features
 
-- provide an highly available, and performant, storage
-- share a secured access to sensitive information
-- value the infrastructure data
+1. Highly available, performant, no vendor lock-in, storage system
+2. Secured access to sensitive information, with tenant isolation
+3. Integrate real data in your infrastructure management system
+
+## High-level view
+
+![High level schema](assets/images/high-level.png)

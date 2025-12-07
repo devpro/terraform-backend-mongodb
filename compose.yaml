@@ -1,15 +1,14 @@
+name: tfbackmdb
+
 services:
-  data:
-    image: terraformbackendmongodb
-    build:
-      context: .
-      dockerfile: ./src/WebApi/Dockerfile
+  webapi:
+    image: devprofr/terraform-backend-mongodb:latest
     environment:
       - ASPNETCORE_ENVIRONMENT=Development
       - Application__IsHttpsRedirectionEnabled=false
       - Application__IsOpenTelemetryEnabled=false
       - Application__IsSwaggerEnabled=true
-      - ConnectionStrings__MongoDbLocal=mongodb://mongodb:27017/?readPreference=primary&appname=DevproTerraformBackendWebApi&directConnection=true&ssl=false
+      - ConnectionStrings__MongoDbLocal=mongodb://mongodb:27017/?readPreference=primary&appname=TerraformBackendMongoDbWebApi&directConnection=true&ssl=false
       - Logging__LogLevel__Default=Debug
       - Logging__LogLevel__Microsoft__AspNetCore=Information
       - Logging__LogLevel__Devpro=Debug
@@ -19,7 +18,13 @@ services:
       - "9001:8080"
     depends_on:
       - mongodb
+
   mongodb:
-    image: mongo:8.0
+    image: mongo:8.2
     ports:
       - "27017:27017"
+    volumes:
+      - db-data:/data/db
+
+volumes:
+  db-data:

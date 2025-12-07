@@ -20,6 +20,3 @@ app.MapHealthChecks(WebApiConfiguration.HealthCheckEndpoint).AllowAnonymous();
 
 // runs the application
 app.Run();
-
-[System.Diagnostics.CodeAnalysis.SuppressMessage("Style", "S1118:Utility classes should not have public constructors", Justification = "Explicit class definition needed for integration test project")]
-public partial class Program { }
