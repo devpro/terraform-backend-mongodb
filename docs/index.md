@@ -4,9 +4,9 @@ A simple, standards-compliant HTTP backend for [Terraform](https://www.terraform
 
 !!! tip
 
-	Instead of relying on vendor-specific storage or local files, this backend lets you use MongoDB - a mature, horizontally scalable document database - as the storage layer for your Terraform state.
-	
-	Since Terraform state is already JSON, MongoDB is a natural and efficient fit.
+    Instead of relying on vendor-specific storage or local files, this backend lets you use MongoDB - a mature, horizontally scalable document database - as the storage layer for your Terraform state.
+    
+    Since Terraform state is already JSON, MongoDB is a natural and efficient fit.
 
 ## Key features
 
