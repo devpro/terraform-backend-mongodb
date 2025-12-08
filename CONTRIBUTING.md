@@ -27,17 +27,6 @@ The code was made by looking at Terraform specifications:
 - [HTTP backend](https://developer.hashicorp.com/terraform/language/backend/http)
 - [Remote state backend](https://github.com/hashicorp/terraform/tree/main/internal/backend/remote-state)
 
-The may was partially inspired by looking at other implementations:
-
-- [GitLab](https://gitlab.com/gitlab-org/manage/import/gitlab/-/blob/master/doc/user/infrastructure/terraform_state.md)
-  - [lib/api/terraform/state.rb](https://gitlab.com/gitlab-org/manage/import/gitlab/-/blob/master/lib/api/terraform/state.rb)
-- HTTP
-  - [akshay/terraform-http-backend-pass](https://git.coop/akshay/terraform-http-backend-pass)
-  - [bhoriuchi/terraform-backend-http](https://github.com/bhoriuchi/terraform-backend-http)
-  - [nimbolus/terraform-backend](https://github.com/nimbolus/terraform-backend)
-- git
-  - [plumber-cd/terraform-backend-git](https://github.com/plumber-cd/terraform-backend-git)
-
 ## Debug the application
 
 A MongoDB must be running - the easiest way to do it is through a container (here with Docker CLI/engine):

@@ -1,6 +1,6 @@
 # Welcome
 
-A simple, standards-compliant HTTP backend for [Terraform](https://www.terraform.io) (and [Terraform](https://www.terraform.io)) that stores state files in MongoDB.
+A simple, standards-compliant HTTP backend for [Terraform](https://www.terraform.io) (and [OpenTofu](https://opentofu.org/)) that stores state files in MongoDB.
 
 !!! tip
 
@@ -23,7 +23,7 @@ A simple, standards-compliant HTTP backend for [Terraform](https://www.terraform
 
 - You already run MongoDB in your organization
 - You want a highly available, globally distributed state store without adding another vendor
-- You need strong RBAC and encryption controls that MongoDB already provides
-- You prefer running one binary in Kubernetes or as a Docker container instead of managing S3
-- You want to use the valuable Terraform state information in your infrastructure management system
-- You want to simplify the infrastructure automation with a single, highly available source of truth
+- You need strong RBAC and encryption controls
+- You prefer running one container instead of managing S3
+- You wish to integrate Terraform with your infrastructure management system
+- You want to a single, highly available source of truth
