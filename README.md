@@ -1,4 +1,4 @@
-# MongoDB HTTP backend for Terraform/OpenTofu state
+# MongoDB HTTP backend for Terraform / OpenTofu
 
 [![CI](https://github.com/devpro/terraform-backend-mongodb/actions/workflows/ci.yaml/badge.svg?branch=main)](https://github.com/devpro/terraform-backend-mongodb/actions/workflows/ci.yaml)
 [![Pages](https://github.com/devpro/terraform-backend-mongodb/actions/workflows/pages.yaml/badge.svg?branch=main)](https://github.com/devpro/terraform-backend-mongodb/actions/workflows/pages.yaml)
@@ -6,12 +6,12 @@
 [![Quality Gate Status](https://sonarcloud.io/api/project_badges/measure?project=devpro_terraform-backend-mongodb&metric=alert_status)](https://sonarcloud.io/summary/new_code?id=devpro_terraform-backend-mongodb)
 [![Docker Image Version](https://img.shields.io/docker/v/devprofr/terraform-backend-mongodb?label=Image&logo=docker)](https://hub.docker.com/r/devprofr/terraform-backend-mongodb)
 
-Manage Terraform/OpenTofu state through a secured REST API and take advatange of MongoDB greatness!
+A robust HTTP backend to store Terraform or OpenTofu state in MongoDB, using its built-in replication for reliable, distributed management.
 
-## Getting started
+🚀 Get started at [tfbackend-mongodb.devpro.fr](http://tfbackend-mongodb.devpro.fr/).
 
-Best place to start is the [documentation website](http://tfbackend-mongodb.devpro.fr/).
+## Quick overview
 
-## Going further
+![High-level view](docs/assets/images/high-level.png)
 
-Technical implementation is described in the [contribution guide](CONTRIBUTING.md).
+For development details, see [CONTRIBUTING.md](CONTRIBUTING.md) - contributions are more than welcome 🙂
