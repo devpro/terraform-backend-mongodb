@@ -22,15 +22,36 @@ permissions:
   pull-requests: write
 
 jobs:
-  build:
+  check:
     runs-on: ubuntu-latest
     steps:
+      - name: Checks-out the repository
+        uses: actions/checkout@v5
+      - name: Get changes files
+        id: changed-files
+        uses: tj-actions/changed-files@v47
+        with:
+          files_yaml: |
+            doc:
+              - docs/**
+            app:
+              - src/**
+              - test/**
+      - name: Lints Markdown files
+        uses: DavidAnson/markdownlint-cli2-action@v20
+        with:
+          globs: "**/*.md"
+  build:
+    runs-on: ubuntu-latest
+    needs: check
+    if: needs.check.outputs.app_any_changed == 'true'
+    steps:
       - name: Checkout repository
-        uses: actions/checkout@v4
+        uses: actions/checkout@v5
         with:
           fetch-depth: 0
       - name: Checkout workflow parts
-        uses: actions/checkout@v4
+        uses: actions/checkout@v5
         with:
           repository: devpro/github-workflow-parts
           ref: main
@@ -57,11 +78,13 @@ jobs:
       GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
   image-scan:
     runs-on: ubuntu-latest
+    needs: check
+    if: needs.check.outputs.app_any_changed == 'true'
     steps:
       - name: Checkout source code
-        uses: actions/checkout@v3
+        uses: actions/checkout@v5
       - name: Checkout workflow parts
-        uses: actions/checkout@v3
+        uses: actions/checkout@v5
         with:
           repository: devpro/github-workflow-parts
           ref: main
