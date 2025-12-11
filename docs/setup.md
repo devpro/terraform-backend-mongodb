@@ -44,18 +44,14 @@ Add indexes for optimal performances:
 
 ### Kubernetes
 
-Use the official Helm chart:
+Add the Helm chart repository:
 
 ```bash
-# adds the chart repository
 helm repo add devpro https://devpro.github.io/helm-charts
 helm repo update
-
-# installs the chart
-helm upgrade --install tfbackend devpro/terraform-backend-mongodb [-f values.yaml] --create-namespace --namespace tfbackend
 ```
 
-Values file examples:
+Create a values.yaml file with your configuration by looking at examples:
 
 === "Traefik Ingress with Let's Encrypt cert-manager issuer"
 
@@ -90,3 +86,10 @@ Values file examples:
         connectionString: mongodb://root:admin@tfbackend-mongodb:27017/terraform_backend_beta?authSource=admin
         databaseName: terraform_backend_beta
     ```
+
+Install and manage the application with Helm:
+
+```bash
+helm upgrade --install tfbackend devpro/terraform-backend-mongodb -f values.yaml \
+  --create-namespace --namespace tfbackend
+```
