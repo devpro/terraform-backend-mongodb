@@ -66,7 +66,9 @@ check_htpasswd() {
 
 execute_mongosh() {
   local mongodb_cmd="$1"
-  if check_command "mongosh"; then
+  if [[ -v MONGODB_KUBEDEPLOYNAME ]]; then
+    execute_mongosh_kubectl "$mongodb_cmd" || return 1
+  elif check_command "mongosh"; then
     execute_mongosh_package "$mongodb_cmd" || return 1
   else
     if check_command "docker"; then
@@ -82,10 +84,21 @@ execute_mongosh() {
   fi
 }
 
+execute_mongosh_kubectl() {
+  local mongodb_cmd="$1"
+  log_info "Executing MongoDB command in a Kubernetes pod shell: $mongodb_cmd"
+  if output=$(kubectl exec "$MONGODB_KUBEDEPLOYNAME" -n tfbackend -- mongosh "$MONGODB_URI" --eval "$mongodb_cmd" 2>&1); then
+    log_info "Output:\n$output"
+  else
+    log_warn "$output"
+    return 1
+  fi
+}
+
 execute_mongosh_package() {
   local mongodb_cmd="$1"
   log_info "Executing MongoDB command in the shell: $mongodb_cmd"
-  if output=$(mongosh "$MONGODB_URI" --quiet --eval "$mongodb_cmd" 2>&1); then
+  if output=$(mongosh "$MONGODB_URI" --eval "$mongodb_cmd" 2>&1); then
     log_info "Output:\n$output"
   else
     log_warn "$output"
@@ -96,7 +109,7 @@ execute_mongosh_package() {
 execute_mongosh_docker() {
   local mongodb_cmd="$1"
   log_info "Executing MongoDB command in a container: $mongodb_cmd"
-  if output=$(docker run --rm "mongo:$MONGODB_VERSION" bash -c "mongosh \"$MONGODB_URI\" --quiet --eval \"$mongodb_cmd\"" 2>&1); then
+  if output=$(docker run --rm "mongo:$MONGODB_VERSION" bash -c "mongosh \"$MONGODB_URI\" --eval \"$mongodb_cmd\"" 2>&1); then
     log_info "Output:\n$output"
   else
     log_warn "$output"

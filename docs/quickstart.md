@@ -4,6 +4,10 @@
 
 This is a complete walkthrough to see Terraform Backend MongoDB in action.
 
+<iframe width="800" height="450" src="https://www.youtube.com/embed/6KuqT6DGw7Y?si=eQCfXgzKoOgkddX1" title="YouTube video player"
+    frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
+    referrerpolicy="strict-origin-when-cross-origin" allowfullscreen></iframe>
+
 <!-- 
 TODO: add other options
 
@@ -38,13 +42,15 @@ TODO: add other options
         docker compose up
         ```
 
+    You can view and work with the REST API definitions through the Swagger web page on [localhost:9001](http://localhost:9001/swagger/index.html)
+
 3. Create a user to authenticate calls:
 
     === "Docker"
 
         ```bash
-        curl -O https://raw.githubusercontent.com/devpro/terraform-backend-mongodb/refs/heads/main/scripts/tfbeadm
-        MONGODB_CONTAINERNAME=tfbackmdb-mongodb-1 MONGODB_CONTAINERNETWORK=tfbackmdb_default tfbeadm create-user admin admin123 dummy
+        curl -O https://raw.githubusercontent.com/devpro/terraform-backend-mongodb/refs/heads/main/scripts/tfbeadm && chmod +x ./tfbeadm
+        MONGODB_CONTAINERNAME=tfbackmdb-mongodb-1 MONGODB_CONTAINERNETWORK=tfbackmdb_default ./tfbeadm create-user admin admin123 dummy
         ```
 
 4. Write Terraform files from a pre-configured sample:
