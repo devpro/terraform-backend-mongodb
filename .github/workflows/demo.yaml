@@ -1,0 +1,25 @@
+﻿# title: Demonstration pipeline
+# variables: []
+# secrets: []
+name: Demo
+
+on:
+  workflow_dispatch: {}
+
+jobs:
+  quick-check:
+    name: Quick check
+    runs-on: ubuntu-latest
+    steps:
+      - name: Clone repository
+        uses: actions/checkout@v6
+      - name: Cache Terraform plugins
+        uses: actions/cache@v5
+        with:
+          path: |
+            ~/.terraform.d/plugin-cache
+          key: terraform-${{ hashFiles('**/.terraform.lock.hcl') }}
+      - name: Install terraform
+        uses: hashicorp/setup-terraform@v3
+      # - name: Terraform Init
+      #   run: terraform init
