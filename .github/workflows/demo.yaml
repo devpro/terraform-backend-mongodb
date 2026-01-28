@@ -10,6 +10,24 @@ jobs:
   quick-check:
     name: Quick check
     runs-on: ubuntu-latest
+
+    services:
+      tfbackend:
+        image: devprofr/terraform-backend-mongodb:latest
+        env:
+          ASPNETCORE_ENVIRONMENT: Development
+          Application__IsHttpsRedirectionEnabled: false
+          Application__IsOpenTelemetryEnabled: false
+          Application__IsSwaggerEnabled: true
+          ConnectionStrings__MongoDbDemo: ${{ secrets.TFBACKEND_CONNSTRING }}
+          Logging__LogLevel__Default: Debug
+          Logging__LogLevel__Microsoft__AspNetCore: Information
+          Logging__LogLevel__Devpro: Debug
+          MongoDb__ConnectionStringName: MongoDbDemo
+          MongoDb__DatabaseName: ${{ secrets.TFBACKEND_DBNAME }}
+        ports:
+          - 8080:8080
+
     steps:
       - name: Clone repository
         uses: actions/checkout@v6
@@ -28,6 +46,9 @@ jobs:
           atlas_privatekey: ${{ secrets.ATLAS_PRIVATE_KEY }}
           atlas_groupid: ${{ secrets.ATLAS_GROUP_ID }}
           github_runid: ${{ github.run_id }}
+
+      - name: Debug
+        run: curl http://tfbackend:8080/health
 
       - name: Cache Terraform plugins
         uses: actions/cache@v5
