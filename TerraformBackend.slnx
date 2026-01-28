@@ -1,0 +1,50 @@
+<Solution>
+  <Folder Name="/0 - Solution Items/">
+    <File Path=".editorconfig" />
+    <File Path=".gitignore" />
+    <File Path=".gitlab-ci.yml" />
+    <File Path="compose.override.yaml" />
+    <File Path="compose.yaml" />
+    <File Path="CONTRIBUTING.md" />
+    <File Path="Directory.Build.props" />
+    <File Path="README.md" />
+  </Folder>
+  <Folder Name="/0 - Solution Items/docs/">
+    <File Path="docs/architecture.md" />
+    <File Path="docs/CNAME" />
+    <File Path="docs/index.md" />
+    <File Path="docs/project.md" />
+    <File Path="docs/quickstart.md" />
+    <File Path="docs/setup.md" />
+    <File Path="docs/usage.md" />
+    <File Path="mkdocs.yml" />
+  </Folder>
+  <Folder Name="/0 - Solution Items/samples/" />
+  <Folder Name="/0 - Solution Items/samples/docker-nginx/">
+    <File Path="samples/docker-nginx/main.tf" />
+    <File Path="samples/docker-nginx/outputs.tf" />
+    <File Path="samples/docker-nginx/providers.tf" />
+    <File Path="samples/docker-nginx/README.md" />
+    <File Path="samples/docker-nginx/variables.tf" />
+  </Folder>
+  <Folder Name="/0 - Solution Items/samples/local-files/">
+    <File Path="samples/local-files/main.tf" />
+    <File Path="samples/local-files/README.md" />
+  </Folder>
+  <Folder Name="/0 - Solution Items/scripts/">
+    <File Path="scripts/tfbeadm" />
+  </Folder>
+  <Folder Name="/1 - Framework/">
+    <Project Path="src/Common.AspNetCore.WebApi/Common.AspNetCore.WebApi.csproj" />
+    <Project Path="src/Common.AspNetCore/Common.AspNetCore.csproj" />
+    <Project Path="src/Common.MongoDb/Common.MongoDb.csproj" />
+  </Folder>
+  <Folder Name="/2 - Business/">
+    <Project Path="src/Domain/Domain.csproj" />
+    <Project Path="src/Infrastructure.MongoDb/Infrastructure.MongoDb.csproj" />
+  </Folder>
+  <Folder Name="/3 - Applications/">
+    <Project Path="src/WebApi/WebApi.csproj" />
+    <Project Path="test/WebApi.IntegrationTests/WebApi.IntegrationTests.csproj" />
+  </Folder>
+</Solution>

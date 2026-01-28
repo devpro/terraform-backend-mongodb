@@ -1,4 +1,4 @@
-# purpose: run Continuous Integration (build, unit test, lint, scan)
+﻿# purpose: run Continuous Integration (build, unit test, lint, scan)
 # variables: [SONAR_HOST_URL, SONAR_ORG, SONAR_PROJECT_KEY]
 # secrets: [SONAR_TOKEN]
 

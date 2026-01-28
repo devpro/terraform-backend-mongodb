@@ -13,6 +13,7 @@ indent_size = 4
 trim_trailing_whitespace = true
 
 [*.{config,csproj,json,md,runsettings,sh,xml,yml,yaml}]
+charset = utf-8-bom
 indent_size = 2
 trim_trailing_whitespace = true
 
