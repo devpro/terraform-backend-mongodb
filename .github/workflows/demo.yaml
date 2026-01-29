@@ -25,8 +25,8 @@ jobs:
           Logging__LogLevel__Devpro: Debug
           MongoDb__ConnectionStringName: MongoDbDemo
           MongoDb__DatabaseName: ${{ secrets.TFBACKEND_DBNAME }}
-        ports:
-          - 8080:8080
+        # ports:
+        #   - 8080:8080
 
     steps:
       - name: Clone repository
@@ -48,7 +48,10 @@ jobs:
           github_runid: ${{ github.run_id }}
 
       - name: Debug
-        run: curl http://tfbackend:8080/health
+        run: |
+          docker ps
+          docker ps -a
+          curl http://tfbackend:8080/health
 
       - name: Cache Terraform plugins
         uses: actions/cache@v5
