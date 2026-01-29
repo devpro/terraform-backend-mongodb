@@ -58,7 +58,18 @@ jobs:
         uses: hashicorp/setup-terraform@v3
       - name: Terraform Init
         run: terraform init
-
+      - name: Terraform Validate
+        run: terraform validate
+      - name: Terraform Plan
+        run: terraform plan -out=plan.tfplan
+      - name: Terraform Apply
+        run: terraform apply -auto-approve plan.tfplan
+      - name: Check
+        run: |
+          ls -alrt
+          more temp.txt
+      - name: Terraform Destroy
+        run: terraform destroy
     env:
       TF_HTTP_ADDRESS: "http://localhost:8080/${{ secrets.TFBACKEND_TENANT }}/state/local-files"
       TF_HTTP_LOCK_ADDRESS: "http://localhost:8080/${{ secrets.TFBACKEND_TENANT }}/state/local-files/lock"
