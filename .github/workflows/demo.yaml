@@ -6,11 +6,14 @@ name: Demo
 on:
   workflow_dispatch: {}
 
+env:
+  ENVIRONMENT: ${{ replace(github.ref_name, 'feature/', '') }}
+
 jobs:
   demo-deployment:
     name: Demo deployment
     runs-on: ubuntu-latest
-    environment: demo
+    environment: ${{ replace(github.ref_name, 'feature/', '') }}
     defaults:
       run:
         working-directory: samples/local-files
@@ -72,8 +75,8 @@ jobs:
       - name: Terraform Destroy
         run: terraform destroy -auto-approve
     env:
-      TF_HTTP_ADDRESS: "http://localhost:8080/${{ secrets.TFBACKEND_TENANT }}/state/local-files"
-      TF_HTTP_LOCK_ADDRESS: "http://localhost:8080/${{ secrets.TFBACKEND_TENANT }}/state/local-files/lock"
-      TF_HTTP_UNLOCK_ADDRESS: "http://localhost:8080/${{ secrets.TFBACKEND_TENANT }}/state/local-files/lock"
+      TF_HTTP_ADDRESS: "http://localhost:8080/${{ secrets.TFBACKEND_TENANT }}/state/local-files-${{ env.ENVIRONMENT }}"
+      TF_HTTP_LOCK_ADDRESS: "http://localhost:8080/${{ secrets.TFBACKEND_TENANT }}/state/local-files-${{ env.ENVIRONMENT }}/lock"
+      TF_HTTP_UNLOCK_ADDRESS: "http://localhost:8080/${{ secrets.TFBACKEND_TENANT }}/state/local-files-${{ env.ENVIRONMENT }}/lock"
       TF_HTTP_USERNAME: "${{ secrets.TFBACKEND_USERNAME }}"
       TF_HTTP_PASSWORD: "${{ secrets.TFBACKEND_USERPWD }}"
