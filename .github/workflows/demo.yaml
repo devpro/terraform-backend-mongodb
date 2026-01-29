@@ -6,10 +6,6 @@ name: Demo
 on:
   workflow_dispatch: {}
 
-env:
-  ENVIRONMENT: ${{ replace(github.ref_name, 'feature/', '') }}
-
-
 jobs:
   demo-deployment:
     name: Demo deployment
