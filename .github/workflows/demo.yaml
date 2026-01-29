@@ -15,7 +15,7 @@ jobs:
         startsWith(github.ref_name, 'release/staging') && 'staging' ||
         startsWith(github.ref_name, 'release/prod') && 'production' ||
         startsWith(github.ref_name, 'release/dev') && 'dev' ||
-        github.ref_name   # fallback: full name if no match
+        github.ref_name
       }}
     defaults:
       run:
@@ -33,12 +33,6 @@ jobs:
           - 8080:8080
 
     steps:
-      - name: Set clean slug for Terraform backend
-        run: |
-          slug="${GITHUB_REF_NAME#release/}"
-          slug="${slug//\//-}"
-          echo "ENV_SLUG=$slug" >> "$GITHUB_ENV"
-
       - name: Clone repository
         uses: actions/checkout@v6
 
@@ -57,6 +51,16 @@ jobs:
           atlas_groupid: ${{ secrets.ATLAS_GROUP_ID }}
           github_runid: ${{ github.run_id }}
 
+      - name: Set clean slug and TF backend vars
+        run: |
+          slug="${GITHUB_REF_NAME#release/}"
+          slug="${slug//\//-}"
+          slug=$(echo "$slug" | tr '[:upper:]' '[:lower:]' | tr -cd 'a-z0-9-')
+          echo "ENV_SLUG=$slug" >> "$GITHUB_ENV"
+          tenant="${{ secrets.TFBACKEND_TENANT }}"
+          echo "TF_HTTP_ADDRESS=http://localhost:8080/$tenant/state/local-files-$slug" >> "$GITHUB_ENV"
+          echo "TF_HTTP_LOCK_ADDRESS=http://localhost:8080/$tenant/state/local-files-$slug/lock" >> "$GITHUB_ENV"
+          echo "TF_HTTP_UNLOCK_ADDRESS=http://localhost:8080/$tenant/state/local-files-$slug/lock" >> "$GITHUB_ENV"
       - name: Debug
         run: |
           curl http://localhost:8080/health
@@ -84,8 +88,5 @@ jobs:
       - name: Terraform Destroy
         run: terraform destroy -auto-approve
     env:
-      TF_HTTP_ADDRESS: "http://localhost:8080/${{ secrets.TFBACKEND_TENANT }}/state/local-files-${{ env.ENV_SLUG }}"
-      TF_HTTP_LOCK_ADDRESS: "http://localhost:8080/${{ secrets.TFBACKEND_TENANT }}/state/local-files-${{ env.ENV_SLUG }}/lock"
-      TF_HTTP_UNLOCK_ADDRESS: "http://localhost:8080/${{ secrets.TFBACKEND_TENANT }}/state/local-files-${{ env.ENV_SLUG }}/lock"
       TF_HTTP_USERNAME: "${{ secrets.TFBACKEND_USERNAME }}"
       TF_HTTP_PASSWORD: "${{ secrets.TFBACKEND_USERPWD }}"
