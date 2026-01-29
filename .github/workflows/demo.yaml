@@ -4,9 +4,9 @@
 name: Demo
 
 on:
-  push:
-    branches:
-      -  feature/test-env
+  # push:
+  #   branches:
+  #     -  feature/test-env
   workflow_dispatch: {}
 
 jobs:
