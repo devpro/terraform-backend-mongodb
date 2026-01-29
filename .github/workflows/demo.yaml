@@ -4,6 +4,9 @@
 name: Demo
 
 on:
+  # push:
+  #   branches:
+  #     -  feature/test-env
   workflow_dispatch: {}
 
 jobs:
@@ -11,6 +14,13 @@ jobs:
     name: Demo deployment
     runs-on: ubuntu-latest
     environment: demo
+    # environment: >-
+    #   ${{
+    #     startsWith(github.ref_name, 'release/staging') && 'staging' ||
+    #     startsWith(github.ref_name, 'release/prod') && 'production' ||
+    #     startsWith(github.ref_name, 'release/dev') && 'dev' ||
+    #     github.ref_name
+    #   }}
     defaults:
       run:
         working-directory: samples/local-files
@@ -45,6 +55,17 @@ jobs:
           atlas_groupid: ${{ secrets.ATLAS_GROUP_ID }}
           github_runid: ${{ github.run_id }}
 
+      - name: Set clean slug and TF backend vars
+        run: |
+          slug="${GITHUB_REF_NAME#feature/}"
+          slug="${slug//\//-}"
+          slug=$(echo "$slug" | tr '[:upper:]' '[:lower:]' | tr -cd 'a-z0-9-')
+          echo "ENV_SLUG=$slug" >> "$GITHUB_ENV"
+          tfbackendurl="http://localhost:8080/${{ secrets.TFBACKEND_TENANT }}/state/local-files-$slug"
+          echo $tfbackendurl
+          echo "TF_HTTP_ADDRESS=$tfbackendurl" >> "$GITHUB_ENV"
+          echo "TF_HTTP_LOCK_ADDRESS=$tfbackendurl/lock" >> "$GITHUB_ENV"
+          echo "TF_HTTP_UNLOCK_ADDRESS=$tfbackendurl/lock" >> "$GITHUB_ENV"
       - name: Debug
         run: |
           curl http://localhost:8080/health
@@ -72,8 +93,5 @@ jobs:
       - name: Terraform Destroy
         run: terraform destroy -auto-approve
     env:
-      TF_HTTP_ADDRESS: "http://localhost:8080/${{ secrets.TFBACKEND_TENANT }}/state/local-files"
-      TF_HTTP_LOCK_ADDRESS: "http://localhost:8080/${{ secrets.TFBACKEND_TENANT }}/state/local-files/lock"
-      TF_HTTP_UNLOCK_ADDRESS: "http://localhost:8080/${{ secrets.TFBACKEND_TENANT }}/state/local-files/lock"
       TF_HTTP_USERNAME: "${{ secrets.TFBACKEND_USERNAME }}"
       TF_HTTP_PASSWORD: "${{ secrets.TFBACKEND_USERPWD }}"
