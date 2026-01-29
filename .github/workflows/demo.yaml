@@ -7,9 +7,10 @@ on:
   workflow_dispatch: {}
 
 jobs:
-  quick-check:
+  demo-deployment:
     name: Quick check
     runs-on: ubuntu-latest
+    environment: demo
     defaults:
       run:
         working-directory: samples/local-files
@@ -69,7 +70,7 @@ jobs:
           ls -alrt
           more temp.txt
       - name: Terraform Destroy
-        run: terraform destroy
+        run: terraform destroy -auto-approve
     env:
       TF_HTTP_ADDRESS: "http://localhost:8080/${{ secrets.TFBACKEND_TENANT }}/state/local-files"
       TF_HTTP_LOCK_ADDRESS: "http://localhost:8080/${{ secrets.TFBACKEND_TENANT }}/state/local-files/lock"
