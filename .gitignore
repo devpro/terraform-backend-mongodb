@@ -356,3 +356,6 @@ appsettings.Development.json
 .terraform/
 .terraform.lock.hcl
 errored.tfstate
+
+# local test outputs
+temp.txt

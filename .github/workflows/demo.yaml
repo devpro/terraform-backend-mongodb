@@ -10,19 +10,16 @@ jobs:
   quick-check:
     name: Quick check
     runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: samples/local-files
 
     services:
       tfbackend:
         image: devprofr/terraform-backend-mongodb:latest
         env:
-          ASPNETCORE_ENVIRONMENT: Development
           Application__IsHttpsRedirectionEnabled: false
-          Application__IsOpenTelemetryEnabled: false
-          Application__IsSwaggerEnabled: true
           ConnectionStrings__MongoDbDemo: ${{ secrets.TFBACKEND_CONNSTRING }}
-          Logging__LogLevel__Default: Debug
-          Logging__LogLevel__Microsoft__AspNetCore: Information
-          Logging__LogLevel__Devpro: Debug
           MongoDb__ConnectionStringName: MongoDbDemo
           MongoDb__DatabaseName: ${{ secrets.TFBACKEND_DBNAME }}
         ports:
@@ -59,5 +56,12 @@ jobs:
           key: terraform-${{ hashFiles('**/.terraform.lock.hcl') }}
       - name: Install terraform
         uses: hashicorp/setup-terraform@v3
-      # - name: Terraform Init
-      #   run: terraform init
+      - name: Terraform Init
+        run: terraform init
+
+    env:
+      TF_HTTP_ADDRESS: "http://localhost:8080/${{ secrets.TFBACKEND_TENANT }}/state/local-files"
+      TF_HTTP_LOCK_ADDRESS: "http://localhost:8080/${{ secrets.TFBACKEND_TENANT }}/state/local-files/lock"
+      TF_HTTP_UNLOCK_ADDRESS: "http://localhost:8080/${{ secrets.TFBACKEND_TENANT }}/state/local-files/lock"
+      TF_HTTP_USERNAME: "${{ secrets.TFBACKEND_USERNAME }}"
+      TF_HTTP_PASSWORD: "${{ secrets.TFBACKEND_USERPWD }}"

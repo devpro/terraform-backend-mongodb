@@ -1,4 +1,4 @@
-# Sample with local commands
+﻿# Sample with local commands
 
 ## Setup
 
@@ -24,6 +24,11 @@ cd samples/terraform-local-exec
 Initialize (feel free to use `tofu` instead of `terraform`):
 
 ```bash
+export TF_HTTP_ADDRESS="http://localhost:5293/dummy/state/local-files"
+export TF_HTTP_LOCK_ADDRESS="http://localhost:5293/dummy/state/local-files/lock"
+export TF_HTTP_UNLOCK_ADDRESS="http://localhost:5293/dummy/state/local-files/lock"
+export TF_HTTP_USERNAME="admin"
+export TF_HTTP_PASSWORD="admin123"
 terraform init
 ```
 
