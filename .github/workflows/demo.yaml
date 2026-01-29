@@ -9,11 +9,18 @@ on:
 env:
   ENVIRONMENT: ${{ replace(github.ref_name, 'feature/', '') }}
 
+
 jobs:
   demo-deployment:
     name: Demo deployment
     runs-on: ubuntu-latest
-    environment: ${{ replace(github.ref_name, 'feature/', '') }}
+    environment: >-
+      ${{
+        startsWith(github.ref_name, 'release/staging') && 'staging' ||
+        startsWith(github.ref_name, 'release/prod') && 'production' ||
+        startsWith(github.ref_name, 'release/dev') && 'dev' ||
+        github.ref_name   # fallback: full name if no match
+      }}
     defaults:
       run:
         working-directory: samples/local-files
@@ -30,6 +37,12 @@ jobs:
           - 8080:8080
 
     steps:
+      - name: Set clean slug for Terraform backend
+        run: |
+          slug="${GITHUB_REF_NAME#release/}"
+          slug="${slug//\//-}"
+          echo "ENV_SLUG=$slug" >> "$GITHUB_ENV"
+
       - name: Clone repository
         uses: actions/checkout@v6
 
@@ -75,8 +88,8 @@ jobs:
       - name: Terraform Destroy
         run: terraform destroy -auto-approve
     env:
-      TF_HTTP_ADDRESS: "http://localhost:8080/${{ secrets.TFBACKEND_TENANT }}/state/local-files-${{ env.ENVIRONMENT }}"
-      TF_HTTP_LOCK_ADDRESS: "http://localhost:8080/${{ secrets.TFBACKEND_TENANT }}/state/local-files-${{ env.ENVIRONMENT }}/lock"
-      TF_HTTP_UNLOCK_ADDRESS: "http://localhost:8080/${{ secrets.TFBACKEND_TENANT }}/state/local-files-${{ env.ENVIRONMENT }}/lock"
+      TF_HTTP_ADDRESS: "http://localhost:8080/${{ secrets.TFBACKEND_TENANT }}/state/local-files-${{ env.ENV_SLUG }}"
+      TF_HTTP_LOCK_ADDRESS: "http://localhost:8080/${{ secrets.TFBACKEND_TENANT }}/state/local-files-${{ env.ENV_SLUG }}/lock"
+      TF_HTTP_UNLOCK_ADDRESS: "http://localhost:8080/${{ secrets.TFBACKEND_TENANT }}/state/local-files-${{ env.ENV_SLUG }}/lock"
       TF_HTTP_USERNAME: "${{ secrets.TFBACKEND_USERNAME }}"
       TF_HTTP_PASSWORD: "${{ secrets.TFBACKEND_USERPWD }}"
