@@ -8,7 +8,7 @@ on:
 
 jobs:
   demo-deployment:
-    name: Quick check
+    name: Demo deployment
     runs-on: ubuntu-latest
     environment: demo
     defaults:
