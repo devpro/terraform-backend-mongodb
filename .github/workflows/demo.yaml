@@ -7,12 +7,48 @@ on:
   workflow_dispatch: {}
 
 jobs:
-  quick-check:
-    name: Quick check
+  demo-deployment:
+    name: Demo deployment
     runs-on: ubuntu-latest
+    environment: demo
+    defaults:
+      run:
+        working-directory: samples/local-files
+
+    services:
+      tfbackend:
+        image: devprofr/terraform-backend-mongodb:latest
+        env:
+          Application__IsHttpsRedirectionEnabled: false
+          ConnectionStrings__MongoDbDemo: ${{ secrets.TFBACKEND_CONNSTRING }}
+          MongoDb__ConnectionStringName: MongoDbDemo
+          MongoDb__DatabaseName: ${{ secrets.TFBACKEND_DBNAME }}
+        ports:
+          - 8080:8080
+
     steps:
       - name: Clone repository
         uses: actions/checkout@v6
+
+      - name: Checkout workflow parts
+        uses: actions/checkout@v5
+        with:
+          repository: devpro/github-workflow-parts
+          ref: feature/sonarlogin
+          path: workflow-parts
+
+      - name: Add runner ID to MongoDB Atlas
+        uses: ./workflow-parts/mongodb-atlas/add-runner-ip
+        with:
+          atlas_publickey: ${{ secrets.ATLAS_PUBLIC_KEY }}
+          atlas_privatekey: ${{ secrets.ATLAS_PRIVATE_KEY }}
+          atlas_groupid: ${{ secrets.ATLAS_GROUP_ID }}
+          github_runid: ${{ github.run_id }}
+
+      - name: Debug
+        run: |
+          curl http://localhost:8080/health
+
       - name: Cache Terraform plugins
         uses: actions/cache@v5
         with:
@@ -21,5 +57,23 @@ jobs:
           key: terraform-${{ hashFiles('**/.terraform.lock.hcl') }}
       - name: Install terraform
         uses: hashicorp/setup-terraform@v3
-      # - name: Terraform Init
-      #   run: terraform init
+      - name: Terraform Init
+        run: terraform init
+      - name: Terraform Validate
+        run: terraform validate
+      - name: Terraform Plan
+        run: terraform plan -out=plan.tfplan
+      - name: Terraform Apply
+        run: terraform apply -auto-approve plan.tfplan
+      - name: Check
+        run: |
+          ls -alrt
+          more temp.txt
+      - name: Terraform Destroy
+        run: terraform destroy -auto-approve
+    env:
+      TF_HTTP_ADDRESS: "http://localhost:8080/${{ secrets.TFBACKEND_TENANT }}/state/local-files"
+      TF_HTTP_LOCK_ADDRESS: "http://localhost:8080/${{ secrets.TFBACKEND_TENANT }}/state/local-files/lock"
+      TF_HTTP_UNLOCK_ADDRESS: "http://localhost:8080/${{ secrets.TFBACKEND_TENANT }}/state/local-files/lock"
+      TF_HTTP_USERNAME: "${{ secrets.TFBACKEND_USERNAME }}"
+      TF_HTTP_PASSWORD: "${{ secrets.TFBACKEND_USERPWD }}"
