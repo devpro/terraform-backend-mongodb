@@ -1,0 +1,71 @@
+﻿name: Reusable - Git check
+
+on:
+  workflow_call:
+    inputs:
+      app_folders:
+        description: "Application folders separated by commas"
+        type: string
+        required: false
+        default: "src test"
+      debug:
+        description: "Enable debug mode (extra logging, verbose output)"
+        type: boolean
+        required: false
+        default: false
+    outputs:
+      app_changed:
+        description: "Whether application files changed (in src or test folder)"
+        value: ${{ jobs.git-check.outputs.app_changed }}
+      environment_slug:
+        description: "Computed environment slug from branch"
+        value: ${{ jobs.changed-files.outputs.environment_slug }}
+
+jobs:
+  git-check:
+    name: Check
+    runs-on: ubuntu-latest
+    outputs:
+      app_changed: ${{ steps.git-diff.outputs.app_changed }}
+      environment_slug: ${{ steps.get-slug.outputs.environment_slug }}
+    steps:
+      - name: Clone repository
+        uses: actions/checkout@v6
+        with:
+          fetch-depth: 0
+      - name: Debug git context
+        if: ${{ inputs.debug }}
+        run: |
+          echo "Event before SHA: ${{ github.event.before }}"
+          echo "Current SHA (github.sha): ${{ github.sha }}"
+          echo "Ref/branch: ${{ github.ref_name }}"
+          git log --oneline -n 2 || echo "git log failed"
+          echo ""
+          echo "Quick diff summary:"
+          git diff --name-status ${{ github.event.before }} ${{ github.sha }} -- $APP_FOLDERS 2>/dev/null \
+            || echo "No changes in src or diff failed"
+      - name: Check git diff
+        id: git-diff
+        run: |
+          BEFORE="${{ github.event.before }}"
+          BEFORE="${BEFORE:-$(git rev-parse HEAD~1 2>/dev/null)}"
+          echo "BEFORE=$BEFORE"
+
+          if [[ -z "$BEFORE" ]]; then
+            echo "app_changed=true" >> $GITHUB_OUTPUT
+          elif git diff --quiet "$BEFORE" ${{ github.sha }} -- $APP_FOLDERS ; then
+            echo "app_changed=false" >> $GITHUB_OUTPUT
+            echo "app_changed=false"
+          else
+            echo "app_changed=true" >> $GITHUB_OUTPUT
+          fi
+      - name: Get environment slug
+        id: get-slug
+        run: |
+          slug="${GITHUB_REF_NAME#feature/}"
+          slug="${slug//\//-}"
+          slug=$(echo "$slug" | tr '[:upper:]' '[:lower:]' | tr -cd 'a-z0-9-')
+          echo "Slug=$slug"
+          echo "environment_slug=$slug" >> $GITHUB_OUTPUT
+    env:
+      APP_FOLDERS: ${{ inputs.app_folders }}

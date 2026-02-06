@@ -1,4 +1,4 @@
-# Contribution guide
+﻿# Contribution guide
 
 ## Go through the codebase
 
@@ -38,7 +38,7 @@ docker run --name mongodb -d -p 27017:27017 mongo:8.2
 Add the test user:
 
 ```bash
-MONGODB_CONTAINERNAME=mongodb ./scripts/tfbeadm create-user admin admin123 dummy
+MONGODB_CONTAINERNETWORK=bridge MONGODB_CONTAINERNAME=mongodb ./scripts/tfbeadm create-user admin admin123 dummy
 ```
 
 Run the web API from the build files ([.NET 10](https://dotnet.microsoft.com/download) must be installed):

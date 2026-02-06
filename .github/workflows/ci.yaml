@@ -1,20 +1,18 @@
-﻿# purpose: run Continuous Integration (build, unit test, lint, scan)
-# variables: [SONAR_HOST_URL, SONAR_ORG, SONAR_PROJECT_KEY]
-# secrets: [SONAR_TOKEN]
-
-name: CI
+﻿name: CI
+# purpose: Continuous Integration pipeline
+# actions: [build, unit test, lint, scan]
+# variables: [SONAR_ORG, SONAR_PROJECT_KEY]
+# secrets: [SONAR_TOKEN, FOSSA_API_KEY]
 
 on:
   push:
-    branches:
-      - main
+    branches: [main]
   pull_request:
-    branches:
-      - main
+    branches: [main]
   workflow_dispatch: {}
 
 concurrency:
-  group: "ci"
+  group: "${{ github.ref }}-ci"
   cancel-in-progress: true
 
 permissions:
@@ -22,81 +20,49 @@ permissions:
   pull-requests: write
 
 jobs:
-  check:
-    runs-on: ubuntu-latest
-    steps:
-      - name: Checks-out the repository
-        uses: actions/checkout@v5
-      - name: Get changes files
-        id: changed-files
-        uses: tj-actions/changed-files@v47
-        with:
-          files_yaml: |
-            doc:
-              - docs/**
-            app:
-              - src/**
-              - test/**
-      - name: Lints Markdown files
-        uses: DavidAnson/markdownlint-cli2-action@v20
-        with:
-          globs: "**/*.md"
-  build:
-    runs-on: ubuntu-latest
-    needs: check
-    if: needs.check.outputs.app_any_changed == 'true'
-    steps:
-      - name: Checkout repository
-        uses: actions/checkout@v5
-        with:
-          fetch-depth: 0
-      - name: Checkout workflow parts
-        uses: actions/checkout@v5
-        with:
-          repository: devpro/github-workflow-parts
-          ref: main
-          path: workflow-parts
-      - name: Start MongoDB
-        uses: ./workflow-parts/mongodb/start
-      - name: Initialize database (indexes, tenants & users)
-        run: |
-          ./scripts/tfbeadm create-indexes
-          ./scripts/tfbeadm create-user admin admin123 dummy
-        shell: bash
-        env:
-          MONGODB_URI: mongodb://localhost:27017/terraform_backend_dev
-      - name: Build, lint & test
-        uses: ./workflow-parts/dotnet/build-lint-test
-        with:
-          sonar_enabled: 'true'
-          sonar_organization: ${{ vars.SONAR_ORG }}
-          sonar_host_url: ${{ vars.SONAR_HOST_URL }}
-          sonar_project_name: Terraform Backend MongoDB
-          sonar_project_key: ${{ vars.SONAR_PROJECT_KEY }}
-          sonar_token: ${{ secrets.SONAR_TOKEN }}
-    env:
-      GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+  git-check:
+    name: Git
+    uses: ./.github/workflows/reusable-git-check.yml
+
+  content-validate:
+    name: Markup
+    uses: devpro/github-workflow-parts/.github/workflows/reusable-markup-lint.yml@f61750746227ea28ae379e5a36ad52096fb34967
+
+  code-quality:
+    name: Code
+    needs: git-check
+    if: github.event_name == 'workflow_dispatch' || needs.git-check.outputs.app_changed == 'true'
+    uses: devpro/github-workflow-parts/.github/workflows/reusable-dotnet-quality.yml@f61750746227ea28ae379e5a36ad52096fb34967
+    with:
+      custom-commands: |
+        echo "Initialize database (indexes, tenants & users)"
+        export MONGODB_URI="mongodb://localhost:27017/terraform_backend_dev"
+        ./scripts/tfbeadm create-indexes
+        ./scripts/tfbeadm create-user admin admin123 dummy
+      extra-vars: |
+        Application__IsHttpsRedirectionEnabled="false"
+      mongodb-enabled: true
+      fossa-enabled: true
+      sonar-enabled: true
+      sonar-organization: ${{ vars.SONAR_ORG }}
+      sonar-project-key: ${{ vars.SONAR_PROJECT_KEY }}
+      sonar-project-name: Terraform Backend MongoDB
+      workflow-parts-version: f61750746227ea28ae379e5a36ad52096fb34967
+    secrets:
+      fossa-api-key: ${{ secrets.FOSSA_API_KEY }}
+      sonar-token: ${{ secrets.SONAR_TOKEN }}
+
   image-scan:
-    runs-on: ubuntu-latest
-    needs: check
-    if: needs.check.outputs.app_any_changed == 'true'
-    steps:
-      - name: Checkout source code
-        uses: actions/checkout@v5
-      - name: Checkout workflow parts
-        uses: actions/checkout@v5
-        with:
-          repository: devpro/github-workflow-parts
-          ref: main
-          path: workflow-parts
-      - name: Create and scan container image
-        uses: ./workflow-parts/docker/build-scan
-        with:
-          docker_file: 'src/WebApi/Dockerfile'
-          image_tag: 1.2.${{ github.run_id }}
-          image_path: 'docker.io/devprofr'
-          image_name: terraform-backend-mongodb
-          max_high_cves: 0
-          max_medium_cves: 0
-    env:
-      GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+    name: Image
+    needs: git-check
+    if: github.event_name == 'workflow_dispatch' || needs.git-check.outputs.app_changed == 'true'
+    uses: devpro/github-workflow-parts/.github/workflows/reusable-container-scan.yml@f61750746227ea28ae379e5a36ad52096fb34967
+    with:
+      image-definition: "src/WebApi/Dockerfile"
+      image-tag: 1.2.${{ github.run_id }}
+      image-path: "docker.io/devprofr"
+      image-name: terraform-backend-mongodb
+      max-high-cves: 0
+      max-medium-cves: 0
+      neuvector-enabled: true
+      trivy-enabled: true
