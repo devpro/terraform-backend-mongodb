@@ -28,7 +28,7 @@ jobs:
       - name: Clone repository
         uses: actions/checkout@v6
         with:
-          fetch-depth: 2
+          fetch-depth: 0
       - name: Debug git context
         if: ${{ inputs.debug }}
         run: |
