@@ -38,7 +38,7 @@ jobs:
           git log --oneline -n 2 || echo "git log failed"
           echo ""
           echo "Quick diff summary:"
-          git diff --name-status ${{ github.event.before }} ${{ github.sha }} -- ${{ inputs.app_folders }} 2>/dev/null \
+          git diff --name-status ${{ github.event.before }} ${{ github.sha }} -- $APP_FOLDERS 2>/dev/null \
             || echo "No changes in src or diff failed"
       - name: Check git diff
         id: git-diff
@@ -49,9 +49,11 @@ jobs:
 
           if [[ -z "$BEFORE" ]]; then
             echo "app_changed=true" >> $GITHUB_OUTPUT
-          elif git diff --quiet "$BEFORE" ${{ github.sha }} -- ${{ inputs.app_folders }} ; then
+          elif git diff --quiet "$BEFORE" ${{ github.sha }} -- $APP_FOLDERS ; then
             echo "app_changed=false" >> $GITHUB_OUTPUT
             echo "app_changed=false"
           else
             echo "app_changed=true" >> $GITHUB_OUTPUT
           fi
+    env:
+      APP_FOLDERS: ${{ inputs.app_folders }}
