@@ -1,4 +1,4 @@
-# ref. https://yamllint.readthedocs.io/en/stable/configuration.html
+﻿# ref. https://yamllint.readthedocs.io/en/stable/configuration.html
 extends: default
 rules:
   document-start: disable
@@ -6,5 +6,3 @@ rules:
     level: warning
     max: 120
   truthy: disable
-  tags:
-    disable: true
