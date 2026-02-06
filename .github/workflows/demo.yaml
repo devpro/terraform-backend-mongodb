@@ -1,7 +1,5 @@
 ﻿name: Demo
 # title: Demonstration pipeline
-# variables: []
-# secrets: [ATLAS_GROUP_ID, ATLAS_PRIVATE_KEY, ATLAS_PUBLIC_KEY, TFBACKEND_CONNSTRING, TFBACKEND_DBNAME, TFBACKEND_USERNAME, TFBACKEND_USERPWD]
 
 on:
   workflow_dispatch: {}
@@ -25,7 +23,7 @@ jobs:
             directory: docker-nginx
           - name: Local Files
             directory: local-files
-    uses: devpro/github-workflow-parts/.github/workflows/reusable-terraform-deployment.yml@66ea6a268db75a8461decb7988894823d4fcc7de
+    uses: devpro/github-workflow-parts/.github/workflows/reusable-terraform-deployment.yml@f61750746227ea28ae379e5a36ad52096fb34967
     with:
       environment: demo
       working-directory: samples/${{ matrix.directory }}
