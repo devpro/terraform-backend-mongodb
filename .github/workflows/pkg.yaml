@@ -1,8 +1,7 @@
-﻿# purpose: run Continuous Delivery / Packaging (package)
+﻿name: PKG
+# purpose: run Continuous Delivery / Packaging (package)
 # variables: []
 # secrets: [DOCKERHUB_USERNAME, DOCKERHUB_TOKEN]
-
-name: PKG
 
 on:
   push:

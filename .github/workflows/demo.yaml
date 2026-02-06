@@ -1,7 +1,7 @@
-﻿# title: Demonstration pipeline
+name: Demo
+# title: Demonstration pipeline
 # variables: []
 # secrets: []
-name: Demo
 
 on:
   # push:

@@ -1,9 +1,8 @@
-﻿# purpose: Continuous Integration pipeline
+﻿name: CI
+# purpose: Continuous Integration pipeline
 # actions: [build, unit test, lint, scan]
 # variables: [SONAR_ORG, SONAR_PROJECT_KEY]
 # secrets: [SONAR_TOKEN, FOSSA_API_KEY]
-
-name: CI
 
 on:
   push:
