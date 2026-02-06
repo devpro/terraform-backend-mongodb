@@ -15,14 +15,21 @@ jobs:
     name: Git
     uses: ./.github/workflows/reusable-git-check.yml
 
-  deploy-demo:
-    name: Demo
+  deploy-samples:
+    name: "Demo ${{ matrix.name }}"
     needs: git-check
+    strategy:
+      matrix:
+        include:
+          - name: Docker NGINX
+            directory: docker-nginx
+          - name: Local Files
+            directory: local-files
     uses: devpro/github-workflow-parts/.github/workflows/reusable-terraform-deployment.yml@66ea6a268db75a8461decb7988894823d4fcc7de
     with:
       environment: demo
-      working-directory: samples/local-files
-      tfbackend-project: ${{ needs.git-check.outputs.environment_slug }}
+      working-directory: samples/${{ matrix.directory }}
+      tfbackend-project: "${{ matrix.directory }}-${{ needs.git-check.outputs.environment_slug }}"
     secrets:
       atlas-groupid: ${{ secrets.ATLAS_GROUP_ID }}
       atlas-privatekey: ${{ secrets.ATLAS_PRIVATE_KEY }}
