@@ -20,6 +20,13 @@
     <File Path="docs/usage.md" />
     <File Path="mkdocs.yml" />
   </Folder>
+  <Folder Name="/0 - Solution Items/pipelines/">
+    <File Path=".github/workflows/ci.yaml" />
+    <File Path=".github/workflows/demo.yaml" />
+    <File Path=".github/workflows/pages.yaml" />
+    <File Path=".github/workflows/pkg.yaml" />
+    <File Path=".github/workflows/reusable-git-check.yml" />
+  </Folder>
   <Folder Name="/0 - Solution Items/samples/" />
   <Folder Name="/0 - Solution Items/samples/docker-nginx/">
     <File Path="samples/docker-nginx/main.tf" />
