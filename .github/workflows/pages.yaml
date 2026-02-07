@@ -1,4 +1,5 @@
 ﻿name: Pages
+# purpose: Continuous Documentation (hosted by GitHub Pages)
 
 on:
   push:

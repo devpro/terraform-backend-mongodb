@@ -1,5 +1,5 @@
 ﻿name: Demo
-# title: Demonstration pipeline
+# purpose: Demonstration pipeline
 
 on:
   workflow_dispatch: {}

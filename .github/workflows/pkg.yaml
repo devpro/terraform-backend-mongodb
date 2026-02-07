@@ -1,8 +1,5 @@
 ﻿name: PKG
 # purpose: Continuous Delivery (aka Packaging & Shipping)
-# actions: [build, push]
-# variables: []
-# secrets: [DOCKERHUB_USERNAME, DOCKERHUB_TOKEN]
 
 on:
   push:
