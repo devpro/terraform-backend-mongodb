@@ -9,7 +9,18 @@ on:
     branches: [main]
   pull_request:
     branches: [main]
-  workflow_dispatch: {}
+  workflow_dispatch:
+    inputs:
+      run-code-quality:
+        description: 'Check code quality?'
+        required: false
+        type: boolean
+        default: false
+      run-image-scan:
+        description: 'Scan container image?'
+        required: false
+        type: boolean
+        default: false
 
 concurrency:
   group: "${{ github.ref }}-ci"
@@ -31,7 +42,7 @@ jobs:
   code-quality:
     name: Code
     needs: git-check
-    if: github.event_name == 'workflow_dispatch' || needs.git-check.outputs.app_changed == 'true'
+    if: needs.git-check.outputs.app_changed == 'true' || (github.event_name == 'workflow_dispatch' && inputs.run-code-quality)
     uses: devpro/github-workflow-parts/.github/workflows/reusable-dotnet-quality.yml@f61750746227ea28ae379e5a36ad52096fb34967
     with:
       custom-commands: |
@@ -55,7 +66,7 @@ jobs:
   image-scan:
     name: Image
     needs: git-check
-    if: github.event_name == 'workflow_dispatch' || needs.git-check.outputs.app_changed == 'true'
+    if: needs.git-check.outputs.app_changed == 'true' || (github.event_name == 'workflow_dispatch' && inputs.run-image-scan)
     uses: devpro/github-workflow-parts/.github/workflows/reusable-container-scan.yml@f61750746227ea28ae379e5a36ad52096fb34967
     with:
       image-definition: "src/WebApi/Dockerfile"

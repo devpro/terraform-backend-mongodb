@@ -7,15 +7,14 @@ EXPOSE 8081
 FROM registry.suse.com/bci/dotnet-sdk:10.0 AS build
 ARG BUILD_CONFIGURATION=Release
 WORKDIR /src
-COPY ["src/", "./"]
-RUN dotnet restore "WebApi/WebApi.csproj"
 COPY . .
-WORKDIR "/src/WebApi"
-RUN dotnet build "WebApi.csproj" -c "$BUILD_CONFIGURATION" -o /app/build
+RUN dotnet restore "src/WebApi/WebApi.csproj" --verbosity detailed
+RUN dotnet build "src/WebApi/WebApi.csproj" --no-restore -c "$BUILD_CONFIGURATION"
 
 FROM build AS publish
 ARG BUILD_CONFIGURATION=Release
-RUN dotnet publish "WebApi.csproj" -c "$BUILD_CONFIGURATION" -o /app/publish /p:UseAppHost=false
+WORKDIR /src
+RUN dotnet publish "src/WebApi/WebApi.csproj"  --no-build -c "$BUILD_CONFIGURATION" -o /app/publish /p:UseAppHost=false
 
 FROM base AS final
 WORKDIR /app

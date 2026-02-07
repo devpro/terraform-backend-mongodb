@@ -73,6 +73,23 @@ docker compose run --rm dbinit
 
 Open [localhost:9001/swagger](http://localhost:9001/swagger)
 
+You can also build the container image:
+
+```bash
+docker build . -t terraform-backend-mongodb:local -f src/WebApi/Dockerfile
+```
+
+<!-- not fully working
+And run the container with:
+
+```bash
+docker run -it --rm --name todoblazorlocal \
+  --link "mongodb" --network "bridge" \
+  -p 9001:8080 -e ASPNETCORE_ENVIRONMENT=Development \
+  terraform-backend-mongodb:local
+```
+-->
+
 ## Use the Swagger website
 
 If you see an error, make sure to refresh the cache of the page, it can happen if the version of the application has changed.
