@@ -8,13 +8,13 @@ FROM registry.suse.com/bci/dotnet-sdk:10.0 AS build
 ARG BUILD_CONFIGURATION=Release
 WORKDIR /src
 COPY . .
-RUN dotnet restore "src/WebApi/WebApi.csproj" --verbosity detailed
+RUN dotnet restore "src/WebApi/WebApi.csproj"
 RUN dotnet build "src/WebApi/WebApi.csproj" --no-restore -c "$BUILD_CONFIGURATION"
 
 FROM build AS publish
 ARG BUILD_CONFIGURATION=Release
 WORKDIR /src
-RUN dotnet publish "src/WebApi/WebApi.csproj"  --no-build -c "$BUILD_CONFIGURATION" -o /app/publish /p:UseAppHost=false
+RUN dotnet publish "src/WebApi/WebApi.csproj" --no-build -c "$BUILD_CONFIGURATION" -o /app/publish /p:UseAppHost=false
 
 FROM base AS final
 WORKDIR /app
