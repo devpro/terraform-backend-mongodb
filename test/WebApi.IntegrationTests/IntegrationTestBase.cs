@@ -19,7 +19,7 @@ public abstract class IntegrationTestBase(WebApplicationFactory<Program> factory
 {
     protected Faker Faker { get; } = new();
 
-    protected Faker<StateModel> StateFaker { get; } = new Faker<StateModel>("en");
+    protected Faker<StateModel> StateFaker { get; } = new("en");
 
     protected Faker<StateLockModel> StateLockFaker { get; } = new Faker<StateLockModel>("en")
         .RuleFor(u => u.Id, _ => Guid.NewGuid().ToString())
