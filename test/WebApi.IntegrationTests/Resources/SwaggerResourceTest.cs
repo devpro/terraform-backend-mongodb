@@ -1,4 +1,7 @@
-﻿using Devpro.TerraformBackend.WebApi.IntegrationTests.Http;
+﻿using System.Threading.Tasks;
+using Devpro.TerraformBackend.WebApi.IntegrationTests.Http;
+using Microsoft.AspNetCore.Mvc.Testing;
+using Xunit;
 
 namespace Devpro.TerraformBackend.WebApi.IntegrationTests.Resources;
 

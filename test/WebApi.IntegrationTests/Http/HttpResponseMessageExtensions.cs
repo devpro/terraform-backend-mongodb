@@ -1,4 +1,7 @@
 ﻿using System.Net;
+using System.Net.Http;
+using System.Threading.Tasks;
+using AwesomeAssertions;
 
 namespace Devpro.TerraformBackend.WebApi.IntegrationTests.Http;
 

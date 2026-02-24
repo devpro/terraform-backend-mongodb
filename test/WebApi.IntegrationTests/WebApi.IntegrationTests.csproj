@@ -6,7 +6,6 @@
     <RootNamespace>Devpro.TerraformBackend.WebApi.IntegrationTests</RootNamespace>
     <ProjectGuid>{B055FFAF-8261-43B1-866A-12E289D5D7DC}</ProjectGuid>
     <Nullable>enable</Nullable>
-    <ImplicitUsings>enable</ImplicitUsings>
     <IsPackable>false</IsPackable>
   </PropertyGroup>
 
