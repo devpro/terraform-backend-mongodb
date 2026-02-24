@@ -10,6 +10,9 @@
     <File Path="Directory.Packages.props" />
     <File Path="README.md" />
   </Folder>
+  <Folder Name="/Solution Items/demo/">
+    <File Path="demo/otel-collector-config.yaml" />
+  </Folder>
   <Folder Name="/Solution Items/docs/">
     <File Path="docs/architecture.md" />
     <File Path="docs/CNAME" />

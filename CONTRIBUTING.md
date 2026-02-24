@@ -62,8 +62,12 @@ docker stop mongodb
 If you just want to run the application, the easiest way is through containers (application + database) - there is a Docker compose file for it:
 
 ```bash
-docker compose up --build
+docker compose up
 ```
+
+<!--
+docker compose build --no-cache
+-->
 
 Add the test user:
 
@@ -72,6 +76,12 @@ docker compose run --rm dbinit
 ```
 
 Open [localhost:9001/swagger](http://localhost:9001/swagger)
+
+Delete the containers:
+
+```bash
+docker compose rm --force
+```
 
 You can also build the container image:
 

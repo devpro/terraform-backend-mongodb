@@ -6,7 +6,6 @@ services:
     environment:
       - ASPNETCORE_ENVIRONMENT=Development
       - Application__IsHttpsRedirectionEnabled=false
-      - Application__IsOpenTelemetryEnabled=false
       - Application__IsSwaggerEnabled=true
       - ConnectionStrings__MongoDbLocal=mongodb://mongodb:27017/?readPreference=primary&appname=TerraformBackendMongoDbWebApi&directConnection=true&ssl=false
       - Logging__LogLevel__Default=Debug
@@ -14,17 +13,63 @@ services:
       - Logging__LogLevel__Devpro=Debug
       - MongoDb__ConnectionStringName=MongoDbLocal
       - MongoDb__DatabaseName=terraform_backend_dev
+      - OTEL_SERVICE_NAME=tfbackend-webapi
+      - OTEL_LOGS_EXPORTER=otlp
+      - OTEL_TRACES_EXPORTER=otlp
+      - OTEL_METRICS_EXPORTER=otlp
+      - OTEL_DOTNET_AUTO_LOGS_INCLUDE_FORMATTED_MESSAGE=true
+      - OTEL_EXPORTER_OTLP_ENDPOINT=http://otel-collector:4318
+      - OTEL_EXPORTER_OTLP_PROTOCOL=http/protobuf
+      - OTEL_RESOURCE_ATTRIBUTES=deployment.environment=local,service.version=local-build
+      - OTEL_DOTNET_AUTO_INSTRUMENTATIONS=AspNetCore,HttpClient
+      - OTEL_DOTNET_AUTO_METRICS_ADDITIONAL_SOURCES=Private.InternalDiagnostics.System.Net.Quic.MsQuic
+      - OTEL_DOTNET_AUTO_TRACES_MONGODB_INSTRUMENTATION_ENABLED=false
+      - OTEL_LOG_LEVEL=debug
     ports:
       - "9001:8080"
     depends_on:
       - mongodb
+      - otel-collector
+    volumes:
+      - ./logs/otel:/var/log/opentelemetry/dotnet
 
   mongodb:
     image: mongo:8.2
+    command:
+      - --replSet
+      - rs0
+      - --bind_ip_all
     ports:
       - "27017:27017"
     volumes:
       - db-data:/data/db
+    healthcheck:
+      test: >
+        echo 'db.runCommand("ping").ok || quit(1);
+              try { rs.status() } catch (err) {
+                rs.initiate({
+                  _id: "rs0",
+                  members: [{ _id: 0, host: "mongodb:27017" }]
+                })
+              }' | mongosh --quiet
+      interval: 5s
+      timeout: 10s
+      retries: 30
+      start_period: 10s
+
+  otel-collector:
+    image: otel/opentelemetry-collector-contrib:0.145.0
+    command: [ "--config=/etc/otelcol/config.yaml" ]
+    volumes:
+      - ./demo/otel-collector-config.yaml:/etc/otelcol/config.yaml:ro
+    environment:
+      - MONGODB_ENDPOINT=mongodb:27017
+    ports:
+      - "4318:4318"
+      - "4317:4317"
+      - "8889:8889"
+    depends_on:
+      - mongodb
 
 volumes:
   db-data:
