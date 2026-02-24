@@ -1,11 +1,8 @@
-﻿using Devpro.Common.AspNetCore.WebApi.Configuration;
-using Microsoft.AspNetCore.Builder;
-
-namespace Devpro.Common.AspNetCore.WebApi.Builder;
+﻿namespace Devpro.TerraformBackend.WebApi.Builder;
 
 public static class SwaggerBuilderExtensions
 {
-    public static IApplicationBuilder UseSwagger(this IApplicationBuilder app, WebApiConfiguration configuration)
+    public static IApplicationBuilder UseSwagger(this IApplicationBuilder app, ApplicationConfiguration configuration)
     {
         if (!configuration.IsSwaggerEnabled)
         {

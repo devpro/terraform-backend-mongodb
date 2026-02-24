@@ -2,21 +2,26 @@
 var builder = WebApplication.CreateBuilder(args);
 var configuration = new ApplicationConfiguration(builder.Configuration);
 builder.Services.AddControllers(x => x.InputFormatters.Insert(0, new RawRequestBodyFormatter()));
-builder.Services.AddInfrastructure(configuration);
+builder.Services.AddMongoDbInfrastructure(configuration);
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGenWithBasicAuth(configuration);
-builder.Services.AddBasicAuthentication();
+builder.Services.AddAuthentication()
+    .AddScheme<AuthenticationSchemeOptions, BasicAuthenticationHandler>(BasicAuthenticationClient.AuthenticationScheme, null);
 builder.Services.AddHealthChecks();
 builder.Services.AddInvalidModelStateLog();
 
 // creates the application and configures the HTTP request pipeline
 var app = builder.Build();
 app.UseSwagger(configuration);
-app.UseHttpsRedirection(configuration);
+if (configuration.IsHttpsRedirectionEnabled)
+{
+    app.UseHttpsRedirection();
+}
+
 app.UseAuthentication();
 app.UseAuthorization();
 app.MapControllers();
-app.MapHealthChecks(WebApiConfiguration.HealthCheckEndpoint).AllowAnonymous();
+app.MapHealthChecks(ApplicationConfiguration.HealthCheckEndpoint).AllowAnonymous();
 
 // runs the application
 app.Run();

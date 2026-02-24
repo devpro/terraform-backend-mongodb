@@ -46,9 +46,6 @@
   <Folder Name="/Solution Items/scripts/">
     <File Path="scripts/tfbeadm" />
   </Folder>
-  <Project Path="src/Common.AspNetCore.WebApi/Common.AspNetCore.WebApi.csproj" />
-  <Project Path="src/Common.AspNetCore/Common.AspNetCore.csproj" />
-  <Project Path="src/Common.MongoDb/Common.MongoDb.csproj" />
   <Project Path="src/Domain/Domain.csproj" />
   <Project Path="src/Infrastructure.MongoDb/Infrastructure.MongoDb.csproj" />
   <Project Path="src/WebApi/WebApi.csproj" />

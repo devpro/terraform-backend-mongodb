@@ -1,5 +1,4 @@
-﻿using Devpro.TerraformBackend.WebApi.Authentication;
-using Microsoft.AspNetCore.Mvc;
+﻿using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Filters;
 
 namespace Devpro.TerraformBackend.WebApi.Filters;

@@ -1,9 +1,7 @@
 ﻿using System.Security.Claims;
 using System.Text;
 using System.Text.Encodings.Web;
-using Devpro.Common.AspNetCore.WebApi.Authentication;
 using Devpro.TerraformBackend.Domain.Repositories;
-using Microsoft.AspNetCore.Authentication;
 using Microsoft.Extensions.Options;
 
 namespace Devpro.TerraformBackend.WebApi.Authentication;
@@ -52,7 +50,7 @@ public class BasicAuthenticationHandler(
 
         var client = new BasicAuthenticationClient
         {
-            AuthenticationType = BasicAuthenticationDefaults.AuthenticationScheme,
+            AuthenticationType = BasicAuthenticationClient.AuthenticationScheme,
             IsAuthenticated = true,
             Name = user.Username
         };

@@ -1,6 +1,5 @@
 ﻿using System;
 using System.Threading.Tasks;
-using Devpro.Common.MongoDb;
 using Devpro.TerraformBackend.Domain.Repositories;
 using Microsoft.Extensions.Logging;
 using MongoDB.Bson;
@@ -12,8 +11,8 @@ public class StateRepository : RepositoryBase, IStateRepository
 {
     private readonly IMongoCollection<BsonDocument> _bsonCollection;
 
-    public StateRepository(IMongoClientFactory mongoClientFactory, ILogger<StateLockRepository> logger, MongoDbConfiguration configuration)
-        : base(mongoClientFactory, logger, configuration)
+    public StateRepository(IMongoDatabase mongoDatabase, ILogger<StateLockRepository> logger)
+        : base(mongoDatabase, logger)
     {
         _bsonCollection = GetCollection<BsonDocument>();
     }

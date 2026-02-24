@@ -1,5 +1,4 @@
 ﻿using System.Threading.Tasks;
-using Devpro.Common.MongoDb;
 using Devpro.TerraformBackend.Domain.Models;
 using Devpro.TerraformBackend.Domain.Repositories;
 using Microsoft.Extensions.Logging;
@@ -11,8 +10,8 @@ public class UserRepository : RepositoryBase, IUserRepository
 {
     private readonly IMongoCollection<UserModel> _modelCollection;
 
-    public UserRepository(IMongoClientFactory mongoClientFactory, ILogger<UserRepository> logger, MongoDbConfiguration configuration)
-        : base(mongoClientFactory, logger, configuration)
+    public UserRepository(IMongoDatabase mongoDatabase, ILogger<StateLockRepository> logger)
+        : base(mongoDatabase, logger)
     {
         _modelCollection = GetCollection<UserModel>();
     }

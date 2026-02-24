@@ -1,10 +1,7 @@
-﻿using System;
-using System.IO;
-using System.Threading.Tasks;
-using Microsoft.AspNetCore.Mvc.Formatters;
+﻿using Microsoft.AspNetCore.Mvc.Formatters;
 using Microsoft.Net.Http.Headers;
 
-namespace Devpro.Common.AspNetCore.Formatters;
+namespace Devpro.TerraformBackend.WebApi.Formatters;
 
 /// <summary>
 /// ASP.NET Core input formatter to manage raw request bodies.

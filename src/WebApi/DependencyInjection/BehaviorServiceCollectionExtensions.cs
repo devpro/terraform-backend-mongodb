@@ -1,9 +1,6 @@
-﻿using System.Linq;
-using Microsoft.AspNetCore.Mvc;
-using Microsoft.Extensions.DependencyInjection;
-using Microsoft.Extensions.Logging;
+﻿using Microsoft.AspNetCore.Mvc;
 
-namespace Devpro.Common.AspNetCore.DependencyInjection;
+namespace Devpro.TerraformBackend.WebApi.DependencyInjection;
 
 public static class BehaviorServiceCollectionExtensions
 {

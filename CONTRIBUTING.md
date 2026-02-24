@@ -152,3 +152,10 @@ GitHub Variables are defined (in **General** / **Security** / **Secrets and Vari
 - `SONAR_ORG`
 - `SONAR_PROJECT_KEY`
 - `SONAR_TOKEN`
+
+## References
+
+Basic Authentication classes inspired by :
+
+- [C# Corner](https://www.c-sharpcorner.com/article/basic-authentication-in-swagger-open-api-net-5/)
+- [RoundTheCode](https://www.roundthecode.com/dotnet/what-is-basic-authentication-how-to-add-in-asp-net-core)

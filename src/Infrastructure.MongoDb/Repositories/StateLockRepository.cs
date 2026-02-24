@@ -1,5 +1,4 @@
 ﻿using System.Threading.Tasks;
-using Devpro.Common.MongoDb;
 using Devpro.TerraformBackend.Domain.Models;
 using Devpro.TerraformBackend.Domain.Repositories;
 using Microsoft.Extensions.Logging;
@@ -11,8 +10,8 @@ public class StateLockRepository : RepositoryBase, IStateLockRepository
 {
     private readonly IMongoCollection<StateLockModel> _modelCollection;
 
-    public StateLockRepository(IMongoClientFactory mongoClientFactory, ILogger<StateLockRepository> logger, MongoDbConfiguration configuration)
-        : base(mongoClientFactory, logger, configuration)
+    public StateLockRepository(IMongoDatabase mongoDatabase, ILogger<StateLockRepository> logger)
+        : base(mongoDatabase, logger)
     {
         _modelCollection = GetCollection<StateLockModel>();
     }

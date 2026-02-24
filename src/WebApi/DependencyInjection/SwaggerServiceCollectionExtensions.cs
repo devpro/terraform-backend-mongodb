@@ -1,12 +1,10 @@
-﻿using Devpro.Common.AspNetCore.WebApi.Configuration;
-using Microsoft.Extensions.DependencyInjection;
-using Microsoft.OpenApi;
+﻿using Microsoft.OpenApi;
 
-namespace Devpro.Common.AspNetCore.WebApi.DependencyInjection;
+namespace Devpro.TerraformBackend.WebApi.DependencyInjection;
 
 public static class SwaggerServiceCollectionExtensions
 {
-    public static IServiceCollection AddSwaggerGenWithBasicAuth(this IServiceCollection services, WebApiConfiguration configuration)
+    public static IServiceCollection AddSwaggerGenWithBasicAuth(this IServiceCollection services, ApplicationConfiguration configuration)
     {
         var openApi = configuration.OpenApi;
 
