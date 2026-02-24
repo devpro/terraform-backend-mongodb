@@ -8,7 +8,11 @@ using Microsoft.Extensions.Options;
 
 namespace Devpro.TerraformBackend.WebApi.Authentication;
 
-public class BasicAuthenticationHandler(IOptionsMonitor<AuthenticationSchemeOptions> options, ILoggerFactory logger, UrlEncoder encoder, IUserRepository userRepository)
+public class BasicAuthenticationHandler(
+    IOptionsMonitor<AuthenticationSchemeOptions> options,
+    ILoggerFactory logger,
+    UrlEncoder encoder,
+    IUserRepository userRepository)
     : AuthenticationHandler<AuthenticationSchemeOptions>(options, logger, encoder)
 {
     protected override async Task<AuthenticateResult> HandleAuthenticateAsync()
@@ -28,7 +32,8 @@ public class BasicAuthenticationHandler(IOptionsMonitor<AuthenticationSchemeOpti
         }
 
         // decrypts the authorization header and split out the client id/secret
-        var authBase64Decoded = Encoding.UTF8.GetString(Convert.FromBase64String(authorizationHeader.Replace("Basic ", "", StringComparison.OrdinalIgnoreCase)));
+        var authBase64Decoded = Encoding.UTF8.GetString(Convert.FromBase64String(
+            authorizationHeader.Replace("Basic ", "", StringComparison.OrdinalIgnoreCase)));
         var authSplit = authBase64Decoded.Split([':'], 2);
         if (authSplit.Length != 2)
         {
