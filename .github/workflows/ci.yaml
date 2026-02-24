@@ -32,6 +32,8 @@ jobs:
   git-check:
     name: Git
     uses: ./.github/workflows/reusable-git-check.yml
+    with:
+      is-pull-request: ${{ github.event_name == 'pull_request' }}
 
   content-validate:
     name: Markup

@@ -3,7 +3,7 @@
 on:
   workflow_call:
     inputs:
-      app_folders:
+      app-folders:
         description: "Application folders separated by commas"
         type: string
         required: false
@@ -12,6 +12,11 @@ on:
         description: "Enable debug mode (extra logging, verbose output)"
         type: boolean
         required: false
+        default: false
+      is-pull-request:
+        description: "Identify if build part of a PR"
+        required: false
+        type: boolean
         default: false
     outputs:
       app_changed:
