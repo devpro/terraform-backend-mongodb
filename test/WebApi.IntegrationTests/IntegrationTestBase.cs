@@ -10,13 +10,13 @@ namespace Devpro.TerraformBackend.WebApi.IntegrationTests;
 public abstract class IntegrationTestBase(WebApplicationFactory<Program> factory)
     : IClassFixture<WebApplicationFactory<Program>>
 {
-    protected Faker Faker { get; } = new("en");
+    protected Faker Faker { get; } = new();
 
     protected Faker<StateModel> StateFaker { get; } = new Faker<StateModel>("en");
 
     protected Faker<StateLockModel> StateLockFaker { get; } = new Faker<StateLockModel>("en")
-        .RuleFor(u => u.Id, f => Guid.NewGuid().ToString())
-        .RuleFor(o => o.Created, f => DateTime.UtcNow.ToString("yyyy-MM-ddTHH:mm:ss.fff+00:00"));
+        .RuleFor(u => u.Id, _ => Guid.NewGuid().ToString())
+        .RuleFor(o => o.Created, _ => DateTime.UtcNow.ToString("yyyy-MM-ddTHH:mm:ss.fff+00:00"));
 
     protected HttpClient CreateClient(bool isAuthorizationNeeded = false, Action<IWebHostBuilder>? builderConfiguration = null)
     {

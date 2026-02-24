@@ -32,7 +32,10 @@ public class StateLockRepository : RepositoryBase, IStateLockRepository
 
     public async Task<bool> DeleteAsync(StateLockModel input)
     {
-        var result = await _modelCollection.DeleteOneAsync(x => x.Tenant == input.Tenant && x.Name == input.Name && x.Id == input.Id);
+        var result = await _modelCollection.DeleteOneAsync(x =>
+            x.Tenant == input.Tenant
+            && x.Name == input.Name
+            && x.Id == input.Id);
         return result.DeletedCount > 0;
     }
 }

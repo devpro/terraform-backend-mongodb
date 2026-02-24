@@ -42,18 +42,18 @@ public class RawRequestBodyFormatter : InputFormatter
             || request.ContentType == PlainTextContentType)
         {
             using var reader = new StreamReader(request.Body);
-            var content = await reader.ReadToEndAsync();
-            return await InputFormatterResult.SuccessAsync(content);
+            var plainContent = await reader.ReadToEndAsync();
+            return await InputFormatterResult.SuccessAsync(plainContent);
         }
 
-        if (request.ContentType == OctetStreamApplicationContentType)
+        if (request.ContentType != OctetStreamApplicationContentType)
         {
-            using var ms = new MemoryStream(2048);
-            await request.Body.CopyToAsync(ms);
-            var content = ms.ToArray();
-            return await InputFormatterResult.SuccessAsync(content);
+            return await InputFormatterResult.FailureAsync();
         }
 
-        return await InputFormatterResult.FailureAsync();
+        using var ms = new MemoryStream(2048);
+        await request.Body.CopyToAsync(ms);
+        var streamContent = ms.ToArray();
+        return await InputFormatterResult.SuccessAsync(streamContent);
     }
 }

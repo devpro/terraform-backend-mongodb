@@ -4,4 +4,5 @@ Enrichment of [ASP.NET library](https://github.com/dotnet/aspnetcore).
 
 ## Classes
 
-* `RawRequestBodyFormatter`
+- `Devpro.Common.AspNetCore.DependencyInjection.BehaviorServiceCollectionExtensions`
+- `Devpro.Common.AspNetCore.Formatters.RawRequestBodyFormatter`

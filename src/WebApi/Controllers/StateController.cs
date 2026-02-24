@@ -40,6 +40,7 @@ public class StateController(IStateRepository stateRepository, IStateLockReposit
     /// Get Terraform state value.
     /// POST /:tenant/state/:name?ID=:lockId
     /// </summary>
+    /// <param name="tenant"></param>
     /// <param name="name">The name of the Terraform state</param>
     /// <param name="lockId">Terraform state lock ID</param>
     /// <returns></returns>
@@ -60,6 +61,7 @@ public class StateController(IStateRepository stateRepository, IStateLockReposit
     /// <summary>
     /// DELETE /:tenant/state/:name?ID=:lockId
     /// </summary>
+    /// <param name="tenant"></param>
     /// <param name="name"></param>
     /// <param name="lockId">Terraform state lock ID</param>
     /// <returns></returns>
@@ -78,6 +80,7 @@ public class StateController(IStateRepository stateRepository, IStateLockReposit
     /// <summary>
     /// POST /:tenant/state/:name/lock
     /// </summary>
+    /// <param name="tenant"></param>
     /// <param name="name"></param>
     /// <param name="input"></param>
     /// <returns></returns>
@@ -100,6 +103,7 @@ public class StateController(IStateRepository stateRepository, IStateLockReposit
     /// <summary>
     /// DELETE /:tenant/state/:name/lock
     /// </summary>
+    /// <param name="tenant"></param>
     /// <param name="name"></param>
     /// <param name="input"></param>
     /// <returns></returns>
@@ -118,18 +122,16 @@ public class StateController(IStateRepository stateRepository, IStateLockReposit
     private async Task<ObjectResult?> CheckLock(string tenant, string name, string? lockId = "")
     {
         var existingLock = await stateLockRepository.FindOneAsync(tenant, name);
-        if (existingLock != null)
+        if (existingLock == null)
         {
-            if (string.IsNullOrEmpty(lockId))
-            {
-                return StatusCode(423, new { Message = "The state is locked." });
-            }
-
-            if (existingLock.Id != lockId)
-            {
-                return Conflict("LockId doesn't match with the existing lock");
-            }
+            return null;
         }
-        return null;
+
+        if (string.IsNullOrEmpty(lockId))
+        {
+            return StatusCode(423, new { Message = "The state is locked." });
+        }
+
+        return existingLock.Id != lockId ? Conflict("LockId doesn't match with the existing lock") : null;
     }
 }

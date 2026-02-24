@@ -38,12 +38,7 @@ public class StateRepository : RepositoryBase, IStateRepository
         var document = await _bsonCollection.Find(GetFilter(tenant, name))
             .Sort(Builders<BsonDocument>.Sort.Descending("createdAt"))
             .FirstOrDefaultAsync();
-        if (document == null)
-        {
-            return null;
-        }
-
-        return document["value"].ToJson();
+        return document == null ? null : document["value"].ToJson();
     }
 
     public async Task<bool> DeleteAsync(string tenant, string name)

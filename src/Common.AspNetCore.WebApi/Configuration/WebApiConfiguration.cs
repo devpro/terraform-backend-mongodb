@@ -9,24 +9,15 @@ public class WebApiConfiguration(IConfigurationRoot configurationRoot)
 
     // flags
 
-    public bool IsOpenTelemetryEnabled => TryGetSection<bool>("Application:IsOpenTelemetryEnabled");
-
     public bool IsHttpsRedirectionEnabled => TryGetSection<bool>("Application:IsHttpsRedirectionEnabled");
 
     public bool IsSwaggerEnabled => TryGetSection<bool>("Application:IsSwaggerEnabled");
-
 
     // definitions
 
     public static string HealthCheckEndpoint => "/health";
 
     public OpenApiInfo OpenApi => TryGetSection<OpenApiInfo>("OpenApi");
-
-    public string OpenTelemetryService => TryGetSection<string>("OpenTelemetry:ServiceName");
-
-    // infrastructure
-
-    public string OpenTelemetryCollectorEndpoint => TryGetSection<string>("OpenTelemetry:CollectorEndpoint");
 
     // protected methods
 
