@@ -42,6 +42,7 @@ public class StateController(IStateRepository stateRepository, IStateLockReposit
     /// </summary>
     /// <param name="tenant"></param>
     /// <param name="name">The name of the Terraform state</param>
+    /// <param name="input"></param>
     /// <param name="lockId">Terraform state lock ID</param>
     /// <returns></returns>
     [HttpPost("{name:regex([[a-zA-Z]]+)}", Name = "CreateState")]
