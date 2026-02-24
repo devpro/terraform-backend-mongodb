@@ -3,6 +3,7 @@
     <File Path=".dockerignore" />
     <File Path=".editorconfig" />
     <File Path=".gitignore" />
+    <File Path=".yamllint.yaml" />
     <File Path="compose.override.yaml" />
     <File Path="compose.yaml" />
     <File Path="CONTRIBUTING.md" />

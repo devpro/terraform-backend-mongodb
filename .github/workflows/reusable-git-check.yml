@@ -31,6 +31,7 @@ jobs:
     outputs:
       app_changed: ${{ steps.git-diff.outputs.app_changed }}
       environment_slug: ${{ steps.get-slug.outputs.environment_slug }}
+      version_major_minor: ${{ steps.extract-version.outputs.version_major_minor }}
     steps:
       - name: Clone repository
         uses: actions/checkout@v6
@@ -39,27 +40,51 @@ jobs:
       - name: Debug git context
         if: ${{ inputs.debug }}
         run: |
-          echo "Event before SHA: ${{ github.event.before }}"
-          echo "Current SHA (github.sha): ${{ github.sha }}"
-          echo "Ref/branch: ${{ github.ref_name }}"
-          git log --oneline -n 2 || echo "git log failed"
-          echo ""
-          echo "Quick diff summary:"
-          git diff --name-status ${{ github.event.before }} ${{ github.sha }} -- $APP_FOLDERS 2>/dev/null \
-            || echo "No changes in src or diff failed"
+          echo "Event name (from caller info): ${{ inputs.is-pull-request && 'pull_request' || 'push/other' }}"
+          echo "github.sha      = ${{ github.sha }}"
+          echo "github.ref_name = ${{ github.ref_name }}"
+          echo "base ref        = ${{ github.base_ref }}"
+          echo "pr base sha     = ${{ github.event.pull_request.base.sha }}"
+          echo "pr head sha     = ${{ github.event.pull_request.head.sha }}"
+          git log --oneline -n 5 --decorate --graph || true
+          echo "---"
+      - name: Determine BEFORE commit for diff
+        id: set-before
+        run: |
+          if ${{ inputs.is-pull-request }}; then
+            BEFORE="${{ github.event.pull_request.base.sha }}"
+          else
+            BEFORE="${{ github.event.before }}"
+            BEFORE="${BEFORE:-$(git rev-parse HEAD~1 2>/dev/null || echo '')}"
+          fi
+
+          if [[ -z "$BEFORE" ]]; then
+            echo "No usable before commit → assuming changed"
+            echo "before=invalid" >> $GITHUB_OUTPUT
+            echo "app_changed=true" >> $GITHUB_OUTPUT
+          else
+            echo "before=$BEFORE" >> $GITHUB_OUTPUT
+          fi
       - name: Check git diff
         id: git-diff
         run: |
-          BEFORE="${{ github.event.before }}"
-          BEFORE="${BEFORE:-$(git rev-parse HEAD~1 2>/dev/null)}"
-          echo "BEFORE=$BEFORE"
+          BEFORE="${{ steps.set-before.outputs.before }}"
 
-          if [[ -z "$BEFORE" ]]; then
+          if [[ "$BEFORE" == "invalid" ]]; then
             echo "app_changed=true" >> $GITHUB_OUTPUT
-          elif git diff --quiet "$BEFORE" ${{ github.sha }} -- $APP_FOLDERS ; then
+            exit 0
+          fi
+
+          echo "Comparing:"
+          echo "  from : $BEFORE"
+          echo "  to   : ${{ github.sha }}"
+
+          if git diff --quiet "$BEFORE" ${{ github.sha }} -- $APP_FOLDERS ; then
+            echo "No relevant changes"
             echo "app_changed=false" >> $GITHUB_OUTPUT
-            echo "app_changed=false"
           else
+            echo "Changes detected in src/test"
+            git diff --name-status "$BEFORE" ${{ github.sha }} -- $APP_FOLDERS
             echo "app_changed=true" >> $GITHUB_OUTPUT
           fi
       - name: Get environment slug

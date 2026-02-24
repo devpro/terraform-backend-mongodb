@@ -59,6 +59,9 @@ jobs:
     secrets:
       fossa-api-key: ${{ secrets.FOSSA_API_KEY }}
       sonar-token: ${{ secrets.SONAR_TOKEN }}
+    permissions:
+      contents: read
+      pull-requests: write
 
   image-scan:
     name: Image
