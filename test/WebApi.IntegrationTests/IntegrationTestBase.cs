@@ -28,7 +28,7 @@ public abstract class IntegrationTestBase(WebApplicationFactory<Program> factory
     protected HttpClient CreateClient(bool isAuthorizationNeeded = false, Action<IWebHostBuilder>? builderConfiguration = null)
     {
         // ref. https://blog.markvincze.com/overriding-configuration-in-asp-net-core-integration-tests/
-        Environment.SetEnvironmentVariable("Application__IsSwaggerEnabled", "true");
+        Environment.SetEnvironmentVariable("Application__IsScalarEnabled", "true");
 
         var client = (builderConfiguration == null) ? factory.CreateClient()
             : factory.WithWebHostBuilder(builderConfiguration).CreateClient();

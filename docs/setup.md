@@ -65,12 +65,12 @@ Create a values.yaml file with your configuration by looking at examples:
         cert-manager.io/cluster-issuer: letsencrypt-prod
     ```
 
-=== "Development environment with Swagger"
+=== "Development environment with Scalar (OpenAPI web UI)"
 
     ```yaml
     dotnet:
       environment: Development
-      enableSwagger: true
+      enableScalar: true
       enableOpenTelemetry: false
     ```
 

@@ -10,9 +10,9 @@ public class ApplicationConfiguration(IConfigurationRoot configurationRoot)
 
     public bool IsHttpsRedirectionEnabled => TryGetSection<bool>("Features:IsHttpsRedirectionEnabled");
 
-    public bool IsSwaggerEnabled => TryGetSection<bool>("Features:IsSwaggerEnabled");
+    public bool IsScalarEnabled => TryGetSection<bool>("Features:IsScalarEnabled");
 
-    public OpenApiInfo OpenApi => TryGetSection<OpenApiInfo>("OpenApi");
+    public OpenApiInfo OpenApiInfo => TryGetSection<OpenApiInfo>("OpenApi");
 
     public string ConnectionString => TryGetSection<string>("DatabaseSettings:ConnectionString");
 

@@ -42,7 +42,7 @@ TODO: add other options
         docker compose up
         ```
 
-    You can view and work with the REST API definitions through the Swagger web page on [localhost:9001](http://localhost:9001/swagger/index.html)
+    You can view and work with the REST API definitions through the Scalar web page on [localhost:9001](http://localhost:9001/scalar)
 
 3. Create a user to authenticate calls:
 

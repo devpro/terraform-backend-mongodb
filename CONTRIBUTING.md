@@ -19,7 +19,7 @@ Name                     | Description
 -------------------------|-----------------------------
 `MongoDB.Bson`           | MongoDB BSON
 `MongoDB.Driver`         | MongoDB .NET Driver
-`Swashbuckle.AspNetCore` | OpenAPI / Swagger generation
+`Scalar.AspNetCore`      | OpenAPI web UI
 `System.Text.Json`       | JSON support
 
 The code was made by looking at Terraform specifications:
@@ -47,9 +47,9 @@ Run the web API from the build files ([.NET 10](https://dotnet.microsoft.com/dow
 dotnet run --project src/WebApi
 ```
 
-Open Swagger in a browser: [localhost:5293/swagger](http://localhost:5293/swagger).
+Open Scalar in a browser: [localhost:5293/scalar](http://localhost:5293/scalar).
 
-Or, debug from an IDE, such as Visual Studio Community 2022 or Rider - and open [localhost:5000/swagger](http://localhost:5000/swagger).
+Or, debug from an IDE, such as Visual Studio Community 2022 or Rider - and open [localhost:5000/scalar](http://localhost:5000/scalar).
 
 Once you're done, stop the container:
 
@@ -75,7 +75,7 @@ Add the test user:
 docker compose run --rm dbinit
 ```
 
-Open [localhost:9001/swagger](http://localhost:9001/swagger)
+Open [localhost:9001/scalar](http://localhost:9001/scalar)
 
 Delete the containers:
 
@@ -100,11 +100,11 @@ docker run -it --rm --name todoblazorlocal \
 ```
 -->
 
-## Use the Swagger website
+## Use the Scalar website
 
 If you see an error, make sure to refresh the cache of the page, it can happen if the version of the application has changed.
 
-Assuming you successfully reached the Swagger website, you need to authenticate by clicking on **Authorize** and use username=admin, and password=admin123.
+Assuming you successfully reached the Scalar website, you need to authenticate by clicking on **Authorize** and use username=admin, and password=admin123.
 
 Then, you can try the different commands.
 
@@ -152,10 +152,3 @@ GitHub Variables are defined (in **General** / **Security** / **Secrets and Vari
 - `SONAR_ORG`
 - `SONAR_PROJECT_KEY`
 - `SONAR_TOKEN`
-
-## References
-
-Basic Authentication classes inspired by :
-
-- [C# Corner](https://www.c-sharpcorner.com/article/basic-authentication-in-swagger-open-api-net-5/)
-- [RoundTheCode](https://www.roundthecode.com/dotnet/what-is-basic-authentication-how-to-add-in-asp-net-core)

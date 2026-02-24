@@ -9,7 +9,7 @@ public static class BehaviorServiceCollectionExtensions
     /// </summary>
     /// <param name="services"></param>
     /// <returns></returns>
-    public static IServiceCollection AddInvalidModelStateLog(this IServiceCollection services)
+    public static void AddInvalidModelStateLog(this IServiceCollection services)
     {
         services.PostConfigure<ApiBehaviorOptions>(options =>
         {
@@ -30,7 +30,5 @@ public static class BehaviorServiceCollectionExtensions
                 return defaultFactory(context);
             };
         });
-
-        return services;
     }
 }

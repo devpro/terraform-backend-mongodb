@@ -6,7 +6,7 @@ services:
     environment:
       - ASPNETCORE_ENVIRONMENT=Development
       - Application__IsHttpsRedirectionEnabled=false
-      - Application__IsSwaggerEnabled=true
+      - Application__IsScalarEnabled=true
       - ConnectionStrings__MongoDbLocal=mongodb://mongodb:27017/?readPreference=primary&appname=TerraformBackendMongoDbWebApi&directConnection=true&ssl=false
       - Logging__LogLevel__Default=Debug
       - Logging__LogLevel__Microsoft__AspNetCore=Information

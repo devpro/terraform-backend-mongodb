@@ -7,7 +7,7 @@ namespace Devpro.TerraformBackend.WebApi.DependencyInjection;
 
 internal static class InfrastructureServiceCollectionExtensions
 {
-    internal static IServiceCollection AddMongoDbInfrastructure(this IServiceCollection services, ApplicationConfiguration configuration)
+    internal static void AddMongoDbInfrastructure(this IServiceCollection services, ApplicationConfiguration configuration)
     {
         services.AddSingleton<IMongoClient>(sp =>
         {
@@ -28,7 +28,5 @@ internal static class InfrastructureServiceCollectionExtensions
         services.TryAddScoped<Domain.Repositories.IStateLockRepository, Infrastructure.MongoDb.Repositories.StateLockRepository>();
         services.TryAddScoped<Domain.Repositories.IStateRepository, Infrastructure.MongoDb.Repositories.StateRepository>();
         services.TryAddScoped<Domain.Repositories.IUserRepository, Infrastructure.MongoDb.Repositories.UserRepository>();
-
-        return services;
     }
 }
