@@ -47,7 +47,7 @@ jobs:
     with:
       custom-commands: |
         echo "Initialize database (indexes, tenants & users)"
-        export MONGODB_URI="mongodb://localhost:27017/terraform_backend_dev"
+        export MONGODB_URI="mongodb://localhost:27017/tfbackend_dev"
         ./scripts/tfbeadm create-indexes
         ./scripts/tfbeadm create-user admin admin123 dummy
       extra-vars: |

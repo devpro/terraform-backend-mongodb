@@ -79,7 +79,7 @@ TODO: add other options
 
         ```bash
         docker run --rm --link "tfbackmdb-mongodb-1" --network "tfbackmdb_default" "mongo:8.2" \
-          bash -c "mongosh \"mongodb://mongodb:27017/terraform_backend_dev\" --eval 'db.tf_state.find().projection({tenant: 1, name: 1, createdAt: 1, \"value.version\": 1, \"value.resources.type\": 1, \"value.resources.name\": 1})'"
+          bash -c "mongosh \"mongodb://mongodb:27017/tbackend_dev\" --eval 'db.tf_state.find().projection({tenant: 1, name: 1, createdAt: 1, \"value.version\": 1, \"value.resources.type\": 1, \"value.resources.name\": 1})'"
         ```
 
 8. Destroy the resources that were created with Terraform:
