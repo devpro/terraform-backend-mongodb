@@ -9,7 +9,7 @@ namespace Devpro.TerraformBackend.WebApi.Controllers;
 
 [Authorize]
 [ApiController]
-[Route("{tenant}/state")]
+[Route("{tenant}/state/{name:regex([[a-zA-Z]]+)}")]
 [TypeFilter(typeof(TenantAuthorizationFilter))]
 public class StateController(IStateRepository stateRepository, IStateLockRepository stateLockRepository)
     : ControllerBase
@@ -21,7 +21,7 @@ public class StateController(IStateRepository stateRepository, IStateLockReposit
     /// <param name="tenant"></param>
     /// <param name="name">The name of the Terraform state</param>
     /// <returns>Raw string</returns>
-    [HttpGet("{name:regex([[a-zA-Z]]+)}", Name = "GetState")]
+    [HttpGet("", Name = "GetState")]
     [Produces("text/plain")]
     [ProducesResponseType(200)]
     [ProducesResponseType(204)]
@@ -45,7 +45,7 @@ public class StateController(IStateRepository stateRepository, IStateLockReposit
     /// <param name="input"></param>
     /// <param name="lockId">Terraform state lock ID</param>
     /// <returns></returns>
-    [HttpPost("{name:regex([[a-zA-Z]]+)}", Name = "CreateState")]
+    [HttpPost("", Name = "CreateState")]
     [Consumes("application/json", "text/json")]
     [ProducesResponseType(200)]
     [ProducesResponseType(409)]
@@ -66,7 +66,7 @@ public class StateController(IStateRepository stateRepository, IStateLockReposit
     /// <param name="name"></param>
     /// <param name="lockId">Terraform state lock ID</param>
     /// <returns></returns>
-    [HttpDelete("{name:regex([[a-zA-Z]]+)}", Name = "DeleteState")]
+    [HttpDelete("", Name = "DeleteState")]
     [ProducesResponseType(200)]
     [ProducesResponseType(409)]
     [ProducesResponseType(423)]
@@ -85,7 +85,7 @@ public class StateController(IStateRepository stateRepository, IStateLockReposit
     /// <param name="name"></param>
     /// <param name="input"></param>
     /// <returns></returns>
-    [HttpPost("{name:regex([[a-zA-Z]]+)}/lock", Name = "CreateStateLock")]
+    [HttpPost("lock", Name = "CreateStateLock")]
     [Consumes("application/json", "text/json")]
     [Produces("application/json")]
     [ProducesResponseType(200)]
@@ -108,7 +108,7 @@ public class StateController(IStateRepository stateRepository, IStateLockReposit
     /// <param name="name"></param>
     /// <param name="input"></param>
     /// <returns></returns>
-    [HttpDelete("{name:regex([[a-zA-Z]]+)}/lock", Name = "DeleteStateLock")]
+    [HttpDelete("lock", Name = "DeleteStateLock")]
     [ProducesResponseType(200)]
     [Consumes("application/json", "text/json")]
     [Produces("application/json")]
