@@ -11,6 +11,7 @@
     <PackageReference Include="BCrypt.Net-Next" />
     <PackageReference Include="Microsoft.Extensions.Logging.Abstractions" />
     <PackageReference Include="MongoDB.Driver" />
+    <PackageReference Include="SystemTextJson.JsonDiffPatch" />
   </ItemGroup>
 
   <ItemGroup>

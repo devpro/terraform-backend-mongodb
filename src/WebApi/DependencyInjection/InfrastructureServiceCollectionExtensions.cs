@@ -28,5 +28,6 @@ internal static class InfrastructureServiceCollectionExtensions
         services.TryAddScoped<Domain.Repositories.IStateLockRepository, Infrastructure.MongoDb.Repositories.StateLockRepository>();
         services.TryAddScoped<Domain.Repositories.IStateRepository, Infrastructure.MongoDb.Repositories.StateRepository>();
         services.TryAddScoped<Domain.Repositories.IUserRepository, Infrastructure.MongoDb.Repositories.UserRepository>();
+        services.TryAddScoped<Infrastructure.MongoDb.Repositories.StateHistoryRepository>();
     }
 }
