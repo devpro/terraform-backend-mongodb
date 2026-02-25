@@ -20,13 +20,17 @@ RUN dotnet publish "src/WebApi/WebApi.csproj" --no-build -c "$BUILD_CONFIGURATIO
 FROM registry.suse.com/bci/python:3.13 AS otel-fetch
 ARG OTEL_VERSION=1.14.1
 WORKDIR /tmp
-RUN curl --proto '=https' --fail-with-body -L -o checksums.txt \
-    "https://github.com/open-telemetry/opentelemetry-dotnet-instrumentation/releases/download/v${OTEL_VERSION}/checksums.txt" && \
-    curl --proto '=https' --fail-with-body -L -o otel.zip \
-    "https://github.com/open-telemetry/opentelemetry-dotnet-instrumentation/releases/download/v${OTEL_VERSION}/opentelemetry-dotnet-instrumentation-linux-glibc-x64.zip" && \
-    awk '/opentelemetry-dotnet-instrumentation-linux-glibc-x64\.zip/ { gsub(/\*/, ""); print $1 "  otel.zip" }' checksums.txt | \
-    sha256sum -c - && \
-    python3 -c 'import zipfile; zipfile.ZipFile("otel.zip").extractall("/otel-ai")' && \
+ADD --chmod=644 \
+    https://github.com/open-telemetry/opentelemetry-dotnet-instrumentation/releases/download/v${OTEL_VERSION}/checksums.txt \
+    checksums.txt
+ADD https://github.com/open-telemetry/opentelemetry-dotnet-instrumentation/releases/download/v${OTEL_VERSION}/opentelemetry-dotnet-instrumentation-linux-glibc-x64.zip \
+    otel.zip
+RUN awk \
+    '/opentelemetry-dotnet-instrumentation-linux-glibc-x64\.zip$/ { \
+        print $1 "  otel.zip" \
+    }' checksums.txt | \
+    sha256sum -c -
+RUN python3 -c 'import zipfile; zipfile.ZipFile("otel.zip").extractall("/otel-ai")' && \
     rm -f otel.zip checksums.txt
 
 FROM base AS final
@@ -37,7 +41,7 @@ COPY --from=otel-fetch /otel-ai/linux-x64/OpenTelemetry.AutoInstrumentation.Nati
 COPY --from=otel-fetch /otel-ai/net/*.* /otel-ai/net/
 COPY --from=otel-fetch /otel-ai/store/x64/net10.0 /otel-ai/store/x64/net10.0/
 USER root
-RUN chown -R $APP_UID:$APP_UID /otel-ai && \
+RUN chown -R "$APP_UID":"$APP_UID" /otel-ai && \
     chmod -R 755 /otel-ai
 USER $APP_UID
 ENV OTEL_DOTNET_AUTO_HOME=/otel-ai \
