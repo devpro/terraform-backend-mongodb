@@ -58,7 +58,7 @@ jobs:
       sonar-organization: ${{ vars.SONAR_ORG }}
       sonar-project-key: ${{ vars.SONAR_PROJECT_KEY }}
       sonar-project-name: Terraform Backend MongoDB
-      workflow-parts-version: b39bbe338b683bd14c3a1767497c2a736f46dcf6
+      workflow-parts-version: 075662781f4dc94fcff1eb224defaaabe442a8cf
     secrets:
       fossa-api-key: ${{ secrets.FOSSA_API_KEY }}
       sonar-token: ${{ secrets.SONAR_TOKEN }}
