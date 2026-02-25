@@ -1,8 +1,12 @@
 ﻿using System;
+using System.Net;
 using System.Net.Http;
 using System.Net.Http.Headers;
 using System.Text;
 using System.Text.Json;
+using System.Threading;
+using System.Threading.Tasks;
+using AwesomeAssertions;
 using Bogus;
 using Devpro.TerraformBackend.Domain.Models;
 using Microsoft.AspNetCore.Hosting;
@@ -40,6 +44,43 @@ public abstract class IntegrationTestBase(WebApplicationFactory<Program> factory
         }
 
         return client;
+    }
+
+    protected static async Task<string?> CheckResponseAndGetContentAsync(HttpResponseMessage response,
+        HttpStatusCode expectedStatusCode,
+        string? expectedContentType,
+        string? expectedContent = null,
+        bool isRegexMatch = false,
+        CancellationToken cancellationToken = default)
+    {
+        var result = await response.Content.ReadAsStringAsync(cancellationToken);
+
+        if (expectedContent != null)
+        {
+            result.Should().NotBeNull();
+            if (isRegexMatch)
+            {
+                result.Should().MatchRegex(expectedContent);
+            }
+            else
+            {
+                result.Should().Be(expectedContent);
+            }
+        }
+
+        if (expectedContentType == null)
+        {
+            response.Content.Headers.ContentType.Should().BeNull();
+        }
+        else
+        {
+            response.Content.Headers.ContentType.Should().NotBeNull();
+            response.Content.Headers.ContentType?.ToString().Should().Be(expectedContentType);
+        }
+
+        response.StatusCode.Should().Be(expectedStatusCode);
+
+        return result;
     }
 
     protected static StringContent Serialize<T>(T value, string mediaType = "application/json")

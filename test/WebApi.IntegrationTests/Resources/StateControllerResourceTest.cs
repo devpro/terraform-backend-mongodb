@@ -1,7 +1,6 @@
 ﻿using System.Net;
 using System.Net.Http;
 using System.Threading.Tasks;
-using Devpro.TerraformBackend.WebApi.IntegrationTests.Http;
 using Microsoft.AspNetCore.Mvc.Testing;
 using Xunit;
 
@@ -22,10 +21,11 @@ public class StateControllerResourceTest(WebApplicationFactory<Program> factory)
         var name = Faker.Random.Word();
 
         // Act
-        var response = await client.GetAsync($"/{Tenant}/state/{name}");
+        var response = await client.GetAsync($"/{Tenant}/state/{name}", TestContext.Current.CancellationToken);
 
         // Assert
-        await response.CheckResponseAndGetContent(HttpStatusCode.NoContent, null);
+        await CheckResponseAndGetContentAsync(response, HttpStatusCode.NoContent, null,
+            cancellationToken: TestContext.Current.CancellationToken);
     }
 
     [Fact]
@@ -37,10 +37,11 @@ public class StateControllerResourceTest(WebApplicationFactory<Program> factory)
         var name = Faker.Random.Word();
 
         // Act
-        var response = await client.GetAsync($"/acme/state/{name}");
+        var response = await client.GetAsync($"/acme/state/{name}", TestContext.Current.CancellationToken);
 
         // Assert
-        await response.CheckResponseAndGetContent(HttpStatusCode.Unauthorized, "application/problem+json; charset=utf-8");
+        await CheckResponseAndGetContentAsync(response, HttpStatusCode.Unauthorized, "application/problem+json; charset=utf-8",
+            cancellationToken: TestContext.Current.CancellationToken);
     }
 
     [Fact]
@@ -52,13 +53,17 @@ public class StateControllerResourceTest(WebApplicationFactory<Program> factory)
         var state = StateFaker.Generate();
 
         // Act & Assert
-        var createResponse = await client.PostAsync($"/{Tenant}/state/{name}", Serialize(state));
-        //TODO: test resource URL in response
-        await createResponse.CheckResponseAndGetContent(HttpStatusCode.OK, null, string.Empty);
-        var findResponse = await client.GetAsync($"/{Tenant}/state/{name}");
-        await findResponse.CheckResponseAndGetContent(HttpStatusCode.OK, "text/plain; charset=utf-8");
-        var deleteResponse = await client.DeleteAsync($"/{Tenant}/state/{name}");
-        await deleteResponse.CheckResponseAndGetContent(HttpStatusCode.OK, null);
+        var createResponse = await client.PostAsync($"/{Tenant}/state/{name}", Serialize(state), TestContext.Current.CancellationToken);
+        await CheckResponseAndGetContentAsync(createResponse, HttpStatusCode.OK, null, string.Empty,
+            cancellationToken: TestContext.Current.CancellationToken);
+
+        var findResponse = await client.GetAsync($"/{Tenant}/state/{name}", TestContext.Current.CancellationToken);
+        await CheckResponseAndGetContentAsync(findResponse, HttpStatusCode.OK, "text/plain; charset=utf-8",
+            cancellationToken: TestContext.Current.CancellationToken);
+
+        var deleteResponse = await client.DeleteAsync($"/{Tenant}/state/{name}", TestContext.Current.CancellationToken);
+        await CheckResponseAndGetContentAsync(deleteResponse, HttpStatusCode.OK, null,
+            cancellationToken: TestContext.Current.CancellationToken);
     }
 
     [Fact]
@@ -71,19 +76,28 @@ public class StateControllerResourceTest(WebApplicationFactory<Program> factory)
         var stateLock = StateLockFaker.Generate();
 
         // Act & Assert
-        var createLockResponse = await client.PostAsync($"/{Tenant}/state/{name}/lock", Serialize(stateLock));
-        await createLockResponse.CheckResponseAndGetContent(HttpStatusCode.OK, "application/json; charset=utf-8", null);
-        var missingLockIdUpdateResponse = await client.PostAsync($"/{Tenant}/state/{name}", Serialize(state));
-        await missingLockIdUpdateResponse.CheckResponseAndGetContent(HttpStatusCode.Locked, "application/json; charset=utf-8", "{\"message\":\"The state is locked.\"}");
-        var wrongLockIdUpdateResponse = await client.PostAsync($"/{Tenant}/state/{name}?ID=1234", Serialize(state));
-        await wrongLockIdUpdateResponse.CheckResponseAndGetContent(HttpStatusCode.Conflict, "text/plain; charset=utf-8", "LockId doesn't match with the existing lock");
-        var updateResponse = await client.PostAsync($"/{Tenant}/state/{name}?ID={stateLock.Id}", Serialize(state));
-        await updateResponse.CheckResponseAndGetContent(HttpStatusCode.OK, null, string.Empty);
+        var createLockResponse = await client.PostAsync($"/{Tenant}/state/{name}/lock", Serialize(stateLock), TestContext.Current.CancellationToken);
+        await CheckResponseAndGetContentAsync(createLockResponse, HttpStatusCode.OK, "application/json; charset=utf-8", null,
+            cancellationToken: TestContext.Current.CancellationToken);
+
+        var missingLockIdUpdateResponse = await client.PostAsync($"/{Tenant}/state/{name}", Serialize(state), TestContext.Current.CancellationToken);
+        await CheckResponseAndGetContentAsync(missingLockIdUpdateResponse, HttpStatusCode.Locked, "application/json; charset=utf-8",
+            "{\"message\":\"The state is locked.\"}", cancellationToken: TestContext.Current.CancellationToken);
+
+        var wrongLockIdUpdateResponse = await client.PostAsync($"/{Tenant}/state/{name}?ID=1234", Serialize(state), TestContext.Current.CancellationToken);
+        await CheckResponseAndGetContentAsync(wrongLockIdUpdateResponse, HttpStatusCode.Conflict, "text/plain; charset=utf-8",
+            "LockId doesn't match with the existing lock", cancellationToken: TestContext.Current.CancellationToken);
+
+        var updateResponse = await client.PostAsync($"/{Tenant}/state/{name}?ID={stateLock.Id}", Serialize(state), TestContext.Current.CancellationToken);
+        await CheckResponseAndGetContentAsync(updateResponse, HttpStatusCode.OK, null, string.Empty,
+            cancellationToken: TestContext.Current.CancellationToken);
+
         var deleteLockRequest = new HttpRequestMessage(HttpMethod.Delete, $"/{Tenant}/state/{name}/lock")
         {
             Content = Serialize(stateLock)
         };
-        var deleteLockResponse = await client.SendAsync(deleteLockRequest);
-        await deleteLockResponse.CheckResponseAndGetContent(HttpStatusCode.OK, null);
+        var deleteLockResponse = await client.SendAsync(deleteLockRequest, TestContext.Current.CancellationToken);
+        await CheckResponseAndGetContentAsync(deleteLockResponse, HttpStatusCode.OK, null,
+            cancellationToken: TestContext.Current.CancellationToken);
     }
 }

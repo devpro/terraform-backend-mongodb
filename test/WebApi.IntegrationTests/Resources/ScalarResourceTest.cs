@@ -1,5 +1,5 @@
-﻿using System.Threading.Tasks;
-using Devpro.TerraformBackend.WebApi.IntegrationTests.Http;
+﻿using System.Net;
+using System.Threading.Tasks;
 using Microsoft.AspNetCore.Mvc.Testing;
 using Xunit;
 
@@ -17,9 +17,10 @@ public class ScalarResourceTest(WebApplicationFactory<Program> factory)
         var client = CreateClient();
 
         // Act
-        var response = await client.GetAsync("/scalar");
+        var response = await client.GetAsync("/scalar", TestContext.Current.CancellationToken);
 
         // Assert
-        await response.CheckResponseAndGetContent(System.Net.HttpStatusCode.OK, "text/html");
+        await CheckResponseAndGetContentAsync(response, HttpStatusCode.OK, "text/html",
+            cancellationToken: TestContext.Current.CancellationToken);
     }
 }

@@ -6,7 +6,7 @@
 ### Tenant: {{tenant}} (from env)
 ### Base: {{baseUrl}}
 ### ────────────────────────────────────────────────
-### In Rider, uncheck in HTTP Client variable should be quoted (File | Settings | Editor | Inspection Settings | Inspection Severity | Other Languages)
+### Rider settings: in HTTP Client, uncheck "Variable should be double-quoted" (File | Settings | Editor | Inspection Settings | Inspection Severity | Other Languages)
 
 ### Health Check (auxiliary endpoint)
 GET {{baseUrl}}/health

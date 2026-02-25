@@ -1,5 +1,5 @@
-﻿using System.Threading.Tasks;
-using Devpro.TerraformBackend.WebApi.IntegrationTests.Http;
+﻿using System.Net;
+using System.Threading.Tasks;
 using Microsoft.AspNetCore.Mvc.Testing;
 using Xunit;
 
@@ -17,9 +17,10 @@ public class OpenApiResourceTest(WebApplicationFactory<Program> factory)
         var client = CreateClient();
 
         // Act
-        var response = await client.GetAsync("/openapi/v1.json");
+        var response = await client.GetAsync("/openapi/v1.json", TestContext.Current.CancellationToken);
 
         // Assert
-        await response.CheckResponseAndGetContent(System.Net.HttpStatusCode.OK, "application/json; charset=utf-8");
+        await CheckResponseAndGetContentAsync(response, HttpStatusCode.OK, "application/json; charset=utf-8",
+            cancellationToken: TestContext.Current.CancellationToken);
     }
 }

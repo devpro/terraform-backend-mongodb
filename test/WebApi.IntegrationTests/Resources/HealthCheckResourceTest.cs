@@ -1,5 +1,5 @@
-﻿using System.Threading.Tasks;
-using Devpro.TerraformBackend.WebApi.IntegrationTests.Http;
+﻿using System.Net;
+using System.Threading.Tasks;
 using Microsoft.AspNetCore.Mvc.Testing;
 using Xunit;
 
@@ -17,9 +17,10 @@ public class HealthCheckResourceTest(WebApplicationFactory<Program> factory)
         var client = CreateClient();
 
         // Act
-        var response = await client.GetAsync("/health");
+        var response = await client.GetAsync("/health", TestContext.Current.CancellationToken);
 
         // Assert
-        await response.CheckResponseAndGetContent(System.Net.HttpStatusCode.OK, "text/plain", "Healthy");
+        await CheckResponseAndGetContentAsync(response, HttpStatusCode.OK, "text/plain", "Healthy",
+            cancellationToken: TestContext.Current.CancellationToken);
     }
 }
