@@ -43,7 +43,7 @@ jobs:
     name: Code
     needs: git-check
     if: needs.git-check.outputs.app_changed == 'true' || (github.event_name == 'workflow_dispatch' && inputs.run-code-quality)
-    uses: devpro/github-workflow-parts/.github/workflows/reusable-dotnet-quality.yml@37400c6d7def6330265424b598dc1861b136e981
+    uses: devpro/github-workflow-parts/.github/workflows/reusable-dotnet-quality.yml@75493ba895a4ac5a87666dc3f3ed41a4e52dde66
     with:
       custom-commands: |
         echo "Initialize database (indexes, tenants & users)"
