@@ -43,7 +43,7 @@ jobs:
     name: Code
     needs: git-check
     if: needs.git-check.outputs.app_changed == 'true' || (github.event_name == 'workflow_dispatch' && inputs.run-code-quality)
-    uses: devpro/github-workflow-parts/.github/workflows/reusable-dotnet-quality.yml@075662781f4dc94fcff1eb224defaaabe442a8cf
+    uses: devpro/github-workflow-parts/.github/workflows/reusable-dotnet-quality.yml@d7663950e52d3056f15214c0f2a9ae1f12a53b44
     with:
       custom-commands: |
         echo "Initialize database (indexes, tenants & users)"
@@ -58,7 +58,7 @@ jobs:
       sonar-organization: ${{ vars.SONAR_ORG }}
       sonar-project-key: ${{ vars.SONAR_PROJECT_KEY }}
       sonar-project-name: Terraform Backend MongoDB
-      workflow-parts-version: 075662781f4dc94fcff1eb224defaaabe442a8cf
+      workflow-parts-version: d7663950e52d3056f15214c0f2a9ae1f12a53b44
     secrets:
       fossa-api-key: ${{ secrets.FOSSA_API_KEY }}
       sonar-token: ${{ secrets.SONAR_TOKEN }}
@@ -70,7 +70,7 @@ jobs:
     name: Image
     needs: git-check
     if: needs.git-check.outputs.app_changed == 'true' || (github.event_name == 'workflow_dispatch' && inputs.run-image-scan)
-    uses: devpro/github-workflow-parts/.github/workflows/reusable-container-scan.yml@37400c6d7def6330265424b598dc1861b136e981
+    uses: devpro/github-workflow-parts/.github/workflows/reusable-container-scan.yml@d7663950e52d3056f15214c0f2a9ae1f12a53b44
     with:
       image-definition: "src/WebApi/Dockerfile"
       image-name: ${{ vars.CONTAINER_IMAGE_NAME }}
