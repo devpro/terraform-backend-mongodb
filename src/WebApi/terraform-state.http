@@ -6,6 +6,7 @@
 ### Tenant: {{tenant}} (from env)
 ### Base: {{baseUrl}}
 ### ────────────────────────────────────────────────
+### In Rider, uncheck in HTTP Client variable should be quoted (File | Settings | Editor | Inspection Settings | Inspection Severity | Other Languages)
 
 ### Health Check (auxiliary endpoint)
 GET {{baseUrl}}/health
@@ -13,6 +14,7 @@ Authorization: {{authHeader}}
 
 ### OpenAPI JSON (auxiliary)
 GET {{baseUrl}}/openapi/v1.json
+Accept: application/json
 Authorization: {{authHeader}}
 
 ### Scalar UI (auxiliary – open in browser after running)
