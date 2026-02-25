@@ -35,7 +35,7 @@ jobs:
     with:
       is-pull-request: ${{ github.event_name == 'pull_request' }}
 
-  content-validate:
+  markup-lint:
     name: Markup
     uses: devpro/github-workflow-parts/.github/workflows/reusable-markup-lint.yml@37400c6d7def6330265424b598dc1861b136e981
 
