@@ -17,15 +17,17 @@ var app = builder.Build();
 
 if (configuration.IsScalarEnabled)
 {
-    app.MapOpenApi();
+    app.MapOpenApi()
+        .AllowAnonymous();
     app.MapScalarApiReference(options =>
-    {
-        options
-            .WithTitle(configuration.OpenApiInfo.Title ?? "Terraform MongoDB Backend API")
-            .WithTheme(ScalarTheme.Kepler)
-            .WithDefaultHttpClient(ScalarTarget.CSharp, ScalarClient.HttpClient);
-        options.AddPreferredSecuritySchemes("basic");
-    });
+        {
+            options
+                .WithTitle(configuration.OpenApiInfo.Title ?? "Terraform MongoDB Backend API")
+                .WithTheme(ScalarTheme.Kepler)
+                .WithDefaultHttpClient(ScalarTarget.CSharp, ScalarClient.HttpClient);
+            options.AddPreferredSecuritySchemes("basic");
+        })
+        .AllowAnonymous();
 }
 
 if (configuration.IsHttpsRedirectionEnabled)
@@ -33,8 +35,6 @@ if (configuration.IsHttpsRedirectionEnabled)
     app.UseHttpsRedirection();
 }
 
-app.UseAuthentication();
-app.UseAuthorization();
 app.MapControllers();
 app.MapHealthChecks(ApplicationConfiguration.HealthCheckEndpoint)
     .AllowAnonymous();
