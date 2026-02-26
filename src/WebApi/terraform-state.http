@@ -23,7 +23,7 @@ Authorization: {{authHeader}}
 
 ### ────────────────────────────────────────────────
 ### GET State (read)
-### Expected: 200 (state as text/plain) or 204 (no content)
+### Expected: 200 (state as text/plain) or 404 (not found)
 ### ────────────────────────────────────────────────
 GET {{baseUrl}}/{{tenant}}/state/{{stateName}}
 Authorization: {{authHeader}}
@@ -31,7 +31,7 @@ Accept: text/plain
 
 ### ────────────────────────────────────────────────
 ### POST State (create/update) – Without Lock (should fail if locked)
-### Expected: 423 (locked) if no/missing lock
+### Expected: 200 (empty) or 423 (locked) if no/missing lock
 ### ────────────────────────────────────────────────
 POST {{baseUrl}}/{{tenant}}/state/{{stateName}}
 Authorization: {{authHeader}}
@@ -102,3 +102,11 @@ Content-Type: application/json
 ### ────────────────────────────────────────────────
 DELETE {{baseUrl}}/{{tenant}}/state/{{stateName}}
 Authorization: {{authHeader}}
+
+### ────────────────────────────────────────────────
+### Error Case: DELETE State – Without Wrong Lock ID (should fail)
+### Expected: 409 (conflict)
+### ────────────────────────────────────────────────
+DELETE {{baseUrl}}/{{tenant}}/state/{{stateName}}?ID=wrong-lock-id-999
+Authorization: {{authHeader}}
+

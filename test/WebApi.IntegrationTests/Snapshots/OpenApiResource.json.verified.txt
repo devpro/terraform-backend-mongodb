@@ -41,9 +41,15 @@
             description: OK,
             content: {}
           },
-          204: {
-            description: No Content,
-            content: {}
+          404: {
+            description: Not Found,
+            content: {
+              text/plain: {
+                schema: {
+                  $ref: #/components/schemas/ProblemDetails
+                }
+              }
+            }
           }
         }
       },
@@ -332,6 +338,26 @@
           200: {
             description: OK,
             content: {}
+          },
+          409: {
+            description: Conflict,
+            content: {
+              application/json: {
+                schema: {
+                  $ref: #/components/schemas/ProblemDetails
+                }
+              }
+            }
+          },
+          423: {
+            description: Locked,
+            content: {
+              application/json: {
+                schema: {
+                  $ref: #/components/schemas/ProblemDetails
+                }
+              }
+            }
           }
         }
       }

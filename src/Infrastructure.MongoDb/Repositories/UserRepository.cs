@@ -10,7 +10,7 @@ public class UserRepository : RepositoryBase, IUserRepository
 {
     private readonly IMongoCollection<UserModel> _modelCollection;
 
-    public UserRepository(IMongoDatabase mongoDatabase, ILogger<StateLockRepository> logger)
+    public UserRepository(IMongoDatabase mongoDatabase, ILogger<UserRepository> logger)
         : base(mongoDatabase, logger)
     {
         _modelCollection = GetCollection<UserModel>();

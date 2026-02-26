@@ -24,6 +24,7 @@ public class OpenApiResourceTest(WebApplicationFactory<Program> factory)
         var content = await CheckResponseAndGetContentAsync(response, HttpStatusCode.OK, "application/json; charset=utf-8",
             cancellationToken: TestContext.Current.CancellationToken);
         await Verifier.VerifyJson(content)
-            .UseDirectory("../Snapshots");
+            .UseDirectory("../Snapshots")
+            .UseFileName("OpenApiResource.json");
     }
 }
