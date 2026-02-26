@@ -8,13 +8,10 @@ public abstract class RepositoryBase(IMongoDatabase mongoDatabase, ILogger<Repos
 {
     protected abstract string CollectionName { get; }
 
+    protected ILogger<RepositoryBase> Logger { get; } = logger;
+
     protected IMongoCollection<T> GetCollection<T>()
     {
-        if (logger.IsEnabled(LogLevel.Information))
-        {
-            logger.LogInformation("Getting collection of type {Name}", typeof(T).Name);
-        }
-
         return mongoDatabase.GetCollection<T>(CollectionName);
     }
 
