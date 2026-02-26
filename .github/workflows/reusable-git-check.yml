@@ -24,7 +24,7 @@ on:
         value: ${{ jobs.git-check.outputs.app_changed }}
       environment_slug:
         description: "Computed environment slug from branch"
-        value: ${{ jobs.changed-files.outputs.environment_slug }}
+        value: ${{ jobs.git-check.outputs.environment_slug }}
       version_major_minor:
         description: "Version \"Major.Minor\" read from Directory.Build.props file"
         value: ${{ jobs.git-check.outputs.version_major_minor }}
