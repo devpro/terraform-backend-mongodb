@@ -25,16 +25,6 @@ public class StateRepository : RepositoryBase, IStateRepository
 
     protected override string CollectionName => "tf_state";
 
-    private static JsonNode? GenerateJsonDiff(string first, string second)
-    {
-        var diffNode = JsonDiffPatcher.Diff(first, second, new JsonPatchDeltaFormatter());
-        return diffNode switch
-        {
-            null or JsonObject { Count: 0 } or JsonArray { Count: 0 } => null,
-            _ => diffNode
-        };
-    }
-
     public async Task CreateAsync(string tenant, string name, string jsonInput)
     {
         var filter = GetFilter(tenant, name);
@@ -72,5 +62,15 @@ public class StateRepository : RepositoryBase, IStateRepository
     {
         var deleteResult = await _bsonCollection.DeleteOneAsync(GetFilter(tenant, name));
         return deleteResult.DeletedCount > 0;
+    }
+
+    private static JsonNode? GenerateJsonDiff(string first, string second)
+    {
+        var diffNode = JsonDiffPatcher.Diff(first, second, new JsonPatchDeltaFormatter());
+        return diffNode switch
+        {
+            null or JsonObject { Count: 0 } or JsonArray { Count: 0 } => null,
+            _ => diffNode
+        };
     }
 }
