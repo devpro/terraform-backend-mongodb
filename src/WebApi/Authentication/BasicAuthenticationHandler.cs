@@ -15,6 +15,14 @@ public class BasicAuthenticationHandler(
 {
     protected override async Task<AuthenticateResult> HandleAuthenticateAsync()
     {
+        // workaround as it seems impossible to prevent (from Startup)
+        var path = Request.Path.Value?.ToLowerInvariant() ?? "";
+        if (path.StartsWith("/scalar/") ||
+            path.StartsWith("/openapi/"))
+        {
+            return AuthenticateResult.NoResult();
+        }
+
         // checks authorization header
         if (!Request.Headers.ContainsKey("Authorization"))
         {
