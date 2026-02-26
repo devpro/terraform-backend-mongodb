@@ -20,7 +20,8 @@ public class StateLockRepository : RepositoryBase, IStateLockRepository
 
     public async Task<StateLockModel?> FindOneAsync(string tenant, string name)
     {
-        return await _modelCollection.Find(x => x.Name == name).FirstOrDefaultAsync();
+        return await _modelCollection.Find(x => x.Tenant == tenant && x.Name == name)
+            .FirstOrDefaultAsync();
     }
 
     public async Task<StateLockModel> CreateAsync(StateLockModel input)
