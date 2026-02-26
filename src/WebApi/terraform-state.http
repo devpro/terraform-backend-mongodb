@@ -47,7 +47,15 @@ POST {{baseUrl}}/{{tenant}}/state/{{stateName}}/lock
 Authorization: {{authHeader}}
 Content-Type: application/json
 
-{{lockBody}}
+{
+  "Id": "{{lockId}}",
+  "Operation": "Operation.apply",
+  "Info": "Applying changes from CI",
+  "Who": "ci-user@build-123",
+  "Version": "1.9.0",
+  "Created": "2026-02-25T14:30:00Z",
+  "Path": "terraform.tfstate"
+}
 
 ### ────────────────────────────────────────────────
 ### POST State (create/update) – With Valid Lock ID
@@ -57,14 +65,7 @@ POST {{baseUrl}}/{{tenant}}/state/{{stateName}}?ID={{lockId}}
 Authorization: {{authHeader}}
 Content-Type: application/json
 
-{
-  "version": 4,
-  "terraform_version": "1.9.0",
-  "serial": 2,
-  "lineage": "xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx",
-  "outputs": { "example_output": { "value": "updated" } },
-  "resources": [ { "mode": "managed", "type": "null_resource", "name": "example" } ]
-}
+{{stateBody}}
 
 ### ────────────────────────────────────────────────
 ### DELETE State – With Valid Lock ID
@@ -81,7 +82,9 @@ DELETE {{baseUrl}}/{{tenant}}/state/{{stateName}}/lock
 Authorization: {{authHeader}}
 Content-Type: application/json
 
-{{lockBody}}
+{
+  "Id": "{{lockId}}"
+}
 
 ### ────────────────────────────────────────────────
 ### Error Case: POST State – With Wrong Lock ID (conflict)

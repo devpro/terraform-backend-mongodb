@@ -35,9 +35,10 @@ A MongoDB must be running - the easiest way to do it is through a container (her
 docker run --name mongodb -d -p 27017:27017 mongo:8.2
 ```
 
-Add the test user:
+Configure the database:
 
 ```bash
+MONGODB_CONTAINERNETWORK=bridge MONGODB_CONTAINERNAME=mongodb ./scripts/tfbeadm create-indexes
 MONGODB_CONTAINERNETWORK=bridge MONGODB_CONTAINERNAME=mongodb ./scripts/tfbeadm create-user admin admin123 dummy
 ```
 
