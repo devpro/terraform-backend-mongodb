@@ -4,21 +4,17 @@
     <TargetFramework>net10.0</TargetFramework>
     <AssemblyName>Devpro.TerraformBackend.Infrastructure.MongoDb</AssemblyName>
     <RootNamespace>Devpro.TerraformBackend.Infrastructure.MongoDb</RootNamespace>
-    <ProjectGuid>{0429A41A-2D3A-42D4-8736-5FC0F6F0FF0C}</ProjectGuid>
     <Nullable>enable</Nullable>
-  </PropertyGroup>
-
-  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|AnyCPU'">
-    <DebugType>full</DebugType>
-    <DebugSymbols>true</DebugSymbols>
   </PropertyGroup>
 
   <ItemGroup>
     <PackageReference Include="BCrypt.Net-Next" />
+    <PackageReference Include="Microsoft.Extensions.Logging.Abstractions" />
+    <PackageReference Include="MongoDB.Driver" />
+    <PackageReference Include="SystemTextJson.JsonDiffPatch" />
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\Common.MongoDb\Common.MongoDb.csproj" />
     <ProjectReference Include="..\Domain\Domain.csproj" />
   </ItemGroup>
 

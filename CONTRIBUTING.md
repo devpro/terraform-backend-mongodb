@@ -19,7 +19,7 @@ Name                     | Description
 -------------------------|-----------------------------
 `MongoDB.Bson`           | MongoDB BSON
 `MongoDB.Driver`         | MongoDB .NET Driver
-`Swashbuckle.AspNetCore` | OpenAPI / Swagger generation
+`Scalar.AspNetCore`      | OpenAPI web UI
 `System.Text.Json`       | JSON support
 
 The code was made by looking at Terraform specifications:
@@ -35,9 +35,10 @@ A MongoDB must be running - the easiest way to do it is through a container (her
 docker run --name mongodb -d -p 27017:27017 mongo:8.2
 ```
 
-Add the test user:
+Configure the database:
 
 ```bash
+MONGODB_CONTAINERNETWORK=bridge MONGODB_CONTAINERNAME=mongodb ./scripts/tfbeadm create-indexes
 MONGODB_CONTAINERNETWORK=bridge MONGODB_CONTAINERNAME=mongodb ./scripts/tfbeadm create-user admin admin123 dummy
 ```
 
@@ -47,9 +48,9 @@ Run the web API from the build files ([.NET 10](https://dotnet.microsoft.com/dow
 dotnet run --project src/WebApi
 ```
 
-Open Swagger in a browser: [localhost:5293/swagger](http://localhost:5293/swagger).
+Open Scalar in a browser: [localhost:5293/scalar](http://localhost:5293/scalar).
 
-Or, debug from an IDE, such as Visual Studio Community 2022 or Rider - and open [localhost:5000/swagger](http://localhost:5000/swagger).
+Or, debug from an IDE, such as Visual Studio Community 2022 or Rider - and open [localhost:5000/scalar](http://localhost:5000/scalar).
 
 Once you're done, stop the container:
 
@@ -62,8 +63,12 @@ docker stop mongodb
 If you just want to run the application, the easiest way is through containers (application + database) - there is a Docker compose file for it:
 
 ```bash
-docker compose up --build
+docker compose up
 ```
+
+<!--
+docker compose build --no-cache
+-->
 
 Add the test user:
 
@@ -71,7 +76,13 @@ Add the test user:
 docker compose run --rm dbinit
 ```
 
-Open [localhost:9001/swagger](http://localhost:9001/swagger)
+Open [localhost:9001/scalar](http://localhost:9001/scalar)
+
+Delete the containers:
+
+```bash
+docker compose rm --force
+```
 
 You can also build the container image:
 
@@ -90,11 +101,11 @@ docker run -it --rm --name todoblazorlocal \
 ```
 -->
 
-## Use the Swagger website
+## Use the Scalar website
 
 If you see an error, make sure to refresh the cache of the page, it can happen if the version of the application has changed.
 
-Assuming you successfully reached the Swagger website, you need to authenticate by clicking on **Authorize** and use username=admin, and password=admin123.
+Assuming you successfully reached the Scalar website, you need to authenticate by clicking on **Authorize** and use username=admin, and password=admin123.
 
 Then, you can try the different commands.
 

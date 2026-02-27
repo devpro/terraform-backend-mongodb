@@ -24,12 +24,14 @@ cd samples/terraform-local-exec
 Initialize (feel free to use `tofu` instead of `terraform`):
 
 ```bash
-export TF_HTTP_ADDRESS="http://localhost:5293/dummy/state/local-files"
-export TF_HTTP_LOCK_ADDRESS="http://localhost:5293/dummy/state/local-files/lock"
-export TF_HTTP_UNLOCK_ADDRESS="http://localhost:5293/dummy/state/local-files/lock"
+export TFBACKEND_URL="http://localhost:5293"
+# export TFBACKEND_URL="http://localhost:9001"
+export TF_HTTP_ADDRESS="$TFBACKEND_URL/dummy/state/local-files"
+export TF_HTTP_LOCK_ADDRESS="$TFBACKEND_URL/dummy/state/local-files/lock"
+export TF_HTTP_UNLOCK_ADDRESS="$TFBACKEND_URL/dummy/state/local-files/lock"
 export TF_HTTP_USERNAME="admin"
 export TF_HTTP_PASSWORD="admin123"
-terraform init
+terraform init -reconfigure
 ```
 
 Apply the change (before confirming you can check from on another terminal to run an apply):

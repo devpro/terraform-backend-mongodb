@@ -1,10 +1,7 @@
-﻿using System;
-using System.IO;
-using System.Threading.Tasks;
-using Microsoft.AspNetCore.Mvc.Formatters;
+﻿using Microsoft.AspNetCore.Mvc.Formatters;
 using Microsoft.Net.Http.Headers;
 
-namespace Devpro.Common.AspNetCore.Formatters;
+namespace Devpro.TerraformBackend.WebApi.Formatters;
 
 /// <summary>
 /// ASP.NET Core input formatter to manage raw request bodies.
@@ -42,18 +39,18 @@ public class RawRequestBodyFormatter : InputFormatter
             || request.ContentType == PlainTextContentType)
         {
             using var reader = new StreamReader(request.Body);
-            var content = await reader.ReadToEndAsync();
-            return await InputFormatterResult.SuccessAsync(content);
+            var plainContent = await reader.ReadToEndAsync();
+            return await InputFormatterResult.SuccessAsync(plainContent);
         }
 
-        if (request.ContentType == OctetStreamApplicationContentType)
+        if (request.ContentType != OctetStreamApplicationContentType)
         {
-            using var ms = new MemoryStream(2048);
-            await request.Body.CopyToAsync(ms);
-            var content = ms.ToArray();
-            return await InputFormatterResult.SuccessAsync(content);
+            return await InputFormatterResult.FailureAsync();
         }
 
-        return await InputFormatterResult.FailureAsync();
+        using var ms = new MemoryStream(2048);
+        await request.Body.CopyToAsync(ms);
+        var streamContent = ms.ToArray();
+        return await InputFormatterResult.SuccessAsync(streamContent);
     }
 }

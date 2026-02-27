@@ -1,7 +1,11 @@
-﻿using Devpro.TerraformBackend.WebApi.IntegrationTests.Http;
+﻿using System;
+using System.Net;
+using System.Threading.Tasks;
+using Microsoft.AspNetCore.Mvc.Testing;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using Moq;
+using Xunit;
 
 namespace Devpro.TerraformBackend.WebApi.IntegrationTests.Behaviors;
 
@@ -29,12 +33,12 @@ public class InvalidModelStateBehaviorTest(WebApplicationFactory<Program> factor
         var name = Faker.Random.AlphaNumeric(8);
 
         // Act
-        var response = await client.PostAsync($"/dummy/state/{name}/lock", Serialize(invalidModel));
+        var response = await client.PostAsync($"/dummy/state/{name}/lock", Serialize(invalidModel), TestContext.Current.CancellationToken);
 
         // Assert
-        await response.CheckResponseAndGetContent(System.Net.HttpStatusCode.BadRequest, "application/json; charset=utf-8",
+        await CheckResponseAndGetContentAsync(response, HttpStatusCode.BadRequest, "application/json; charset=utf-8",
             "{\"type\":\"https:\\/\\/tools\\.ietf\\.org\\/html\\/rfc9110#section-15\\.5\\.1\",\"title\":\"One or more validation errors occurred\\.\",\"status\":400,\"errors\":{\"Id\":\\[\"The Id field is required\\.\"\\],\"name\":\\[\"The Name field is required\\.\"\\]},\"traceId\":\".*\"}",
-            isRegexMatch: true);
+            isRegexMatch: true, cancellationToken: TestContext.Current.CancellationToken);
         loggerMock.Verify(
             x => x.Log(
                 LogLevel.Warning,

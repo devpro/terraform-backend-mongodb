@@ -1,4 +1,5 @@
 ﻿name: PKG
+# yaml-language-server: $schema=https://json.schemastore.org/github-workflow.json
 # purpose: Continuous Delivery (aka Packaging & Shipping)
 
 on:
@@ -18,14 +19,13 @@ jobs:
     permissions:
       id-token: write
       contents: read
-    uses: devpro/github-workflow-parts/.github/workflows/reusable-container-publication.yml@f61750746227ea28ae379e5a36ad52096fb34967
+    uses: devpro/github-workflow-parts/.github/workflows/reusable-container-publication.yml@d7663950e52d3056f15214c0f2a9ae1f12a53b44
     with:
       create-latest: ${{ github.ref_name == 'main' }}
       image-definition: "src/WebApi/Dockerfile"
-      image-name: terraform-backend-mongodb
-      image-path: "docker.io/devprofr"
-      image-tag: 1.2.${{ github.run_id }}
-      workflow-parts-version: f61750746227ea28ae379e5a36ad52096fb34967
+      image-name: ${{ vars.CONTAINER_IMAGE_NAME }}
+      image-path: ${{ vars.CONTAINER_REGISTRY_PATH }}
+      image-tag: "${{ needs.git-check.outputs.version_major_minor }}.${{ github.run_id }}"
     secrets:
       container-registry-password: ${{ secrets.DOCKERHUB_TOKEN }}
       container-registry-username: ${{ secrets.DOCKERHUB_USERNAME }}

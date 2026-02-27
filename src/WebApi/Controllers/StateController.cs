@@ -9,7 +9,7 @@ namespace Devpro.TerraformBackend.WebApi.Controllers;
 
 [Authorize]
 [ApiController]
-[Route("{tenant}/state")]
+[Route("{tenant}/state/{name:regex([[a-zA-Z]]+)}")]
 [TypeFilter(typeof(TenantAuthorizationFilter))]
 public class StateController(IStateRepository stateRepository, IStateLockRepository stateLockRepository)
     : ControllerBase
@@ -21,36 +21,40 @@ public class StateController(IStateRepository stateRepository, IStateLockReposit
     /// <param name="tenant"></param>
     /// <param name="name">The name of the Terraform state</param>
     /// <returns>Raw string</returns>
-    [HttpGet("{name:regex([[a-zA-Z]]+)}", Name = "GetState")]
+    [HttpGet("", Name = "GetState")]
     [Produces("text/plain")]
     [ProducesResponseType(200)]
-    [ProducesResponseType(204)]
+    [ProducesResponseType(404)]
     public async Task<IActionResult> FindOne(string tenant, string name)
     {
         var state = await stateRepository.FindOneAsync(tenant, name);
         if (string.IsNullOrEmpty(state))
         {
-            return NoContent();
+            return NotFound();
         }
 
         return Ok(state);
     }
 
     /// <summary>
-    /// Get Terraform state value.
+    /// Create Terraform state.
     /// POST /:tenant/state/:name?ID=:lockId
     /// </summary>
+    /// <param name="tenant"></param>
     /// <param name="name">The name of the Terraform state</param>
+    /// <param name="input"></param>
     /// <param name="lockId">Terraform state lock ID</param>
     /// <returns></returns>
-    [HttpPost("{name:regex([[a-zA-Z]]+)}", Name = "CreateState")]
+    [HttpPost("", Name = "CreateState")]
     [Consumes("application/json", "text/json")]
     [ProducesResponseType(200)]
     [ProducesResponseType(409)]
     [ProducesResponseType(423)]
     public async Task<IActionResult> Create(string tenant, string name, [FromBody] object input, [FromQuery(Name = "ID")] string? lockId = "")
     {
-        if (await CheckLock(tenant, name, lockId) is { } lockResult) return lockResult;
+        var existingLock = await stateLockRepository.FindOneAsync(tenant, name);
+        if (existingLock != null && string.IsNullOrEmpty(lockId)) return StatusCode(423, new { Message = "The state is locked." });
+        if (existingLock != null && existingLock.Id != lockId) return Conflict(existingLock);
 
         var jsonInput = JsonSerializer.Serialize(input);
         await stateRepository.CreateAsync(tenant, name, jsonInput);
@@ -60,16 +64,19 @@ public class StateController(IStateRepository stateRepository, IStateLockReposit
     /// <summary>
     /// DELETE /:tenant/state/:name?ID=:lockId
     /// </summary>
+    /// <param name="tenant"></param>
     /// <param name="name"></param>
     /// <param name="lockId">Terraform state lock ID</param>
     /// <returns></returns>
-    [HttpDelete("{name:regex([[a-zA-Z]]+)}", Name = "DeleteState")]
+    [HttpDelete("", Name = "DeleteState")]
     [ProducesResponseType(200)]
     [ProducesResponseType(409)]
     [ProducesResponseType(423)]
     public async Task<IActionResult> Delete(string tenant, string name, [FromQuery(Name = "ID")] string? lockId = "")
     {
-        if (await CheckLock(tenant, name, lockId) is { } lockResult) return lockResult;
+        var existingLock = await stateLockRepository.FindOneAsync(tenant, name);
+        if (existingLock != null && string.IsNullOrEmpty(lockId)) return StatusCode(423, new { Message = "The state is locked." });
+        if (existingLock != null && existingLock.Id != lockId) return Conflict(existingLock);
 
         await stateRepository.DeleteAsync(tenant, name);
         return Ok();
@@ -78,10 +85,11 @@ public class StateController(IStateRepository stateRepository, IStateLockReposit
     /// <summary>
     /// POST /:tenant/state/:name/lock
     /// </summary>
+    /// <param name="tenant"></param>
     /// <param name="name"></param>
     /// <param name="input"></param>
     /// <returns></returns>
-    [HttpPost("{name:regex([[a-zA-Z]]+)}/lock", Name = "CreateStateLock")]
+    [HttpPost("lock", Name = "CreateStateLock")]
     [Consumes("application/json", "text/json")]
     [Produces("application/json")]
     [ProducesResponseType(200)]
@@ -89,7 +97,10 @@ public class StateController(IStateRepository stateRepository, IStateLockReposit
     [ProducesResponseType(423)]
     public async Task<IActionResult> Lock(string tenant, string name, StateLockModel input)
     {
-        if (await CheckLock(tenant, name, input.Id) is { } lockResult) return lockResult;
+        var existingLock = await stateLockRepository.FindOneAsync(tenant, name);
+        if (existingLock != null && string.IsNullOrEmpty(input.Id)) return StatusCode(423, new { Message = "The state is locked." });
+        if (existingLock != null && existingLock.Id != input.Id) return Conflict(existingLock);
+        if (existingLock != null) return Ok(existingLock);
 
         input.Tenant = tenant;
         input.Name = name;
@@ -100,36 +111,26 @@ public class StateController(IStateRepository stateRepository, IStateLockReposit
     /// <summary>
     /// DELETE /:tenant/state/:name/lock
     /// </summary>
+    /// <param name="tenant"></param>
     /// <param name="name"></param>
     /// <param name="input"></param>
     /// <returns></returns>
-    [HttpDelete("{name:regex([[a-zA-Z]]+)}/lock", Name = "DeleteStateLock")]
-    [ProducesResponseType(200)]
+    [HttpDelete("lock", Name = "DeleteStateLock")]
     [Consumes("application/json", "text/json")]
     [Produces("application/json")]
+    [ProducesResponseType(200)]
+    [ProducesResponseType(409)]
+    [ProducesResponseType(423)]
     public async Task<IActionResult> Unlock(string tenant, string name, [FromBody] StateLockModel input)
     {
+        var existingLock = await stateLockRepository.FindOneAsync(tenant, name);
+        if (existingLock == null) return Ok();
+        if (string.IsNullOrEmpty(input.Id)) return StatusCode(423, new { Message = "The state is locked." });
+        if (existingLock.Id != input.Id) return Conflict(existingLock);
+
         input.Tenant = tenant;
         input.Name = name;
         await stateLockRepository.DeleteAsync(input);
         return Ok();
-    }
-
-    private async Task<ObjectResult?> CheckLock(string tenant, string name, string? lockId = "")
-    {
-        var existingLock = await stateLockRepository.FindOneAsync(tenant, name);
-        if (existingLock != null)
-        {
-            if (string.IsNullOrEmpty(lockId))
-            {
-                return StatusCode(423, new { Message = "The state is locked." });
-            }
-
-            if (existingLock.Id != lockId)
-            {
-                return Conflict("LockId doesn't match with the existing lock");
-            }
-        }
-        return null;
     }
 }

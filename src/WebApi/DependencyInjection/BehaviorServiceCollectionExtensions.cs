@@ -1,9 +1,6 @@
-﻿using System.Linq;
-using Microsoft.AspNetCore.Mvc;
-using Microsoft.Extensions.DependencyInjection;
-using Microsoft.Extensions.Logging;
+﻿using Microsoft.AspNetCore.Mvc;
 
-namespace Devpro.Common.AspNetCore.DependencyInjection;
+namespace Devpro.TerraformBackend.WebApi.DependencyInjection;
 
 public static class BehaviorServiceCollectionExtensions
 {
@@ -12,7 +9,7 @@ public static class BehaviorServiceCollectionExtensions
     /// </summary>
     /// <param name="services"></param>
     /// <returns></returns>
-    public static IServiceCollection AddInvalidModelStateLog(this IServiceCollection services)
+    public static void AddInvalidModelStateLog(this IServiceCollection services)
     {
         services.PostConfigure<ApiBehaviorOptions>(options =>
         {
@@ -33,7 +30,5 @@ public static class BehaviorServiceCollectionExtensions
                 return defaultFactory(context);
             };
         });
-
-        return services;
     }
 }

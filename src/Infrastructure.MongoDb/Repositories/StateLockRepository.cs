@@ -1,5 +1,4 @@
 ﻿using System.Threading.Tasks;
-using Devpro.Common.MongoDb;
 using Devpro.TerraformBackend.Domain.Models;
 using Devpro.TerraformBackend.Domain.Repositories;
 using Microsoft.Extensions.Logging;
@@ -11,8 +10,8 @@ public class StateLockRepository : RepositoryBase, IStateLockRepository
 {
     private readonly IMongoCollection<StateLockModel> _modelCollection;
 
-    public StateLockRepository(IMongoClientFactory mongoClientFactory, ILogger<StateLockRepository> logger, MongoDbConfiguration configuration)
-        : base(mongoClientFactory, logger, configuration)
+    public StateLockRepository(IMongoDatabase mongoDatabase, ILogger<StateLockRepository> logger)
+        : base(mongoDatabase, logger)
     {
         _modelCollection = GetCollection<StateLockModel>();
     }
@@ -21,7 +20,8 @@ public class StateLockRepository : RepositoryBase, IStateLockRepository
 
     public async Task<StateLockModel?> FindOneAsync(string tenant, string name)
     {
-        return await _modelCollection.Find(x => x.Name == name).FirstOrDefaultAsync();
+        return await _modelCollection.Find(x => x.Tenant == tenant && x.Name == name)
+            .FirstOrDefaultAsync();
     }
 
     public async Task<StateLockModel> CreateAsync(StateLockModel input)
@@ -32,7 +32,10 @@ public class StateLockRepository : RepositoryBase, IStateLockRepository
 
     public async Task<bool> DeleteAsync(StateLockModel input)
     {
-        var result = await _modelCollection.DeleteOneAsync(x => x.Tenant == input.Tenant && x.Name == input.Name && x.Id == input.Id);
+        var result = await _modelCollection.DeleteOneAsync(x =>
+            x.Tenant == input.Tenant
+            && x.Name == input.Name
+            && x.Id == input.Id);
         return result.DeletedCount > 0;
     }
 }

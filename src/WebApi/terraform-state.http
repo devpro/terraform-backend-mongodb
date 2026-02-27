@@ -1,0 +1,112 @@
+### ────────────────────────────────────────────────
+### Terraform Backend API – State & Lock Operations
+### ────────────────────────────────────────────────
+### Environment: Select 'local' in Rider dropdown
+### Auth: Basic (via {{authHeader}})
+### Tenant: {{tenant}} (from env)
+### Base: {{baseUrl}}
+### ────────────────────────────────────────────────
+### Rider settings: in HTTP Client, uncheck "Variable should be double-quoted" (File | Settings | Editor | Inspection Settings | Inspection Severity | Other Languages)
+
+### Health Check (auxiliary endpoint)
+GET {{baseUrl}}/health
+Authorization: {{authHeader}}
+
+### OpenAPI JSON (auxiliary)
+GET {{baseUrl}}/openapi/v1.json
+Accept: application/json
+Authorization: {{authHeader}}
+
+### Scalar UI (auxiliary – open in browser after running)
+GET {{baseUrl}}/scalar
+Authorization: {{authHeader}}
+
+### ────────────────────────────────────────────────
+### GET State (read)
+### Expected: 200 (state as text/plain) or 404 (not found)
+### ────────────────────────────────────────────────
+GET {{baseUrl}}/{{tenant}}/state/{{stateName}}
+Authorization: {{authHeader}}
+Accept: text/plain
+
+### ────────────────────────────────────────────────
+### POST State (create/update) – Without Lock (should fail if locked)
+### Expected: 200 (empty) or 423 (locked) if no/missing lock
+### ────────────────────────────────────────────────
+POST {{baseUrl}}/{{tenant}}/state/{{stateName}}
+Authorization: {{authHeader}}
+Content-Type: application/json
+
+{{stateBody}}
+
+### ────────────────────────────────────────────────
+### LOCK State (create lock)
+### Expected: 200 (lock info) or 423 (already locked)
+### ────────────────────────────────────────────────
+POST {{baseUrl}}/{{tenant}}/state/{{stateName}}/lock
+Authorization: {{authHeader}}
+Content-Type: application/json
+
+{
+  "Id": "{{lockId}}",
+  "Operation": "Operation.apply",
+  "Info": "Applying changes from CI",
+  "Who": "ci-user@build-123",
+  "Version": "1.9.0",
+  "Created": "2026-02-25T14:30:00Z",
+  "Path": "terraform.tfstate"
+}
+
+### ────────────────────────────────────────────────
+### POST State (create/update) – With Valid Lock ID
+### Expected: 200 if lock matches
+### ────────────────────────────────────────────────
+POST {{baseUrl}}/{{tenant}}/state/{{stateName}}?ID={{lockId}}
+Authorization: {{authHeader}}
+Content-Type: application/json
+
+{{stateBody}}
+
+### ────────────────────────────────────────────────
+### DELETE State – With Valid Lock ID
+### Expected: 200 if lock matches
+### ────────────────────────────────────────────────
+DELETE {{baseUrl}}/{{tenant}}/state/{{stateName}}?ID={{lockId}}
+Authorization: {{authHeader}}
+
+### ────────────────────────────────────────────────
+### UNLOCK State (delete lock)
+### Expected: 200 (idempotent)
+### ────────────────────────────────────────────────
+DELETE {{baseUrl}}/{{tenant}}/state/{{stateName}}/lock
+Authorization: {{authHeader}}
+Content-Type: application/json
+
+{
+  "Id": "{{lockId}}"
+}
+
+### ────────────────────────────────────────────────
+### Error Case: POST State – With Wrong Lock ID (conflict)
+### Expected: 409 (conflict)
+### ────────────────────────────────────────────────
+POST {{baseUrl}}/{{tenant}}/state/{{stateName}}?ID=wrong-lock-id-999
+Authorization: {{authHeader}}
+Content-Type: application/json
+
+{{stateBody}}
+
+### ────────────────────────────────────────────────
+### Error Case: DELETE State – Without Lock ID (should fail)
+### Expected: 423 (locked) if state is locked
+### ────────────────────────────────────────────────
+DELETE {{baseUrl}}/{{tenant}}/state/{{stateName}}
+Authorization: {{authHeader}}
+
+### ────────────────────────────────────────────────
+### Error Case: DELETE State – Without Wrong Lock ID (should fail)
+### Expected: 409 (conflict)
+### ────────────────────────────────────────────────
+DELETE {{baseUrl}}/{{tenant}}/state/{{stateName}}?ID=wrong-lock-id-999
+Authorization: {{authHeader}}
+

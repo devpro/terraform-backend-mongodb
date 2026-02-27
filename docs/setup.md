@@ -65,12 +65,12 @@ Create a values.yaml file with your configuration by looking at examples:
         cert-manager.io/cluster-issuer: letsencrypt-prod
     ```
 
-=== "Development environment with Swagger"
+=== "Development environment with Scalar (OpenAPI web UI)"
 
     ```yaml
     dotnet:
       environment: Development
-      enableSwagger: true
+      enableScalar: true
       enableOpenTelemetry: false
     ```
 
@@ -83,8 +83,8 @@ Create a values.yaml file with your configuration by looking at examples:
         rootPassword: admin
     webapi:
       db:
-        connectionString: mongodb://root:admin@tfbackend-mongodb:27017/terraform_backend_beta?authSource=admin
-        databaseName: terraform_backend_beta
+        connectionString: mongodb://root:admin@tfbackend-mongodb:27017/tfbackend_beta?authSource=admin
+        databaseName: tfbackend_beta
     ```
 
 Install and manage the application with Helm:

@@ -1,18 +1,28 @@
 ﻿using System.Security.Claims;
 using System.Text;
 using System.Text.Encodings.Web;
-using Devpro.Common.AspNetCore.WebApi.Authentication;
 using Devpro.TerraformBackend.Domain.Repositories;
-using Microsoft.AspNetCore.Authentication;
 using Microsoft.Extensions.Options;
 
 namespace Devpro.TerraformBackend.WebApi.Authentication;
 
-public class BasicAuthenticationHandler(IOptionsMonitor<AuthenticationSchemeOptions> options, ILoggerFactory logger, UrlEncoder encoder, IUserRepository userRepository)
+public class BasicAuthenticationHandler(
+    IOptionsMonitor<AuthenticationSchemeOptions> options,
+    ILoggerFactory logger,
+    UrlEncoder encoder,
+    IUserRepository userRepository)
     : AuthenticationHandler<AuthenticationSchemeOptions>(options, logger, encoder)
 {
     protected override async Task<AuthenticateResult> HandleAuthenticateAsync()
     {
+        // workaround as it seems impossible to prevent (from Startup)
+        var path = Request.Path.Value?.ToLowerInvariant() ?? "";
+        if (path.StartsWith("/scalar/") ||
+            path.StartsWith("/openapi/"))
+        {
+            return AuthenticateResult.NoResult();
+        }
+
         // checks authorization header
         if (!Request.Headers.ContainsKey("Authorization"))
         {
@@ -28,7 +38,8 @@ public class BasicAuthenticationHandler(IOptionsMonitor<AuthenticationSchemeOpti
         }
 
         // decrypts the authorization header and split out the client id/secret
-        var authBase64Decoded = Encoding.UTF8.GetString(Convert.FromBase64String(authorizationHeader.Replace("Basic ", "", StringComparison.OrdinalIgnoreCase)));
+        var authBase64Decoded = Encoding.UTF8.GetString(Convert.FromBase64String(
+            authorizationHeader.Replace("Basic ", "", StringComparison.OrdinalIgnoreCase)));
         var authSplit = authBase64Decoded.Split([':'], 2);
         if (authSplit.Length != 2)
         {
@@ -47,7 +58,7 @@ public class BasicAuthenticationHandler(IOptionsMonitor<AuthenticationSchemeOpti
 
         var client = new BasicAuthenticationClient
         {
-            AuthenticationType = BasicAuthenticationDefaults.AuthenticationScheme,
+            AuthenticationType = BasicAuthenticationClient.AuthenticationScheme,
             IsAuthenticated = true,
             Name = user.Username
         };
