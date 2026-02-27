@@ -1,6 +1,4 @@
-﻿using System;
-using System.Threading.Tasks;
-using AwesomeAssertions;
+﻿using System.Threading.Tasks;
 using Devpro.TerraformBackend.WebApi.IntegrationTests.Hosting;
 using Xunit;
 
@@ -9,6 +7,8 @@ namespace Devpro.TerraformBackend.WebApi.IntegrationTests.Scenarios;
 public class LocalFilesSampleTest(KestrelWebAppFactory<Program> kestrelWebAppFactory, ITestOutputHelper testOutputHelper)
     : ScenarioBase(kestrelWebAppFactory, testOutputHelper)
 {
+    protected override string ScenarioPath => "samples/local-files";
+
     [Fact]
     public async Task TerraformInit_Succeeds()
     {
@@ -21,7 +21,11 @@ public class LocalFilesSampleTest(KestrelWebAppFactory<Program> kestrelWebAppFac
         await ExecuteTerraformAsync("apply -auto-approve",
             expectedOutput: "Apply complete! Resources: 3 added, 0 changed, 0 destroyed.");
 
-        // TODO: check file exist, check state commands, check idempotency
+        await ExecuteTerraformAsync("state list",
+            expectedOutput: "local_file.test\nnull_resource.test_backend\nrandom_string.test");
+
+        await ExecuteTerraformAsync("apply -auto-approve",
+            expectedOutput: "Apply complete! Resources: 0 added, 0 changed, 0 destroyed.");
 
         await ExecuteTerraformAsync("destroy -auto-approve",
             expectedOutput: "Destroy complete! Resources: 3 destroyed.");
