@@ -15,11 +15,15 @@ public class LocalFilesSampleTest(KestrelWebAppFactory<Program> kestrelWebAppFac
         await ExecuteTerraformAsync("init",
             expectedOutput: "Terraform has been successfully initialized!");
 
-        // TODO: smart check on output
-
         await ExecuteTerraformAsync("plan",
-            expectedOutput: "Terraform used the selected providers to generate the following execution\nplan.");
+            expectedOutput: "Plan: 3 to add, 0 to change, 0 to destroy.");
 
-        // TODO: apply, destroy and check after apply
+        await ExecuteTerraformAsync("apply -auto-approve",
+            expectedOutput: "Apply complete! Resources: 3 added, 0 changed, 0 destroyed.");
+
+        // TODO: check file exist, check state commands, check idempotency
+
+        await ExecuteTerraformAsync("destroy -auto-approve",
+            expectedOutput: "Destroy complete! Resources: 3 destroyed.");
     }
 }

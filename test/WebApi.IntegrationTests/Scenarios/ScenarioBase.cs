@@ -36,7 +36,6 @@ public abstract class ScenarioBase : IClassFixture<KestrelWebAppFactory<Program>
 
     public ValueTask InitializeAsync()
     {
-        _testOutputHelper.WriteLine("Creating directory {0}", _localDirectory);
         _testOutputHelper.WriteLine("Copying files from {0}", _sampleFilesSourcePath);
         CopyDirectory(_sampleFilesSourcePath, _localDirectory, "*.tf", overwrite: true);
         return ValueTask.CompletedTask;
@@ -53,7 +52,7 @@ public abstract class ScenarioBase : IClassFixture<KestrelWebAppFactory<Program>
             }
             catch (Exception ex)
             {
-                Console.WriteLine($"Temp folder cleanup failed: {ex.Message}");
+                _testOutputHelper.WriteLine("Temp folder cleanup failed: {0}", ex.Message);
             }
         }
 
@@ -62,7 +61,7 @@ public abstract class ScenarioBase : IClassFixture<KestrelWebAppFactory<Program>
         return ValueTask.CompletedTask;
     }
 
-    private static void CopyDirectory(string sourceDir,
+    private void CopyDirectory(string sourceDir,
         string destinationDir,
         string filePattern = "*.*",
         bool overwrite = false)
@@ -70,15 +69,22 @@ public abstract class ScenarioBase : IClassFixture<KestrelWebAppFactory<Program>
         var dir = new DirectoryInfo(sourceDir);
         if (!dir.Exists) throw new DirectoryNotFoundException($"Source directory not found: {sourceDir}");
 
+        _testOutputHelper.WriteLine("Creating directory {0}", _localDirectory);
         Directory.CreateDirectory(destinationDir);
 
         foreach (var file in dir.GetFiles(filePattern))
         {
+            _testOutputHelper.WriteLine("Copying file {0}", file.Name);
             file.CopyTo(Path.Combine(destinationDir, file.Name), overwrite);
         }
 
         foreach (var subDir in dir.GetDirectories())
         {
+            if (subDir.Name.Equals(".terraform", StringComparison.OrdinalIgnoreCase))
+            {
+                continue;
+            }
+
             CopyDirectory(subDir.FullName,
                 Path.Combine(destinationDir, subDir.Name),
                 filePattern,
