@@ -38,7 +38,7 @@ public abstract class ScenarioBase : IClassFixture<KestrelWebAppFactory<Program>
     {
         _testOutputHelper.WriteLine("Creating directory {0}", _localDirectory);
         _testOutputHelper.WriteLine("Copying files from {0}", _sampleFilesSourcePath);
-        CopyDirectory(_sampleFilesSourcePath, _localDirectory, overwrite: true);
+        CopyDirectory(_sampleFilesSourcePath, _localDirectory, "*.tf", overwrite: true);
         return ValueTask.CompletedTask;
     }
 
@@ -62,21 +62,27 @@ public abstract class ScenarioBase : IClassFixture<KestrelWebAppFactory<Program>
         return ValueTask.CompletedTask;
     }
 
-    private static void CopyDirectory(string sourceDir, string destinationDir, bool overwrite = false)
+    private static void CopyDirectory(string sourceDir,
+        string destinationDir,
+        string filePattern = "*.*",
+        bool overwrite = false)
     {
         var dir = new DirectoryInfo(sourceDir);
         if (!dir.Exists) throw new DirectoryNotFoundException($"Source directory not found: {sourceDir}");
 
         Directory.CreateDirectory(destinationDir);
 
-        foreach (var file in dir.GetFiles())
+        foreach (var file in dir.GetFiles(filePattern))
         {
             file.CopyTo(Path.Combine(destinationDir, file.Name), overwrite);
         }
 
         foreach (var subDir in dir.GetDirectories())
         {
-            CopyDirectory(subDir.FullName, Path.Combine(destinationDir, subDir.Name), overwrite);
+            CopyDirectory(subDir.FullName,
+                Path.Combine(destinationDir, subDir.Name),
+                filePattern,
+                overwrite);
         }
     }
 

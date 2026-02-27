@@ -12,9 +12,7 @@ public class LocalFilesSampleTest(KestrelWebAppFactory<Program> kestrelWebAppFac
     [Fact]
     public async Task TerraformInit_Succeeds()
     {
-        // TODO: clean copy, with no local terraform state
-
-        await ExecuteTerraformAsync("init -reconfigure",
+        await ExecuteTerraformAsync("init",
             expectedOutput: "Terraform has been successfully initialized!");
 
         // TODO: smart check on output
