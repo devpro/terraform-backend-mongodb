@@ -50,13 +50,26 @@ jobs:
         wget -O - https://apt.releases.hashicorp.com/gpg | sudo gpg --dearmor -o /usr/share/keyrings/hashicorp-archive-keyring.gpg
         echo "deb [arch=$(dpkg --print-architecture) signed-by=/usr/share/keyrings/hashicorp-archive-keyring.gpg] https://apt.releases.hashicorp.com $(grep -oP '(?<=UBUNTU_CODENAME=).*' /etc/os-release || lsb_release -cs) main" | sudo tee /etc/apt/sources.list.d/hashicorp.list
         sudo apt update && sudo apt install terraform
+        echo "Install and start MongoDB 8.2"
+        curl -fsSL https://www.mongodb.org/static/pgp/server-8.0.asc | \
+          sudo gpg -o /usr/share/keyrings/mongodb-server-8.0.gpg \
+          --dearmor
+        echo "deb [ arch=amd64,arm64 signed-by=/usr/share/keyrings/mongodb-server-8.0.gpg ] https://repo.mongodb.org/apt/ubuntu noble/mongodb-org/8.2 multiverse" |
+          sudo tee /etc/apt/sources.list.d/mongodb-org-8.2.list
+        sudo apt-get update
+        sudo apt-get install -y mongodb-org
+        sudo systemctl start mongod
+        timeout 30 bash -c "
+          until mongosh --host localhost:27017 --eval 'db.runCommand({ ping: 1 })' >/dev/null 2>&1; do
+            echo 'MongoDB not ready yet, retrying in 1 second...'
+            sleep 1
+          done
         echo "Initialize database (indexes, tenants & users)"
         export MONGODB_URI="mongodb://localhost:27017/tfbackend_dev"
         ./scripts/tfbeadm create-indexes
         ./scripts/tfbeadm create-user admin admin123 dummy
       extra-vars: |
         Application__IsHttpsRedirectionEnabled="false"
-      mongodb-enabled: true
       fossa-enabled: true
       sonar-enabled: true
       sonar-organization: ${{ vars.SONAR_ORG }}
