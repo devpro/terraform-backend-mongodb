@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.IO;
 using System.Threading;
 using System.Threading.Tasks;
+using AwesomeAssertions;
 using Devpro.TerraformBackend.WebApi.IntegrationTests.Hosting;
 using Devpro.TerraformBackend.WebApi.IntegrationTests.Wrappers;
 using Microsoft.AspNetCore.Mvc.Testing;
@@ -10,15 +11,15 @@ using Xunit;
 
 namespace Devpro.TerraformBackend.WebApi.IntegrationTests.Scenarios;
 
-public abstract class ScenarioBase: IClassFixture<KestrelWebAppFactory<Program>>, IAsyncLifetime
+public abstract class ScenarioBase : IClassFixture<KestrelWebAppFactory<Program>>, IAsyncLifetime
 {
-    private readonly WebApplicationFactory<Program> _factory;
+    private readonly KestrelWebAppFactory<Program> _factory;
 
     private readonly ITestOutputHelper _testOutputHelper;
 
-    private string _localDirectory;
+    private readonly string _localDirectory;
 
-    private string _sampleFilesSourcePath;
+    private readonly string _sampleFilesSourcePath;
 
     private readonly TerraformWrapper _terraformWrapper;
 
@@ -26,16 +27,17 @@ public abstract class ScenarioBase: IClassFixture<KestrelWebAppFactory<Program>>
     {
         _factory = factory;
         _testOutputHelper = testOutputHelper;
-        _testOutputHelper.WriteLine("Current directory {0}", AppContext.BaseDirectory);
-        _sampleFilesSourcePath = Path.GetFullPath(
-            Path.Combine(AppContext.BaseDirectory, "../../../../../samples/local-files"));
-        _localDirectory = Path.Combine(Path.GetTempPath(), $"test-{Guid.NewGuid().ToString()}");
+        _testOutputHelper.WriteLine("Executing from {0}", AppContext.BaseDirectory);
+        _sampleFilesSourcePath = Path.GetFullPath(Path.Combine(
+            AppContext.BaseDirectory, "../../../../../samples/local-files"));
+        _localDirectory = Path.Combine(Path.GetTempPath(), $"tfbackend-test-{Guid.NewGuid().ToString()}");
         _terraformWrapper = new TerraformWrapper(_localDirectory);
     }
 
     public ValueTask InitializeAsync()
     {
         _testOutputHelper.WriteLine("Creating directory {0}", _localDirectory);
+        _testOutputHelper.WriteLine("Copying files from {0}", _sampleFilesSourcePath);
         CopyDirectory(_sampleFilesSourcePath, _localDirectory, overwrite: true);
         return ValueTask.CompletedTask;
     }
@@ -46,6 +48,7 @@ public abstract class ScenarioBase: IClassFixture<KestrelWebAppFactory<Program>>
         {
             try
             {
+                _testOutputHelper.WriteLine("Deleting directory {0}", _localDirectory);
                 Directory.Delete(_localDirectory, recursive: true);
             }
             catch (Exception ex)
@@ -77,13 +80,14 @@ public abstract class ScenarioBase: IClassFixture<KestrelWebAppFactory<Program>>
         }
     }
 
-    protected async Task<(string StdOut, string StdErr, int ExitCode)> ExecuteTerraformAsync(
+    protected async Task ExecuteTerraformAsync(
         string command,
-        TimeSpan? timeout = null,
-        CancellationToken cancellationToken = default)
+        int expectedReturnCode = 0,
+        string expectedOutput = "",
+        string expectedError = "",
+        TimeSpan? timeout = null)
     {
-        var client = _factory.CreateClient();
-        var baseAddress = client.BaseAddress;
+        var baseAddress = _factory.ServerAddress;
 
         var environmentVariables = new Dictionary<string, string?>
         {
@@ -94,6 +98,21 @@ public abstract class ScenarioBase: IClassFixture<KestrelWebAppFactory<Program>>
             ["TF_HTTP_PASSWORD"] = "admin123"
         };
 
-        return await _terraformWrapper.ExecuteAsync(command, environmentVariables, timeout, cancellationToken);
+        _testOutputHelper.WriteLine("Executing Terraform command {0}", command);
+
+        var (output, err, code) = await _terraformWrapper.ExecuteAsync(
+            $"{command} -no-color",
+            environmentVariables,
+            timeout ?? TimeSpan.FromMinutes(2),
+            TestContext.Current.CancellationToken);
+
+        if (code != 0 && expectedReturnCode == 0)
+        {
+            _testOutputHelper.WriteLine("Error occured {0}\n{1}\n{2}", code, output, err);
+        }
+
+        code.Should().Be(expectedReturnCode);
+        output.Should().Contain(expectedOutput);
+        err.Should().Be(expectedError);
     }
 }

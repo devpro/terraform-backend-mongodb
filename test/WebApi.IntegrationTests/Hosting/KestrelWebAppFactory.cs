@@ -23,7 +23,7 @@ public class KestrelWebAppFactory<TEntryPoint> : WebApplicationFactory<TEntryPoi
         get
         {
             EnsureServerStarted();
-            return $"http://127.0.0.1:{_serverPort}/";
+            return $"http://127.0.0.1:{_serverPort}";
         }
     }
 

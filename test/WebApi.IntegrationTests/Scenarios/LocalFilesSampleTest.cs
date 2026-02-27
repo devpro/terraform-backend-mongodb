@@ -12,12 +12,16 @@ public class LocalFilesSampleTest(KestrelWebAppFactory<Program> kestrelWebAppFac
     [Fact]
     public async Task TerraformInit_Succeeds()
     {
-        var (outp, err, code) = await ExecuteTerraformAsync("init -no-color",
-            TimeSpan.FromMinutes(2),
-            TestContext.Current.CancellationToken);
+        // TODO: clean copy, with no local terraform state
 
-        code.Should().Be(0);
-        outp.Should().Contain("Terraform has been successfully initialized!");
-        err.Should().BeEmpty();
+        await ExecuteTerraformAsync("init -reconfigure",
+            expectedOutput: "Terraform has been successfully initialized!");
+
+        // TODO: smart check on output
+
+        await ExecuteTerraformAsync("plan",
+            expectedOutput: "Terraform used the selected providers to generate the following execution\nplan.");
+
+        // TODO: apply, destroy and check after apply
     }
 }
