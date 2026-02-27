@@ -64,6 +64,7 @@ jobs:
             echo 'MongoDB not ready yet, retrying in 1 second...'
             sleep 1
           done
+        "
         echo "Initialize database (indexes, tenants & users)"
         export MONGODB_URI="mongodb://localhost:27017/tfbackend_dev"
         ./scripts/tfbeadm create-indexes
