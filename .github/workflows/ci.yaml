@@ -37,18 +37,20 @@ jobs:
 
   markup-lint:
     name: Markup
-    uses: devpro/github-workflow-parts/.github/workflows/reusable-markup-lint.yml@31454861640fdf15c1779c34fb5c857e9f31fac5
+    uses: devpro/github-workflow-parts/.github/workflows/reusable-markup-lint.yml@5a11ec3ddb01172bfa7a56668b7642b59b17c413
 
   code-quality:
     name: Code
     needs: git-check
     if: needs.git-check.outputs.app_changed == 'true' || (github.event_name == 'workflow_dispatch' && inputs.run-code-quality)
-    uses: devpro/github-workflow-parts/.github/workflows/reusable-dotnet-quality.yml@31454861640fdf15c1779c34fb5c857e9f31fac5
+    uses: devpro/github-workflow-parts/.github/workflows/reusable-dotnet-quality.yml@5a11ec3ddb01172bfa7a56668b7642b59b17c413
     with:
       custom-commands: |
         echo "Install Terraform"
         wget -O - https://apt.releases.hashicorp.com/gpg | sudo gpg --dearmor -o /usr/share/keyrings/hashicorp-archive-keyring.gpg
-        echo "deb [arch=$(dpkg --print-architecture) signed-by=/usr/share/keyrings/hashicorp-archive-keyring.gpg] https://apt.releases.hashicorp.com $(grep -oP '(?<=UBUNTU_CODENAME=).*' /etc/os-release || lsb_release -cs) main" | sudo tee /etc/apt/sources.list.d/hashicorp.list
+        codename=$(grep -oP '(?<=UBUNTU_CODENAME=).*' /etc/os-release || lsb_release -cs)
+        echo "deb [arch=$(dpkg --print-architecture) signed-by=/usr/share/keyrings/hashicorp-archive-keyring.gpg] https://apt.releases.hashicorp.com $codename main" | \
+          sudo tee /etc/apt/sources.list.d/hashicorp.list
         sudo apt update && sudo apt install terraform
         echo "Install and start MongoDB 8.2"
         curl -fsSL https://www.mongodb.org/static/pgp/server-8.0.asc | \
@@ -77,7 +79,7 @@ jobs:
       sonar-organization: ${{ vars.SONAR_ORG }}
       sonar-project-key: ${{ vars.SONAR_PROJECT_KEY }}
       sonar-project-name: Terraform Backend MongoDB
-      workflow-parts-version: 31454861640fdf15c1779c34fb5c857e9f31fac5
+      workflow-parts-version: 5a11ec3ddb01172bfa7a56668b7642b59b17c413
     secrets:
       fossa-api-key: ${{ secrets.FOSSA_API_KEY }}
       sonar-token: ${{ secrets.SONAR_TOKEN }}
@@ -89,7 +91,7 @@ jobs:
     name: Image
     needs: git-check
     if: needs.git-check.outputs.app_changed == 'true' || (github.event_name == 'workflow_dispatch' && inputs.run-image-scan)
-    uses: devpro/github-workflow-parts/.github/workflows/reusable-container-scan.yml@31454861640fdf15c1779c34fb5c857e9f31fac5
+    uses: devpro/github-workflow-parts/.github/workflows/reusable-container-scan.yml@5a11ec3ddb01172bfa7a56668b7642b59b17c413
     with:
       image-definition: "src/WebApi/Dockerfile"
       image-name: ${{ vars.CONTAINER_IMAGE_NAME }}
