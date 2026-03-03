@@ -37,13 +37,13 @@ jobs:
 
   markup-lint:
     name: Markup
-    uses: devpro/github-workflow-parts/.github/workflows/reusable-markup-lint.yml@7ea45917e8d4e9d1ecf2a180b6bab24327323343
+    uses: devpro/github-workflow-parts/.github/workflows/reusable-markup-lint.yml@79ef8b68e376c0cb3df0fc82e25961cc649023db
 
   code-quality:
     name: Code
     needs: git-check
     if: needs.git-check.outputs.app_changed == 'true' || (github.event_name == 'workflow_dispatch' && inputs.run-code-quality)
-    uses: devpro/github-workflow-parts/.github/workflows/reusable-dotnet-quality.yml@7ea45917e8d4e9d1ecf2a180b6bab24327323343
+    uses: devpro/github-workflow-parts/.github/workflows/reusable-dotnet-quality.yml@79ef8b68e376c0cb3df0fc82e25961cc649023db
     with:
       custom-commands: |
         echo "Install Terraform"
@@ -79,7 +79,7 @@ jobs:
       sonar-organization: ${{ vars.SONAR_ORG }}
       sonar-project-key: ${{ vars.SONAR_PROJECT_KEY }}
       sonar-project-name: Terraform Backend MongoDB
-      workflow-parts-version: 7ea45917e8d4e9d1ecf2a180b6bab24327323343
+      workflow-parts-version: 79ef8b68e376c0cb3df0fc82e25961cc649023db
     secrets:
       fossa-api-key: ${{ secrets.FOSSA_API_KEY }}
       sonar-token: ${{ secrets.SONAR_TOKEN }}
@@ -91,7 +91,7 @@ jobs:
     name: Image
     needs: git-check
     if: needs.git-check.outputs.app_changed == 'true' || (github.event_name == 'workflow_dispatch' && inputs.run-image-scan)
-    uses: devpro/github-workflow-parts/.github/workflows/reusable-container-scan.yml@7ea45917e8d4e9d1ecf2a180b6bab24327323343
+    uses: devpro/github-workflow-parts/.github/workflows/reusable-container-scan.yml@79ef8b68e376c0cb3df0fc82e25961cc649023db
     with:
       image-definition: "src/WebApi/Dockerfile"
       image-name: ${{ vars.CONTAINER_IMAGE_NAME }}

@@ -24,7 +24,7 @@ jobs:
             directory: docker-nginx
           - name: Local Files
             directory: local-files
-    uses: devpro/github-workflow-parts/.github/workflows/reusable-terraform-deployment.yml@7ea45917e8d4e9d1ecf2a180b6bab24327323343
+    uses: devpro/github-workflow-parts/.github/workflows/reusable-terraform-deployment.yml@79ef8b68e376c0cb3df0fc82e25961cc649023db
     with:
       environment: demo
       working-directory: samples/${{ matrix.directory }}
