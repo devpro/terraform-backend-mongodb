@@ -1,30 +1,19 @@
 ﻿using Microsoft.OpenApi;
+using Withywoods.Configuration;
 
 namespace Devpro.TerraformBackend.WebApi;
 
 public class ApplicationConfiguration(IConfigurationRoot configurationRoot)
 {
-    // properties
-
     public static string HealthCheckEndpoint => "/health";
 
-    public bool IsHttpsRedirectionEnabled => TryGetSection<bool>("Features:IsHttpsRedirectionEnabled");
+    public bool IsHttpsRedirectionEnabled => configurationRoot.TryGetSection<bool>("Features:IsHttpsRedirectionEnabled");
 
-    public bool IsScalarEnabled => TryGetSection<bool>("Features:IsScalarEnabled");
+    public bool IsScalarEnabled => configurationRoot.TryGetSection<bool>("Features:IsScalarEnabled");
 
-    public OpenApiInfo OpenApiInfo => TryGetSection<OpenApiInfo>("OpenApi");
+    public OpenApiInfo OpenApiInfo => configurationRoot.TryGetSection<OpenApiInfo>("OpenApi");
 
-    public string ConnectionString => TryGetSection<string>("DatabaseSettings:ConnectionString");
+    public string ConnectionString => configurationRoot.TryGetSection<string>("DatabaseSettings:ConnectionString");
 
-    public string DatabaseName => TryGetSection<string>("DatabaseSettings:DatabaseName");
-
-    // protected methods
-
-    private T TryGetSection<T>(string sectionKey)
-    {
-        var section = configurationRoot.GetSection(sectionKey)
-                      ?? throw new InvalidOperationException($"Missing section \"{sectionKey}\" in configuration");
-        return section.Get<T>()
-               ?? throw new InvalidOperationException($"Section \"{sectionKey}\" value cannot be read as \"{nameof(T)}\"");
-    }
+    public string DatabaseName => configurationRoot.TryGetSection<string>("DatabaseSettings:DatabaseName");
 }
