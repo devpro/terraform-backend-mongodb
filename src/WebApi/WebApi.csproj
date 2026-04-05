@@ -6,7 +6,6 @@
     <RootNamespace>Devpro.TerraformBackend.WebApi</RootNamespace>
     <Nullable>enable</Nullable>
     <ImplicitUsings>enable</ImplicitUsings>
-    <UserSecretsId>78fb2134-a177-45da-a7e1-5800154c5f5b</UserSecretsId>
   </PropertyGroup>
 
   <ItemGroup>
