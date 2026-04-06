@@ -25,6 +25,6 @@ public class OpenApiResourceTest(WebApplicationFactory<Program> factory)
             cancellationToken: TestContext.Current.CancellationToken);
         await Verifier.VerifyJson(content)
             .UseDirectory("../Snapshots")
-            .UseFileName("OpenApiResource.json");
+            .UseFileName("openapi");
     }
 }

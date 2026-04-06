@@ -37,18 +37,20 @@ jobs:
 
   markup-lint:
     name: Markup
-    uses: devpro/github-workflow-parts/.github/workflows/reusable-markup-lint.yml@37400c6d7def6330265424b598dc1861b136e981
+    uses: devpro/github-workflow-parts/.github/workflows/reusable-markup-lint.yml@c90ba46a93ca90123f57744b47e49c1a73962cea
 
   code-quality:
     name: Code
     needs: git-check
     if: needs.git-check.outputs.app_changed == 'true' || (github.event_name == 'workflow_dispatch' && inputs.run-code-quality)
-    uses: devpro/github-workflow-parts/.github/workflows/reusable-dotnet-quality.yml@d7663950e52d3056f15214c0f2a9ae1f12a53b44
+    uses: devpro/github-workflow-parts/.github/workflows/reusable-dotnet-quality.yml@c90ba46a93ca90123f57744b47e49c1a73962cea
     with:
       custom-commands: |
         echo "Install Terraform"
         wget -O - https://apt.releases.hashicorp.com/gpg | sudo gpg --dearmor -o /usr/share/keyrings/hashicorp-archive-keyring.gpg
-        echo "deb [arch=$(dpkg --print-architecture) signed-by=/usr/share/keyrings/hashicorp-archive-keyring.gpg] https://apt.releases.hashicorp.com $(grep -oP '(?<=UBUNTU_CODENAME=).*' /etc/os-release || lsb_release -cs) main" | sudo tee /etc/apt/sources.list.d/hashicorp.list
+        codename=$(grep -oP '(?<=UBUNTU_CODENAME=).*' /etc/os-release || lsb_release -cs)
+        echo "deb [arch=$(dpkg --print-architecture) signed-by=/usr/share/keyrings/hashicorp-archive-keyring.gpg] https://apt.releases.hashicorp.com $codename main" | \
+          sudo tee /etc/apt/sources.list.d/hashicorp.list
         sudo apt update && sudo apt install terraform
         echo "Install and start MongoDB 8.2"
         curl -fsSL https://www.mongodb.org/static/pgp/server-8.0.asc | \
@@ -69,6 +71,7 @@ jobs:
         export MONGODB_URI="mongodb://localhost:27017/tfbackend_dev"
         ./scripts/tfbeadm create-indexes
         ./scripts/tfbeadm create-user admin admin123 dummy
+      dotnet-test-args: "--report-xunit-trx --coverage --coverage-output-format cobertura"
       extra-vars: |
         Application__IsHttpsRedirectionEnabled="false"
       fossa-enabled: true
@@ -76,7 +79,7 @@ jobs:
       sonar-organization: ${{ vars.SONAR_ORG }}
       sonar-project-key: ${{ vars.SONAR_PROJECT_KEY }}
       sonar-project-name: Terraform Backend MongoDB
-      workflow-parts-version: d7663950e52d3056f15214c0f2a9ae1f12a53b44
+      workflow-parts-version: c90ba46a93ca90123f57744b47e49c1a73962cea
     secrets:
       fossa-api-key: ${{ secrets.FOSSA_API_KEY }}
       sonar-token: ${{ secrets.SONAR_TOKEN }}
@@ -88,7 +91,7 @@ jobs:
     name: Image
     needs: git-check
     if: needs.git-check.outputs.app_changed == 'true' || (github.event_name == 'workflow_dispatch' && inputs.run-image-scan)
-    uses: devpro/github-workflow-parts/.github/workflows/reusable-container-scan.yml@d7663950e52d3056f15214c0f2a9ae1f12a53b44
+    uses: devpro/github-workflow-parts/.github/workflows/reusable-container-scan.yml@c90ba46a93ca90123f57744b47e49c1a73962cea
     with:
       image-definition: "src/WebApi/Dockerfile"
       image-name: ${{ vars.CONTAINER_IMAGE_NAME }}

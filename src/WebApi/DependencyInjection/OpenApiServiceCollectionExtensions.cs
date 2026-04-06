@@ -11,7 +11,7 @@ public static class OpenApiServiceCollectionExtensions
             options.AddDocumentTransformer((doc, _, _) =>
             {
                 doc.Info = configuration.OpenApiInfo;
-                doc.Components ??= new OpenApiComponents();
+                doc.Components = new OpenApiComponents();
                 doc.Components.SecuritySchemes ??= new Dictionary<string, IOpenApiSecurityScheme>();
                 doc.Components.SecuritySchemes["basic"] = new OpenApiSecurityScheme
                 {

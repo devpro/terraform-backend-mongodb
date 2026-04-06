@@ -1,7 +1,9 @@
-﻿// creates the web application builder and adds services to the container
+﻿// creates the web application builder
 var builder = WebApplication.CreateBuilder(args);
+
+// adds services to the container
 builder.Services.AddControllers(x => x.InputFormatters.Insert(0, new RawRequestBodyFormatter()));
-builder.Services.AddEndpointsApiExplorer();
+builder.Services.AddOpenApi();
 builder.Services.AddAuthentication()
     .AddScheme<AuthenticationSchemeOptions, BasicAuthenticationHandler>(BasicAuthenticationClient.AuthenticationScheme, null);
 builder.Services.AddHealthChecks();
@@ -40,4 +42,4 @@ app.MapHealthChecks(ApplicationConfiguration.HealthCheckEndpoint)
     .AllowAnonymous();
 
 // runs the application
-app.Run();
+await app.RunAsync();

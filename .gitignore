@@ -352,6 +352,7 @@ errored.tfstate
 
 # local test outputs
 temp.txt
+**/Snapshots/*.received.txt
 
 # local configuration files
 .env

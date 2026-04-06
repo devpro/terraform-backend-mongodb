@@ -1,5 +1,5 @@
 ﻿using System.Threading.Tasks;
-using Devpro.TerraformBackend.WebApi.IntegrationTests.Hosting;
+using Withywoods.AspNetCore.Mvc.Testing;
 using Xunit;
 
 namespace Devpro.TerraformBackend.WebApi.IntegrationTests.Scenarios;

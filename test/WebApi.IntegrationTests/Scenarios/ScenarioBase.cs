@@ -6,7 +6,7 @@ using System.Threading.Tasks;
 using AwesomeAssertions;
 using CliWrap;
 using CliWrap.Buffered;
-using Devpro.TerraformBackend.WebApi.IntegrationTests.Hosting;
+using Withywoods.AspNetCore.Mvc.Testing;
 using Xunit;
 
 namespace Devpro.TerraformBackend.WebApi.IntegrationTests.Scenarios;
