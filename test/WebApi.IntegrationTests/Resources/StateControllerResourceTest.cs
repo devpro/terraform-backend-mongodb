@@ -77,7 +77,7 @@ public class StateControllerResourceTest(WebApplicationFactory<Program> factory)
 
         // Act & Assert
         var createLockResponse = await client.PostAsync($"/{Tenant}/state/{name}/lock", Serialize(stateLock), TestContext.Current.CancellationToken);
-        var lockContent = await CheckResponseAndGetContentAsync(createLockResponse, HttpStatusCode.OK, "application/json; charset=utf-8", null,
+        var lockContent = await CheckResponseAndGetContentAsync(createLockResponse, HttpStatusCode.OK, "application/json; charset=utf-8",
             cancellationToken: TestContext.Current.CancellationToken);
 
         var missingLockIdUpdateResponse = await client.PostAsync($"/{Tenant}/state/{name}", Serialize(state), TestContext.Current.CancellationToken);

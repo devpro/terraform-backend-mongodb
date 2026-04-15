@@ -109,4 +109,3 @@ Authorization: {{authHeader}}
 ### ────────────────────────────────────────────────
 DELETE {{baseUrl}}/{{tenant}}/state/{{stateName}}?ID=wrong-lock-id-999
 Authorization: {{authHeader}}
-
