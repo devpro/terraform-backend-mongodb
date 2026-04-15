@@ -139,11 +139,11 @@ docker run --rm -it -p 8000:8000 -v "${PWD}:/docs" squidfunk/mkdocs-material ser
 
 GitHub Actions are triggered to automate the integration and delivery of the application:
 
-Name      | Role                     | Definition file
-----------|--------------------------|----------------------------
-**CI**    | Continuous Integration   | `.github/workflows/ci.yaml`
-**PKG**   | Continuous Delivery      | `.github/workflows/pkg.yaml`
-**Pages** | Continuous Documentation | `.github/workflows/pages.yaml`
+Name  | Role                     | Definition file
+------|--------------------------|-------------------------------
+CI    | Continuous Integration   | `.github/workflows/ci.yaml`
+PKG   | Continuous Delivery      | `.github/workflows/pkg.yaml`
+Pages | Continuous Documentation | `.github/workflows/pages.yaml`
 
 GitHub Variables are defined (in **General** / **Security** / **Secrets and Variables** / **Actions**):
 
