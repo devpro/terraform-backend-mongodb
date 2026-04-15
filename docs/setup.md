@@ -80,10 +80,10 @@ Create a values.yaml file with your configuration by looking at examples:
     mongodb:
       enabled: true
       auth:
-        rootPassword: admin
+        rootPassword: xxx
     webapi:
       db:
-        connectionString: mongodb://root:admin@tfbackend-mongodb:27017/tfbackend_beta?authSource=admin
+        connectionString: mongodb://root:xxx@tfbackend-mongodb:27017/tfbackend_beta?authSource=admin
         databaseName: tfbackend_beta
     ```
 

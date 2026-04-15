@@ -35,11 +35,11 @@ A MongoDB must be running - the easiest way to do it is through a container (her
 docker run --name mongodb -d -p 27017:27017 mongo:8.2
 ```
 
-Configure the database:
+Configure the database (replace xxx by the password you want):
 
 ```bash
 MONGODB_CONTAINERNETWORK=bridge MONGODB_CONTAINERNAME=mongodb ./scripts/tfbeadm create-indexes
-MONGODB_CONTAINERNETWORK=bridge MONGODB_CONTAINERNAME=mongodb ./scripts/tfbeadm create-user admin admin123 dummy
+MONGODB_CONTAINERNETWORK=bridge MONGODB_CONTAINERNAME=mongodb ./scripts/tfbeadm create-user admin xxx dummy
 ```
 
 Run the web API from the build files ([.NET 10](https://dotnet.microsoft.com/download) must be installed):
@@ -105,7 +105,7 @@ docker run -it --rm --name todoblazorlocal \
 
 If you see an error, make sure to refresh the cache of the page, it can happen if the version of the application has changed.
 
-Assuming you successfully reached the Scalar website, you need to authenticate by clicking on **Authorize** and use username=admin, and password=admin123.
+Assuming you successfully reached the Scalar website, you need to authenticate by clicking on **Authorize** and use username=admin, and password=xxx.
 
 Then, you can try the different commands.
 
@@ -139,11 +139,11 @@ docker run --rm -it -p 8000:8000 -v "${PWD}:/docs" squidfunk/mkdocs-material ser
 
 GitHub Actions are triggered to automate the integration and delivery of the application:
 
-Name      | Role                     | Definition file
-----------|--------------------------|----------------------------
-**CI**    | Continuous Integration   | `.github/workflows/ci.yaml`
-**PKG**   | Continuous Delivery      | `.github/workflows/pkg.yaml`
-**Pages** | Continuous Documentation | `.github/workflows/pages.yaml`
+Name  | Role                     | Definition file
+------|--------------------------|-------------------------------
+CI    | Continuous Integration   | `.github/workflows/ci.yaml`
+PKG   | Continuous Delivery      | `.github/workflows/pkg.yaml`
+Pages | Continuous Documentation | `.github/workflows/pages.yaml`
 
 GitHub Variables are defined (in **General** / **Security** / **Secrets and Variables** / **Actions**):
 
