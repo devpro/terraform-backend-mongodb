@@ -9,6 +9,9 @@ concurrency:
   group: ${{ github.ref }}-infra
   cancel-in-progress: false
 
+permissions:
+  contents: read
+
 jobs:
   git-check:
     name: Git
@@ -24,7 +27,7 @@ jobs:
             directory: docker-nginx
           - name: Local Files
             directory: local-files
-    uses: devpro/github-workflow-parts/.github/workflows/reusable-terraform-deployment.yml@c90ba46a93ca90123f57744b47e49c1a73962cea
+    uses: devpro/github-workflow-parts/.github/workflows/reusable-terraform-deployment.yml@0fb84dd26bcb614ca4683c8e501008fccf424d51
     with:
       environment: demo
       working-directory: samples/${{ matrix.directory }}
