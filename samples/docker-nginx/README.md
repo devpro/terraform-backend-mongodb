@@ -40,7 +40,7 @@ export TF_HTTP_ADDRESS="${TFBACKEND_URL}/${TFBACKEND_TENANT}/state/docker-nginx-
 export TF_HTTP_LOCK_ADDRESS="${TFBACKEND_URL}/${TFBACKEND_TENANT}/state/docker-nginx-${ENVIRONMENT}/lock"
 export TF_HTTP_UNLOCK_ADDRESS="${TFBACKEND_URL}/${TFBACKEND_TENANT}/state/docker-nginx-${ENVIRONMENT}/lock"
 export TF_HTTP_USERNAME="admin"
-export TF_HTTP_PASSWORD="admin123"
+export TF_HTTP_PASSWORD="xxxx"
 ```
 
 Set Terraform environment variable:

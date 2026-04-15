@@ -30,7 +30,7 @@ export TF_HTTP_ADDRESS="$TFBACKEND_URL/dummy/state/local-files"
 export TF_HTTP_LOCK_ADDRESS="$TFBACKEND_URL/dummy/state/local-files/lock"
 export TF_HTTP_UNLOCK_ADDRESS="$TFBACKEND_URL/dummy/state/local-files/lock"
 export TF_HTTP_USERNAME="admin"
-export TF_HTTP_PASSWORD="admin123"
+export TF_HTTP_PASSWORD="xxx"
 terraform init -reconfigure
 ```
 

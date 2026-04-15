@@ -39,7 +39,7 @@ Configure the database:
 
 ```bash
 MONGODB_CONTAINERNETWORK=bridge MONGODB_CONTAINERNAME=mongodb ./scripts/tfbeadm create-indexes
-MONGODB_CONTAINERNETWORK=bridge MONGODB_CONTAINERNAME=mongodb ./scripts/tfbeadm create-user admin admin123 dummy
+MONGODB_CONTAINERNETWORK=bridge MONGODB_CONTAINERNAME=mongodb ./scripts/tfbeadm create-user admin xxx dummy
 ```
 
 Run the web API from the build files ([.NET 10](https://dotnet.microsoft.com/download) must be installed):
@@ -105,7 +105,7 @@ docker run -it --rm --name todoblazorlocal \
 
 If you see an error, make sure to refresh the cache of the page, it can happen if the version of the application has changed.
 
-Assuming you successfully reached the Scalar website, you need to authenticate by clicking on **Authorize** and use username=admin, and password=admin123.
+Assuming you successfully reached the Scalar website, you need to authenticate by clicking on **Authorize** and use username=admin, and password=xxx.
 
 Then, you can try the different commands.
 
