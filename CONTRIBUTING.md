@@ -161,5 +161,5 @@ Update `docs/requirements.txt` and run in bash terminal:
 ```bash
 python3 -m venv .venv
 .venv/bin/pip install pip-tools
-.venv/bin/pip-compile docs/requirements.txt --output-file docs/requirements.lock
+.venv/bin/pip-compile docs/requirements.txt --generate-hashes --output-file docs/requirements.lock
 ```

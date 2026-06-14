@@ -38,6 +38,6 @@ jobs:
           restore-keys: |
             mkdocs-material-
       - name: Install MkDocs Material
-        run: "pip install -r docs/requirements.lock --only-binary :all:"
+        run: pip install -r docs/requirements.lock
       - name: Deploy to GitHub Pages
         run: mkdocs gh-deploy --force
