@@ -25,7 +25,7 @@ public class UserRepository : RepositoryBase, IUserRepository
         var user = await _modelCollection.Find(x => x.Username == username).FirstOrDefaultAsync();
         if (user == null)
         {
-            if (Logger.IsEnabled(LogLevel.Information)) Logger.LogInformation("Authentication failed. Username {username} doesn't exist", username);
+            if (Logger.IsEnabled(LogLevel.Information)) Logger.LogInformation("Authentication failed. Username {Username} doesn't exist", username);
             return null;
         }
 
@@ -34,7 +34,7 @@ public class UserRepository : RepositoryBase, IUserRepository
             return user;
         }
 
-        if (Logger.IsEnabled(LogLevel.Information)) Logger.LogInformation("Authentication failed. Password for username {username} is incorrect", username);
+        if (Logger.IsEnabled(LogLevel.Information)) Logger.LogInformation("Authentication failed. Password for username {Username} is incorrect", username);
         return null;
     }
 }
