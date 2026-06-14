@@ -359,3 +359,6 @@ temp.txt
 
 # JetBrains IDE (Rider)
 .idea/*
+
+# Python non-sense
+.venv

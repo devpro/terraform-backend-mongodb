@@ -153,3 +153,13 @@ GitHub Variables are defined (in **General** / **Security** / **Secrets and Vari
 - `SONAR_ORG`
 - `SONAR_PROJECT_KEY`
 - `SONAR_TOKEN`
+
+## Update MarkDocs Material
+
+Update `docs/requirements.txt` and run in bash terminal:
+
+```bash
+python3 -m venv .venv
+.venv/bin/pip install pip-tools
+.venv/bin/pip-compile docs/requirements.txt --generate-hashes --output-file docs/requirements.lock
+```
