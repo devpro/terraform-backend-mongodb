@@ -12,6 +12,7 @@
     <File Path="Directory.Build.props" />
     <File Path="Directory.Packages.props" />
     <File Path="global.json" />
+    <File Path="mkdocs.yml" />
     <File Path="README.md" />
   </Folder>
   <Folder Name="/Solution Items/demo/">
@@ -23,9 +24,9 @@
     <File Path="docs/index.md" />
     <File Path="docs/project.md" />
     <File Path="docs/quickstart.md" />
+    <File Path="docs/requirements.txt" />
     <File Path="docs/setup.md" />
     <File Path="docs/usage.md" />
-    <File Path="mkdocs.yml" />
   </Folder>
   <Folder Name="/Solution Items/pipelines/">
     <File Path=".github/workflows/ci.yaml" />
