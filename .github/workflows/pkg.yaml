@@ -22,7 +22,7 @@ jobs:
     permissions:
       id-token: write
       contents: read
-    uses: devpro/github-workflow-parts/.github/workflows/reusable-container-publication.yml@0fb84dd26bcb614ca4683c8e501008fccf424d51
+    uses: devpro/github-workflow-parts/.github/workflows/reusable-container-publication.yml@fde24497b1ccb7e876e4f06869a0ec0b3f2ba7ce
     with:
       create-latest: ${{ github.ref_name == 'main' }}
       image-definition: "src/WebApi/Dockerfile"
