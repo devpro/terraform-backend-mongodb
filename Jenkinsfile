@@ -99,7 +99,7 @@ pipeline {
           def secrets = d.result.analytics.secrets.totalCount
           def report = d.reportUrl
 
-          pullRequest.comment("""## Wiz Image Scan — ${verdict}
+          githubComment message: """## Wiz Image Scan — ${verdict}
 
 | Category | Count |
 |---|---|
@@ -110,7 +110,7 @@ pipeline {
 
 [View in Wiz](${report})
 
-_[Jenkins build](${BUILD_URL})_""")
+_[Jenkins build](${BUILD_URL})_"""
         }
       }
     }
