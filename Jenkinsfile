@@ -8,12 +8,21 @@ pipeline {
           containers:
           - name: buildkit
             image: moby/buildkit:rootless
+            args:
+            - --oci-worker-no-process-sandbox
             securityContext:
               runAsUser: 1000
               runAsGroup: 1000
-            env:
-            - name: BUILDKITD_FLAGS
-              value: "--oci-worker-no-process-sandbox"
+              seccompProfile:
+                type: Unconfined
+              appArmorProfile:
+                type: Unconfined
+            volumeMounts:
+            - mountPath: /home/user/.local/share/buildkit
+              name: buildkit-cache
+          volumes:
+          - name: buildkit-cache
+            emptyDir: {}
       '''
     }
   }
