@@ -35,17 +35,17 @@ pipeline {
   }
 
   environment {
-    IMAGE_NAME = "tfbackend-mongodb"
-    IMAGE_TAG  = "${env.GIT_COMMIT?.take(7) ?: 'dev'}"
-    TARBALL    = "tfbackend-mongodb-${env.GIT_COMMIT?.take(7) ?: 'dev'}.tar"
+    TARBALL = "tfbackend-mongodb-${env.GIT_COMMIT ? env.GIT_COMMIT.take(7) : 'dev'}.tar"
+    IMAGE_SCAN_REPORT = 'wiz-image-scan.json'
+    DIR_SCAN_REPORT = 'wiz-dir-scan.json'
+    MAIN_BRANCH = 'main'
   }
 
   stages {
-
     stage('Checkout') {
       steps {
         git url: 'https://github.com/devpro/terraform-backend-mongodb.git',
-            branch: env.BRANCH_NAME ?: 'main'
+            branch: env.BRANCH_NAME ?: MAIN_BRANCH
       }
     }
 
@@ -72,17 +72,13 @@ pipeline {
 
     stage('Wiz Image Scan') {
       steps {
-        withCredentials([usernamePassword(
-          credentialsId: 'wiz-credentials',
-          usernameVariable: 'WIZ_CLIENT_ID',
-          passwordVariable: 'WIZ_CLIENT_SECRET'
-        )]) {
-          sh "./wizcli scan container-image ${TARBALL} --json-output-file wiz-image-scan.json"
+        withWizCredentials {
+          sh "./wizcli scan container-image ${TARBALL} --json-output-file ${IMAGE_SCAN_REPORT}"
         }
       }
       post {
         always {
-          archiveArtifacts artifacts: 'wiz-image-scan.json', allowEmptyArchive: true
+          archiveArtifacts artifacts: IMAGE_SCAN_REPORT, allowEmptyArchive: true
         }
       }
     }
@@ -91,13 +87,26 @@ pipeline {
       when { changeRequest() }
       steps {
         script {
-          def d = readJSON file: 'wiz-image-scan.json'
-          def verdict = d.status.verdict
-          def critical = d.result.analytics.vulnerabilities.criticalCount
-          def high = d.result.analytics.vulnerabilities.highCount
-          def medium = d.result.analytics.vulnerabilities.mediumCount
-          def secrets = d.result.analytics.secrets.totalCount
-          def report = d.reportUrl
+          def d = readJSON file: IMAGE_SCAN_REPORT
+          def verdict = d.status?.verdict ?: 'UNKNOWN'
+          def report = d.reportUrl ?: 'https://app.wiz.io'
+
+          def critical = 0
+          def high = 0
+          def medium = 0
+
+          def sbomArtifacts = d.result?.vulnerableSBOMArtifactsByNameVersion
+
+          if (sbomArtifacts) {
+            sbomArtifacts.each { artifact ->
+              def severities = artifact?.vulnerabilityFindings?.severities
+              if (severities) {
+                critical += (severities.criticalCount ?: 0)
+                high += (severities.highCount ?: 0)
+                medium += (severities.mediumCount ?: 0)
+              }
+            }
+          }
 
           def prCommentBody = """## Wiz Image Scan — ${verdict}
 
@@ -106,21 +115,20 @@ pipeline {
 | 🔴 Critical | ${critical} |
 | 🟠 High | ${high} |
 | 🟡 Medium | ${medium} |
-| 🔑 Secrets | ${secrets} |
 
-[View in Wiz](${report})
+[View Detail Report in Wiz](${report})
 
 _[Jenkins build](${env.BUILD_URL})_"""
 
           withCredentials([usernamePassword(
-            credentialsId: 'github-devpro-org-scan', 
-            usernameVariable: 'GH_USER', 
+            credentialsId: 'github-devpro-org-scan',
+            usernameVariable: 'GH_USER',
             passwordVariable: 'GH_TOKEN'
           )]) {
             writeJSON file: 'comment.json', json: [body: prCommentBody]
-            
+
             def prNumber = env.CHANGE_ID
-            
+
             sh """
               curl -s -u "\${GH_USER}:\${GH_TOKEN}" \
                    -H "Content-Type: application/json" \
@@ -134,22 +142,27 @@ _[Jenkins build](${env.BUILD_URL})_"""
     }
 
     stage('Wiz Dir Scan') {
-      when { branch 'main' }
+      when { branch pattern: "${MAIN_BRANCH}", comparator: 'EQUALS' }
       steps {
-        withCredentials([usernamePassword(
-          credentialsId: 'wiz-credentials',
-          usernameVariable: 'WIZ_CLIENT_ID',
-          passwordVariable: 'WIZ_CLIENT_SECRET'
-        )]) {
-          sh "./wizcli scan dir . --json-output-file wiz-dir-scan.json"
+        withWizCredentials {
+          sh "./wizcli scan dir . --json-output-file ${DIR_SCAN_REPORT}"
         }
       }
       post {
         always {
-          archiveArtifacts artifacts: 'wiz-dir-scan.json', allowEmptyArchive: true
+          archiveArtifacts artifacts: DIR_SCAN_REPORT, allowEmptyArchive: true
         }
       }
     }
+  }
+}
 
+def withWizCredentials(Closure body) {
+  withCredentials([usernamePassword(
+    credentialsId: 'wiz-credentials',
+    usernameVariable: 'WIZ_CLIENT_ID',
+    passwordVariable: 'WIZ_CLIENT_SECRET'
+  )]) {
+    body()
   }
 }
