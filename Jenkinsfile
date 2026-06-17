@@ -10,6 +10,9 @@ pipeline {
             image: moby/buildkit:rootless
             args:
             - --oci-worker-no-process-sandbox
+            resources:
+              requests:
+                ephemeral-storage: "4Gi"
             securityContext:
               runAsUser: 1000
               runAsGroup: 1000
@@ -20,6 +23,10 @@ pipeline {
             volumeMounts:
             - mountPath: /home/user/.local/share/buildkit
               name: buildkit-cache
+          - name: jnlp
+            resources:
+              requests:
+                ephemeral-storage: "2Gi"
           volumes:
           - name: buildkit-cache
             emptyDir: {}
