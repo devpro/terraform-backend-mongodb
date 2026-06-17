@@ -7,7 +7,7 @@ pipeline {
         spec:
           containers:
           - name: buildkit
-            image: moby/buildkit:latest-rootless
+            image: moby/buildkit:rootless
             securityContext:
               runAsUser: 1000
               runAsGroup: 1000
