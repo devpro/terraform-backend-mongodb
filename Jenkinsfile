@@ -37,7 +37,7 @@ pipeline {
   environment {
     IMAGE_NAME = "tfbackend-mongodb"
     IMAGE_TAG  = "${env.GIT_COMMIT?.take(7) ?: 'dev'}"
-    TARBALL    = "image.tar"
+    TARBALL    = "tfbackend-mongodb-${env.GIT_COMMIT?.take(7) ?: 'dev'}.tar"
   }
 
   stages {
@@ -87,11 +87,33 @@ pipeline {
       }
     }
 
-    // TODO: Post PR comment
-    // stage('Post PR Comment') {
-    //   when { changeRequest() }
-    //   steps { ... }
-    // }
+    stage('Post PR Comment') {
+      when { changeRequest() }
+      steps {
+        script {
+          def d = readJSON file: 'wiz-image-scan.json'
+          def verdict = d.status.verdict
+          def critical = d.result.analytics.vulnerabilities.criticalCount
+          def high = d.result.analytics.vulnerabilities.highCount
+          def medium = d.result.analytics.vulnerabilities.mediumCount
+          def secrets = d.result.analytics.secrets.totalCount
+          def report = d.reportUrl
+
+          pullRequest.comment("""## Wiz Image Scan — ${verdict}
+
+| Category | Count |
+|---|---|
+| 🔴 Critical | ${critical} |
+| 🟠 High | ${high} |
+| 🟡 Medium | ${medium} |
+| 🔑 Secrets | ${secrets} |
+
+[View in Wiz](${report})
+
+_[Jenkins build](${BUILD_URL})_""")
+        }
+      }
+    }
 
     stage('Wiz Dir Scan') {
       when { branch 'main' }
