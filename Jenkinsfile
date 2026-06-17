@@ -35,10 +35,9 @@ pipeline {
   }
 
   environment {
-    TARBALL = "tfbackend-mongodb-${env.GIT_COMMIT ? env.GIT_COMMIT.take(7) : 'dev'}.tar"
+    MAIN_BRANCH = 'main'
     IMAGE_SCAN_REPORT = 'wiz-image-scan.json'
     DIR_SCAN_REPORT = 'wiz-dir-scan.json'
-    MAIN_BRANCH = 'main'
   }
 
   stages {
@@ -46,6 +45,20 @@ pipeline {
       steps {
         git url: 'https://github.com/devpro/terraform-backend-mongodb.git',
             branch: env.BRANCH_NAME ?: MAIN_BRANCH
+
+        script {
+          def props = readFile('Directory.Build.props')
+          def matcher = (props =~ /<VersionPrefix>(\d+\.\d+)\.\d+<\/VersionPrefix>/)
+          if (matcher.find()) {
+            env.VERSION = matcher.group(1)
+          } else {
+            env.VERSION = 'ci'
+          }
+          matcher = null
+
+          def commitHash = env.GIT_COMMIT ? env.GIT_COMMIT.take(7) : env.BRANCH_NAME
+          env.TARBALL = "tfbackend-mongodb-${env.VERSION}.${commitHash}.tar"
+        }
       }
     }
 
@@ -142,7 +155,9 @@ _[Jenkins build](${env.BUILD_URL})_"""
     }
 
     stage('Wiz Dir Scan') {
-      when { branch pattern: "${MAIN_BRANCH}", comparator: 'EQUALS' }
+      when {
+        environment name: 'BRANCH_NAME', value: MAIN_BRANCH
+      }
       steps {
         withWizCredentials {
           sh "./wizcli scan dir . --json-output-file ${DIR_SCAN_REPORT}"
