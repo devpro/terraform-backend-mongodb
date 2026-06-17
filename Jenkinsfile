@@ -99,7 +99,7 @@ pipeline {
           def secrets = d.result.analytics.secrets.totalCount
           def report = d.reportUrl
 
-          githubComment message: """## Wiz Image Scan — ${verdict}
+          def prCommentBody = """## Wiz Image Scan — ${verdict}
 
 | Category | Count |
 |---|---|
@@ -110,7 +110,25 @@ pipeline {
 
 [View in Wiz](${report})
 
-_[Jenkins build](${BUILD_URL})_"""
+_[Jenkins build](${env.BUILD_URL})_"""
+
+          withCredentials([usernamePassword(
+            credentialsId: 'github-devpro-org-scan', 
+            usernameVariable: 'GH_USER', 
+            passwordVariable: 'GH_TOKEN'
+          )]) {
+            writeJSON file: 'comment.json', json: [body: prCommentBody]
+            
+            def prNumber = env.CHANGE_ID
+            
+            sh """
+              curl -s -u "\${GH_USER}:\${GH_TOKEN}" \
+                   -H "Content-Type: application/json" \
+                   -X POST \
+                   -d @comment.json \
+                   "https://api.github.com/repos/devpro/terraform-backend-mongodb/issues/${prNumber}/comments"
+            """
+          }
         }
       }
     }
