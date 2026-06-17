@@ -49,7 +49,7 @@ pipeline {
             buildctl build \
               --frontend dockerfile.v0 \
               --local context=. \
-              --local dockerfile=src/WebApi/Dockerfile \
+              --local dockerfile=src/WebApi \
               --output type=oci,dest=${TARBALL}
           """
         }
