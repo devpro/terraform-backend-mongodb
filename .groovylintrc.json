@@ -1,0 +1,6 @@
+{
+  "extends": "recommended-jenkinsfile",
+  "rules": {
+    "DuplicateNumberLiteral": "off"
+  }
+}

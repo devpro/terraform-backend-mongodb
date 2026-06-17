@@ -154,7 +154,18 @@ GitHub Variables are defined (in **General** / **Security** / **Secrets and Vari
 - `SONAR_PROJECT_KEY`
 - `SONAR_TOKEN`
 
-## Update MarkDocs Material
+Jenkinsfile has also been added for demo purposes.
+
+In that case go to Settings → Webhooks → Add webhook and set:
+
+- Payload URL: `https://<JENKINS_DOMAIN>/github-webhook/`
+- Content type: application/json
+- Events: Push event + Pull requests
+
+Note: if a GitHub App is configured for Jenkins with webhook configuration, the webhook doesn't need to be configured separately.
+If using a PAT (not a GitHub App), webhook is needed.
+
+## Update Material for MkDocs
 
 Update `docs/requirements.txt` and run in bash terminal:
 
