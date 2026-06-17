@@ -87,7 +87,7 @@ pipeline {
       }
     }
 
-    // Post PR comment — commented out until output schema is confirmed from a real scan
+    // TODO: Post PR comment
     // stage('Post PR Comment') {
     //   when { changeRequest() }
     //   steps { ... }
