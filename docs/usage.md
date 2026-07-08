@@ -3,7 +3,7 @@
 ## Tenant authentication
 
 API calls are secured through tenant isolation and user authentication, which are stored in the MongoDB database.
-User password is encrypted.
+User passwords are hashed with BCrypt.
 
 `tfbeadm` script is the easiest way to create the users correctly:
 

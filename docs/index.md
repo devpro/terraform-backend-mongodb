@@ -17,7 +17,7 @@ A simple, standards-compliant HTTP backend for [Terraform](https://www.terraform
 - **State file encryption at rest** - optional server-side encryption using MongoDB's native encrypted storage engine or client-side encryption
 - **Locking support implemented** - Terraform checks and prevents concurrent modifications
 - **Minimal dependencies** - simple open-source code, shipped in an image using SUSE BCI for security and performance
-- **Audit trail** - all state operations logged with workspace, user/agent, and timestamp
+- **State change history** - every state update is recorded as a JSON diff with workspace and timestamp
 
 ## When to use this backend
 
@@ -26,4 +26,4 @@ A simple, standards-compliant HTTP backend for [Terraform](https://www.terraform
 - You need strong RBAC and encryption controls
 - You prefer running one container instead of managing S3
 - You wish to integrate Terraform with your infrastructure management system
-- You want to a single, highly available source of truth
+- You want a single, highly available source of truth

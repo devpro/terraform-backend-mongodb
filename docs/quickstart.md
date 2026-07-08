@@ -28,7 +28,7 @@ TODO: add other options
 [OpenTofu](https://opentofu.org/docs/intro/install/)
 -->
 
-1. Make sure the following tools are available from the commande line:
+1. Make sure the following tools are available from the command line:
 
     - [Docker](https://docs.docker.com/engine/install/)
     - [Terraform](https://developer.hashicorp.com/terraform/install)
@@ -67,7 +67,7 @@ TODO: add other options
     terraform init
     ```
 
-6. Performs the operations indicated in Terraform project files:
+6. Perform the operations indicated in the Terraform project files:
 
     ```bash
     terraform apply

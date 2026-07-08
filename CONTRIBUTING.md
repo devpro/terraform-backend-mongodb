@@ -6,21 +6,22 @@ The application source code is in the following .NET projects:
 
 Project name               | Technology  | Project type
 ---------------------------|-------------|---------------------------
-`Common.AspNetCore`        | .NET 10     | Library
-`Common.AspNetCore.WebApi` | .NET 10     | Library
-`Common.MongoDb`           | .NET 10     | Library
-`Domain`                   | .NET 10     | Library
-`Infrastructure.MongoDb`   | .NET 10     | Library
+`Domain`                   | .NET 10     | Library (models & repository interfaces)
+`Infrastructure.MongoDb`   | .NET 10     | Library (MongoDB repository implementations)
 `WebApi`                   | ASP.NET 10  | Web application (REST API)
+`WebApi.IntegrationTests`  | .NET 10     | Test project (xunit v3)
 
-The application is using the following .NET packages (via NuGet):
+The application is using the following main .NET packages (via NuGet, versions centrally managed in `Directory.Packages.props`):
 
-Name                     | Description
--------------------------|-----------------------------
-`MongoDB.Bson`           | MongoDB BSON
-`MongoDB.Driver`         | MongoDB .NET Driver
-`Scalar.AspNetCore`      | OpenAPI web UI
-`System.Text.Json`       | JSON support
+Name                           | Description
+-------------------------------|-------------------------------------
+`BCrypt.Net-Next`              | Password hashing
+`MongoDB.Driver`               | MongoDB .NET Driver (includes BSON)
+`Scalar.AspNetCore`            | OpenAPI web UI
+`SystemTextJson.JsonDiffPatch` | JSON diffs for state history
+`Withywoods.Configuration`     | Configuration helpers
+
+The architecture is described in [docs/architecture.md](docs/architecture.md).
 
 The code was made by looking at Terraform specifications:
 
