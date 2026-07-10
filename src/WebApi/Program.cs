@@ -6,7 +6,8 @@ builder.Services.AddControllers(x => x.InputFormatters.Insert(0, new RawRequestB
 builder.Services.AddOpenApi();
 builder.Services.AddAuthentication()
     .AddScheme<AuthenticationSchemeOptions, BasicAuthenticationHandler>(BasicAuthenticationClient.AuthenticationScheme, null);
-builder.Services.AddHealthChecks();
+builder.Services.AddHealthChecks()
+    .AddCheck<MongoDbHealthCheck>("mongodb");
 builder.Services.AddInvalidModelStateLog();
 
 // reads the application configuration and configures additional services

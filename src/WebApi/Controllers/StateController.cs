@@ -107,6 +107,13 @@ public class StateController(IStateRepository stateRepository, IStateLockReposit
         input.Tenant = tenant;
         input.Name = name;
         var entry = await stateLockRepository.CreateAsync(input);
+        if (entry == null)
+        {
+            // another run acquired the lock between the check above and the insert
+            var concurrentLock = await stateLockRepository.FindOneAsync(tenant, name);
+            return Conflict(concurrentLock ?? input);
+        }
+
         return Ok(entry);
     }
 

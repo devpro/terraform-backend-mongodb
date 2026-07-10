@@ -1,6 +1,7 @@
 ﻿using System.Net;
 using System.Net.Http;
 using System.Threading.Tasks;
+using AwesomeAssertions;
 using Microsoft.AspNetCore.Mvc.Testing;
 using Xunit;
 
@@ -42,6 +43,22 @@ public class StateControllerResourceTest(WebApplicationFactory<Program> factory)
         // Assert
         await CheckResponseAndGetContentAsync(response, HttpStatusCode.Unauthorized, "application/problem+json; charset=utf-8",
             cancellationToken: TestContext.Current.CancellationToken);
+    }
+
+    [Fact]
+    [Trait("Mode", "Readonly")]
+    public async Task StateResource_GetWithMalformedAuthorizationHeader_ReturnsUnauthorized()
+    {
+        // Arrange
+        var client = CreateClient();
+        var request = new HttpRequestMessage(HttpMethod.Get, $"/{Tenant}/state/{Faker.Random.Word()}");
+        request.Headers.TryAddWithoutValidation("Authorization", "Basic ###not-base64###");
+
+        // Act
+        var response = await client.SendAsync(request, TestContext.Current.CancellationToken);
+
+        // Assert
+        response.StatusCode.Should().Be(HttpStatusCode.Unauthorized);
     }
 
     [Fact]

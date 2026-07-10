@@ -1,5 +1,6 @@
 ﻿using System.Net;
 using System.Threading.Tasks;
+using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Mvc.Testing;
 using Xunit;
 
@@ -21,6 +22,23 @@ public class HealthCheckResourceTest(WebApplicationFactory<Program> factory)
 
         // Assert
         await CheckResponseAndGetContentAsync(response, HttpStatusCode.OK, "text/plain", "Healthy",
+            cancellationToken: TestContext.Current.CancellationToken);
+    }
+
+    [Fact]
+    [Trait("Mode", "Readonly")]
+    public async Task HealthCheckResource_GetWithUnreachableDatabase_ReturnsServiceUnavailable()
+    {
+        // Arrange
+        var client = CreateClient(builderConfiguration: builder => builder.UseSetting(
+            "DatabaseSettings:ConnectionString",
+            "mongodb://localhost:27016/?directConnection=true&serverSelectionTimeoutMS=500&connectTimeoutMS=500"));
+
+        // Act
+        var response = await client.GetAsync("/health", TestContext.Current.CancellationToken);
+
+        // Assert
+        await CheckResponseAndGetContentAsync(response, HttpStatusCode.ServiceUnavailable, "text/plain", "Unhealthy",
             cancellationToken: TestContext.Current.CancellationToken);
     }
 }

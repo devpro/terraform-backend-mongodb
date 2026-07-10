@@ -24,10 +24,18 @@ public class StateLockRepository : RepositoryBase, IStateLockRepository
             .FirstOrDefaultAsync();
     }
 
-    public async Task<StateLockModel> CreateAsync(StateLockModel input)
+    public async Task<StateLockModel?> CreateAsync(StateLockModel input)
     {
-        await _modelCollection.InsertOneAsync(input);
-        return input;
+        try
+        {
+            await _modelCollection.InsertOneAsync(input);
+            return input;
+        }
+        catch (MongoWriteException exception) when (exception.WriteError.Category == ServerErrorCategory.DuplicateKey)
+        {
+            if (Logger.IsEnabled(LogLevel.Information)) Logger.LogInformation("Lock already exists for tenant {Tenant} and state {Name}", input.Tenant, input.Name);
+            return null;
+        }
     }
 
     public async Task<bool> DeleteAsync(StateLockModel input)

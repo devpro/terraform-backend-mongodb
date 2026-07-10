@@ -38,8 +38,17 @@ public class BasicAuthenticationHandler(
         }
 
         // decrypts the authorization header and split out the client id/secret
-        var authBase64Decoded = Encoding.UTF8.GetString(Convert.FromBase64String(
-            authorizationHeader.Replace("Basic ", "", StringComparison.OrdinalIgnoreCase)));
+        string authBase64Decoded;
+        try
+        {
+            authBase64Decoded = Encoding.UTF8.GetString(Convert.FromBase64String(
+                authorizationHeader.Replace("Basic ", "", StringComparison.OrdinalIgnoreCase)));
+        }
+        catch (FormatException)
+        {
+            return AuthenticateResult.Fail("Authorization header is not valid Base64");
+        }
+
         var authSplit = authBase64Decoded.Split([':'], 2);
         if (authSplit.Length != 2)
         {

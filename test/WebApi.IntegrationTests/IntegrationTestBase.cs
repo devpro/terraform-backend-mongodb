@@ -21,6 +21,8 @@ namespace Devpro.TerraformBackend.WebApi.IntegrationTests;
 public abstract class IntegrationTestBase(WebApplicationFactory<Program> factory)
     : IClassFixture<WebApplicationFactory<Program>>
 {
+    protected WebApplicationFactory<Program> Factory { get; } = factory;
+
     protected Faker Faker { get; } = new();
 
     protected Faker<StateModel> StateFaker { get; } = new("en");
@@ -32,10 +34,10 @@ public abstract class IntegrationTestBase(WebApplicationFactory<Program> factory
     protected HttpClient CreateClient(bool isAuthorizationNeeded = false, Action<IWebHostBuilder>? builderConfiguration = null)
     {
         // ref. https://blog.markvincze.com/overriding-configuration-in-asp-net-core-integration-tests/
-        Environment.SetEnvironmentVariable("Application__IsScalarEnabled", "true");
+        Environment.SetEnvironmentVariable("Features__IsScalarEnabled", "true");
 
-        var client = (builderConfiguration == null) ? factory.CreateClient()
-            : factory.WithWebHostBuilder(builderConfiguration).CreateClient();
+        var client = (builderConfiguration == null) ? Factory.CreateClient()
+            : Factory.WithWebHostBuilder(builderConfiguration).CreateClient();
 
         if (isAuthorizationNeeded)
         {
