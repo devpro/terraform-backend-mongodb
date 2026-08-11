@@ -1,80 +1,80 @@
 # Backlog
 
-Prioritized list of missing or improvable items, consolidated from the [code review](code-review.md) (2026-08-11), the existing V2 ideas in [project](project.md), and new feature requests.
-Priorities: **P1** = should be fixed before the next release, **P2** = planned, **P3** = nice to have.
+What needs to change, and why.
+Sourced from the [code review](code-review.md), the V2 ideas in [project](project.md), and new feature requests.
+Priorities: **P1** = before the next release, **P2** = planned, **P3** = nice to have.
 Size: S (hours), M (days), L (weeks).
 
-## Storage fidelity
+Completed items are not listed.
+The 2026-07-10 fixes are recorded in the review's status table and in the git history.
+Identifiers are stable references, not an ordering.
 
-The 2026-08-11 review found that the conversion between the request payload and the stored document is unguarded.
-Storing the state as a queryable BSON document is a fixed requirement, since other applications read `tf_state` directly, so every item below preserves it.
-The shape of a `tf_state` document is a published contract and will not change, so solutions that make the state opaque (GridFS, compressed binary, a raw JSON string) and solutions that restructure it (splitting `resources` into separate documents) are both ruled out.
-The 16 MB document limit is therefore accepted as permanent, and the work is to fail cleanly at it.
+## Fixed constraints
 
-ID   | Item                                                                                                             | Priority | Size | Origin
----- | ---------------------------------------------------------------------------------------------------------------- | -------- | ---- | ---------
-B-05 | Parse out-of-range JSON numbers into `Decimal128`, and render non-finite `Double` and `Decimal128` as plain JSON  | P1       | S    | Review H2
-B-27 | Return `413` and a documented limit instead of an unhandled `500` when a state exceeds the BSON document size | P1       | S    | Review H1
-B-28 | Store history patches as BSON documents and rename the `upgrade` field, so they stop hitting the limit first      | P2       | S    | Review H1, L3
-B-29 | Stop reading and re-parsing the full state on every POST: make history capture opt-in or move it off the request  | P2       | M    | Review M3
+Two constraints rule out whole classes of solution, so they are stated once rather than repeated per item.
 
-## Reliability and correctness
+The shape of a `tf_state` document is a published contract: other applications query it by resource attribute, and it will not change.
+That rules out making the state opaque (GridFS, compressed binary, a raw JSON string) and rules out restructuring it (splitting `resources` into separate documents).
+The 16 MB BSON document limit is therefore permanent, and the work is to fail cleanly at it rather than to escape it.
 
-ID   | Item                                                                                                                    | Priority | Size | Origin
----- | ----------------------------------------------------------------------------------------------------------------------- | -------- | ---- | ---------
-B-01 | Add a MongoDB ping to the health check so `/health` reflects database availability (done 2026-07-10)                    | Done     | S    | Review H1 (2026-07-10)
-B-02 | Fix the `Application__*` vs `Features:*` configuration key mismatch and test that env overrides apply (done 2026-07-10) | Done     | S    | Review H2 (2026-07-10)
-B-03 | Make lock acquisition atomic: insert first, map duplicate-key errors to `409 Conflict` (done 2026-07-10)                | Done     | S    | Review H3 (2026-07-10)
-B-04 | Return 401 instead of 500 on malformed `Authorization` headers (done 2026-07-10)                                        | Done     | S    | Review M2 (2026-07-10)
-B-06 | Delete `RawRequestBodyFormatter`, which `[Consumes]` makes unreachable while leaving a 500 on a missing content type    | P2       | S    | Review M1
-B-30 | Align CI on the compose replica-set topology, so transactions can be tested                                             | P2       | S    | Review M4
-B-31 | Make the state write and the history write atomic, once B-30 lands                                                      | P2       | S    | Review M4
-B-07 | Preserve `createdAt` on updates and add an `updatedAt` field in `tf_state`                                              | P3       | S    | Review M2
-B-08 | Propagate `CancellationToken` from controllers to the MongoDB driver                                                    | P3       | S    | Review M6
-B-09 | Anchor and widen the route `name` regex constraint, or remove it                                                        | P3       | S    | Review L1
-B-10 | Remove the redundant Scalar/OpenAPI path workaround in `BasicAuthenticationHandler`                                     | P3       | S    | Review L2
-B-32 | Bound the MongoDB health check with an explicit timeout                                                                 | P3       | S    | Review L6
-B-33 | Align `StateModel` with what `tf_state` actually stores, or delete it and move the faker to a test-local type           | P3       | S    | Review L7
+Improvements belong in the .NET layer, not in the stored representation.
+
+## Correctness
+
+ID   | Change | Why | Priority | Size
+---- | ------ | --- | -------- | ----
+B-05 | Parse out-of-range JSON numbers into `Decimal128`, and render non-finite `Double` and `Decimal128` as plain JSON | A number beyond `Int64` returns 500, and `1e400` is stored and returned as a different shape from the one Terraform wrote | P1 | S
+B-27 | Return `413` with the limit named, and document it | A state above the BSON limit currently fails as an unhandled 500 in the middle of an apply | P1 | S
+B-06 | Delete `RawRequestBodyFormatter` | `[Consumes]` makes it unreachable for every case it was written for, while still leaving a 500 on a request with no `Content-Type` | P2 | S
+B-28 | Store history patches as BSON documents and rename the `upgrade` field | The string-encoded patch reaches the document limit before the state does, and the field name does not say what it holds | P2 | S
+B-29 | Stop reading and re-parsing the whole state on every POST | Every apply pays a full read, parse and diff, whether or not the history is ever read | P2 | M
+B-30 | Run CI against a replica set, as `compose.yaml` already does | CI cannot run transactions today, which blocks B-31 and B-15 | P2 | S
+B-31 | Make the state write and the history write atomic | A failure between them leaves a history entry describing a transition that never happened | P2 | S
+B-07 | Keep `createdAt` on update and add `updatedAt` | `createdAt` currently records the last update, so the creation time is lost | P3 | S
+B-08 | Propagate `CancellationToken` to the driver | An aborted Terraform request keeps its MongoDB query running | P3 | S
+B-09 | Widen and anchor the route `name` constraint, or remove it | It requires one letter anywhere in the value, so it neither validates nor documents anything | P3 | S
+B-10 | Remove the Scalar and OpenAPI path check in `BasicAuthenticationHandler` | `AllowAnonymous` already grants access, and the check is bypassed by `/scalar` without a trailing slash | P3 | S
+B-32 | Bound the MongoDB health check with a timeout | `/health` can hold a request for the full server selection timeout while the database is down | P3 | S
+B-33 | Align `StateModel` with what `tf_state` stores, or delete it | It maps `created_at` while the repository writes `createdAt`, which is a trap for B-15 and B-16 | P3 | S
+
+## Tests
+
+The suite does reach the storage layer, including a real `terraform apply` in the scenario test.
+The gap is narrower than that: nothing asserts what came back out, and the payload never varies.
+
+ID   | Change | Why | Priority | Size
+---- | ------ | --- | -------- | ----
+B-23 | Assert that the state returned by GET equals the state that was POSTed, and drive that test from a table of payloads including numeric edge cases | Nothing compares input to output today, and the sample only ever produces strings and small integers, so no test can observe a fidelity loss | P2 | S
+B-38 | Add a concurrent lock-acquisition test | The 2026-07-10 atomicity fix is unproven under the race it was written for | P2 | S
+B-39 | Assert that a state update writes a `tf_state_history` entry | The history path has no coverage at all | P3 | S
+B-36 | Replace the process-wide environment variable in `IntegrationTestBase` with `UseSetting` | The value leaks across tests and is never reset, so the suite is order-dependent | P3 | S
 
 ## Security
 
-ID   | Item                                                                                        | Priority | Size | Origin
----- | ------------------------------------------------------------------------------------------- | -------- | ---- | ---------
-B-11 | Rate limiting and/or failed-authentication lockout, plus optional credential result caching | P2       | M    | Review M5
-B-34 | Close the username-enumeration timing oracle by verifying a dummy hash on lookup miss       | P3       | S    | Review M5
-B-12 | Request body size limits and payload validation on state and lock endpoints                 | P3       | S    | Review
-B-13 | Document secret management options (mounted secret files, Key Vault/Secrets Manager)        | P3       | S    | New
+ID   | Change | Why | Priority | Size
+---- | ------ | --- | -------- | ----
+B-11 | Rate limiting or failed-authentication lockout, with optional credential caching | A BCrypt verify runs on every request, which is a cheap CPU-exhaustion target and adds latency to every Terraform operation | P2 | M
+B-34 | Verify a dummy hash when the username lookup misses | The timing difference between a known and an unknown username is a reliable enumeration oracle | P3 | S
+B-12 | Request body size limits and payload validation | Nothing bounds a request before it reaches the driver | P3 | S
+B-13 | Document secret management options | Deployments have no guidance on mounted secret files or a secrets manager | P3 | S
 
-## Features and API
+## Features
 
-ID   | Item                                                                                                                             | Priority | Size | Origin
----- | -------------------------------------------------------------------------------------------------------------------------------- | -------- | ---- | --------------------
-B-14 | Capture caller run context (git repo, branch, dirty flag, environment), see the [feasibility study](feasibility-run-context.md)   | P2       | M    | New feature request
-B-15 | Store only the latest state in `tf_state` and previous versions in `tf_state_revision`                                           | P2       | M    | Project V2
-B-16 | State history API: list revisions, fetch a revision, reconstruct a past state                                                    | P2       | M/L  | Project V2 follow-up
-B-17 | Administrative API: list states per tenant, delete tenant data, manage users (replacing `tfbeadm`-only)                          | P3       | M    | New
-B-18 | Stale lock handling: surface lock age, optional TTL or `tfbeadm` cleanup command, force-unlock runbook                           | P3       | S/M  | Review L5
+ID   | Change | Why | Priority | Size
+---- | ------ | --- | -------- | ----
+B-14 | Capture caller run context, see the [feasibility study](feasibility-run-context.md) | Requested, and there is no way to tell which repository or branch produced a state | P2 | M
+B-15 | Keep the latest state in `tf_state` and previous versions in `tf_state_revision` | Planned for V2, and the current forward-only patch history cannot reconstruct a past state | P2 | M
+B-16 | State history API: list revisions, fetch one, reconstruct a past state | The history is written but there is no way to read it | P2 | M/L
+B-19 | OpenTelemetry SDK-native instrumentation with custom spans | Auto-instrumentation gives no visibility into MongoDB operations | P2 | M
+B-17 | Administrative API for states, tenants and users | Administration is only possible through `tfbeadm` | P3 | M
+B-18 | Stale lock handling: lock age, optional TTL, force-unlock runbook | A crashed run leaves a lock that nothing will ever release | P3 | S/M
+B-20 | Structured audit log for every state and lock operation | There is no record of who changed what | P3 | S
 
-## Observability
+## Operations and developer experience
 
-ID   | Item                                                                                      | Priority | Size | Origin
----- | ----------------------------------------------------------------------------------------- | -------- | ---- | ----------
-B-19 | OpenTelemetry SDK-native instrumentation with custom spans (including MongoDB operations) | P2       | M    | Project V2
-B-20 | Structured audit log for every state and lock operation (tenant, name, user, outcome)     | P3       | S    | New
-
-## Data management
-
-ID   | Item                                                                   | Priority | Size | Origin
----- | ---------------------------------------------------------------------- | -------- | ---- | ---------
-B-21 | Retention/TTL policy for `tf_state_history`                            | P2       | S    | Review L5
-
-## Tests and developer experience
-
-ID   | Item                                                                                                            | Priority | Size | Origin
----- | ----------------------------------------------------------------------------------------------------------------- | -------- | ---- | ---------
-B-24 | Testcontainers (or compose-based) MongoDB provisioning so `dotnet test` needs no manual setup                    | P2       | M    | Review T1
-B-35 | Replace the empty `StateFaker` with a realistic state fixture captured from a `samples/` run                     | P2       | S    | Review T2
-B-23 | Close test gaps: concurrent locks, missing `Content-Type`, history assertions, numeric edge cases, oversized state | P2       | M    | Review
-B-36 | Stop mutating process-wide environment variables in `IntegrationTestBase`, use `UseSetting` instead              | P3       | S    | Review T3
-B-25 | Align the OpenAPI document version with `VersionPrefix` automatically                                            | P3       | S    | Review L4
-B-26 | Add a `CHANGELOG.md` or automated release notes                                                                  | P3       | S    | New
+ID   | Change | Why | Priority | Size
+---- | ------ | --- | -------- | ----
+B-24 | Provision MongoDB for tests through Testcontainers or compose | The suite depends on a hand-seeded database, and against a drifted one it fails with an authentication error that points nowhere near the cause | P2 | M
+B-21 | Retention or TTL policy for `tf_state_history` | The collection grows without bound | P2 | S
+B-25 | Derive the OpenAPI document version from `VersionPrefix` | Two version numbers are kept in sync by hand | P3 | S
+B-26 | Add a `CHANGELOG.md` or automated release notes | Releases have no record of what changed | P3 | S

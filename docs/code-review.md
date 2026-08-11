@@ -279,13 +279,23 @@ Re-running against a freshly seeded database passed 13 of 13.
 Any long-lived development database drifts this way, and the failure mode does not distinguish "the code is broken" from "the database is stale".
 That makes B-24, provisioning MongoDB through Testcontainers or compose, more valuable than its P3 ranking suggests, and it is raised to P2 in the backlog.
 
-### T2. State fixtures are empty, which is why the fidelity bugs survived
+### T2. Nothing asserts what comes back out of storage
 
 **Observed.**
-`StateFaker` is declared as `new Faker<StateModel>("en")` with no rules, so every state test posts a default-constructed `StateModel` rather than anything resembling a Terraform state.
-No test has ever sent a number, a nested resource block, or a large payload through the storage layer.
-That is the direct reason H1 and H2 went unnoticed: the round-trip is exercised, but only with values that cannot expose it.
-A shared fixture built from a real state file, ideally captured from the `samples/` runs, would be a better foundation than the faker.
+The suite does exercise the storage layer with a real state.
+The scenario test drives `terraform apply` over three real resources, reads the state back, applies a second time and destroys, so a genuine Terraform state does make the full round trip.
+Two narrower gaps are what let H1 and H2 through.
+
+The round trip is never asserted.
+In `StateResource_CreateFindDelete_IsSuccess` the GET is checked for status and content type, but `expectedContent` is left unset, so the returned body is never compared to the body that was posted.
+The scenario test asserts Terraform's own output, which proves that Terraform tolerated the state rather than that the state was preserved.
+Terraform re-parses the JSON it receives, so a normalisation such as `1e3` becoming `1000.0` is invisible to it.
+
+The payload never varies.
+`samples/local-files` produces strings and small integers, because that is what a `local_file`, a `null_resource` and a `random_string` contain, and `StateFaker` is declared with no rules so it contributes a default-constructed object.
+The value classes that break cannot appear.
+
+The fix reuses what already exists: assert that the GET body equals the posted state, then drive that same test from a table of payloads that includes the numeric edge cases and an oversized document.
 
 ### T3. `IntegrationTestBase` mutates process-wide environment variables
 
