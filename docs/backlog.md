@@ -8,13 +8,13 @@ Size: S (hours), M (days), L (weeks).
 
 The 2026-08-11 review found that the conversion between the request payload and the stored document is unguarded.
 Storing the state as a queryable BSON document is a fixed requirement, since other applications read `tf_state` directly, so every item below preserves it.
-Solutions that make the state opaque, such as GridFS, compressed binary, or a raw JSON string, are ruled out for that reason.
+The shape of a `tf_state` document is a published contract and will not change, so solutions that make the state opaque (GridFS, compressed binary, a raw JSON string) and solutions that restructure it (splitting `resources` into separate documents) are both ruled out.
+The 16 MB document limit is therefore accepted as permanent, and the work is to fail cleanly at it.
 
 ID   | Item                                                                                                             | Priority | Size | Origin
 ---- | ---------------------------------------------------------------------------------------------------------------- | -------- | ---- | ---------
 B-05 | Parse out-of-range JSON numbers into `Decimal128`, and render non-finite `Double` and `Decimal128` as plain JSON  | P1       | S    | Review H2
-B-27 | Return `413` instead of an unhandled `500` when a state exceeds the BSON document limit                          | P1       | S    | Review H1
-B-37 | Remove the 16 MB ceiling by decomposing the state, storing `resources` as their own documents, designed with B-15 | P2       | L    | Review H1
+B-27 | Return `413` and a documented limit instead of an unhandled `500` when a state exceeds the BSON document size | P1       | S    | Review H1
 B-28 | Store history patches as BSON documents and rename the `upgrade` field, so they stop hitting the limit first      | P2       | S    | Review H1, L3
 B-29 | Stop reading and re-parsing the full state on every POST: make history capture opt-in or move it off the request  | P2       | M    | Review M3
 

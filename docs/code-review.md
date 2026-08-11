@@ -60,13 +60,14 @@ The effective ceiling for updating a large state is therefore lower than 16 MB, 
 
 Terraform states of this size are not exotic for a large workspace, and nothing in the documentation mentions the limit.
 
-The obvious escapes from the 16 MB limit are the wrong ones here.
-GridFS and compressed `BsonBinaryData` both raise the ceiling by making the state opaque, which breaks the applications that read `tf_state` directly and contradicts the premise of the project.
-The escape that keeps the document queryable is decomposition: a Terraform state is a small envelope (`version`, `serial`, `lineage`, `terraform_version`, `outputs`) plus a `resources` array that is responsible for essentially all of the growth.
-Storing resources as their own documents, keyed by tenant and state name, removes the ceiling, keeps every field indexable, and makes resource-level queries cheaper for the consuming applications than digging into a nested array.
-It also converges with B-15 and B-16, which need a per-revision addressing scheme anyway, so the two should be designed together.
+The 16 MB ceiling is a permanent property of this design, and it should be treated as one.
+The shape of a `tf_state` document is a published contract: other applications query it by resource attribute, and that shape will not change.
+Every way out of the limit therefore breaks something that matters more than the limit does.
+GridFS and compressed `BsonBinaryData` raise the ceiling by making the state opaque.
+Splitting the `resources` array into separate documents keeps the data queryable but changes the very shape the contract fixes.
 
-Until that lands, returning `413 Payload Too Large` with a clear message is a small change that turns a mid-apply 500 into an actionable error.
+The correct response is to accept the ceiling and fail cleanly at it.
+Return `413 Payload Too Large` with a message naming the limit, rather than letting a driver `FormatException` escape as a 500 in the middle of an apply, and document the limit alongside the backend configuration so that it is known before a workspace grows into it.
 
 ### H2. State values outside the BSON numeric range are corrupted or rejected
 
@@ -123,9 +124,9 @@ Neither has.
 - The largest stored state is 1.1 MB, which is about seven per cent of the BSON document limit.
 - No stale locks were present in `tf_state_lock`.
 
-That measurement should be repeated before either fix is scheduled, and it argues for treating H1 and H2 as cheap robustness work rather than as an emergency.
+That argues for treating H1 and H2 as cheap robustness work rather than as an emergency.
 The ranking stands, because a broken apply is a bad failure and silent corruption is hard to notice, but nothing is on fire.
-It also sets the scale for B-37: a workspace would need to grow roughly fifteenfold beyond the current largest state before decomposition becomes necessary, so that item can wait for B-15 rather than driving it.
+It also sets the scale for the ceiling: a workspace would need to grow roughly fifteenfold beyond the current largest state before it reaches 16 MB.
 
 A related correction to a common assumption.
 A crash during development cannot leave a half-written document, because a single-document write in MongoDB is atomic.
