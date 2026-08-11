@@ -114,6 +114,24 @@ A note on urgency: these values are rare in real Terraform state, which comes fr
 The finding is ranked high because the failure is a broken apply and because silent corruption is hard to detect, not because it is likely to be hit this week.
 H1 is the more probable of the two to affect a real workspace.
 
+### Calibration against real data
+
+Both findings above were reproduced with constructed inputs, so the development database was scanned on 2026-08-11 to see whether either has occurred in practice.
+Neither has.
+
+- No document in `tf_state` contains a non-finite number or any other value that fails to round-trip, across all 14 states.
+- The largest stored state is 1.1 MB, which is about seven per cent of the BSON document limit.
+- No stale locks were present in `tf_state_lock`.
+
+That measurement should be repeated before either fix is scheduled, and it argues for treating H1 and H2 as cheap robustness work rather than as an emergency.
+The ranking stands, because a broken apply is a bad failure and silent corruption is hard to notice, but nothing is on fire.
+It also sets the scale for B-37: a workspace would need to grow roughly fifteenfold beyond the current largest state before decomposition becomes necessary, so that item can wait for B-15 rather than driving it.
+
+A related correction to a common assumption.
+A crash during development cannot leave a half-written document, because a single-document write in MongoDB is atomic.
+What a crash does leave is a lock that no run will ever release, and, because of M4 below, a history entry describing a state transition that never completed.
+Those are the artefacts worth looking for after an interrupted run, not corrupt state values.
+
 ## Medium severity
 
 ### M1. A state POST without a `Content-Type` header returns 500
