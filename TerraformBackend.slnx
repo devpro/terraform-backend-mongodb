@@ -20,7 +20,10 @@
   </Folder>
   <Folder Name="/Solution Items/docs/">
     <File Path="docs/architecture.md" />
+    <File Path="docs/backlog.md" />
     <File Path="docs/CNAME" />
+    <File Path="docs/code-review.md" />
+    <File Path="docs/feasibility-run-context.md" />
     <File Path="docs/index.md" />
     <File Path="docs/project.md" />
     <File Path="docs/quickstart.md" />
