@@ -19,9 +19,13 @@ Multi-tenancy is enforced consistently through the tenant claim and the `TenantA
 CI is mature for a project of this size: Sonar, FOSSA, container CVE scanning with a zero-CVE budget, markdown and YAML linting, and scenario tests that run the real `terraform` CLI against a Kestrel-hosted instance.
 
 The three high-severity findings of the previous review were fixed and the fixes hold up under inspection.
-The theme of this round is different: the protocol layer is correct, but the **storage layer does not faithfully preserve the payload it is given**.
-Terraform state is an opaque JSON document, and the application parses it into BSON, which is a lossy and size-limited representation.
-H1 and H2 below are two faces of that single design decision, and both produce a failed `terraform apply` rather than a degraded experience.
+The theme of this round is different: the protocol layer is correct, but the **conversion between the request payload and the stored document is unguarded**.
+
+The design intent is not in question here.
+Storing the state as a queryable BSON document is the premise of the project, stated in the first line of the README and relied on by other applications that read `tf_state` directly.
+Both findings below take that constraint as given.
+The defect is that the conversion has no guard rails: values that BSON cannot represent natively are either rejected with a 500 or silently reshaped on the way out, and a document that exceeds the BSON size limit is rejected outright.
+Both produce a failed `terraform apply` rather than a degraded experience, which is why they are ranked high.
 
 ## Verification of the NuGet upgrade
 
@@ -55,8 +59,14 @@ The history patch in `tf_state_history` is stored as a JSON *string* in a single
 The effective ceiling for updating a large state is therefore lower than 16 MB, and which of the two writes fails depends on how much the state changed.
 
 Terraform states of this size are not exotic for a large workspace, and nothing in the documentation mentions the limit.
-Options, in increasing order of effort: document the ceiling and return `413 Payload Too Large` instead of 500; store the state as compressed `BsonBinaryData`, which raises the practical ceiling without changing the data model; move state bodies to GridFS, which removes the limit entirely.
-The last option interacts with B-15 and should be decided alongside it.
+
+The obvious escapes from the 16 MB limit are the wrong ones here.
+GridFS and compressed `BsonBinaryData` both raise the ceiling by making the state opaque, which breaks the applications that read `tf_state` directly and contradicts the premise of the project.
+The escape that keeps the document queryable is decomposition: a Terraform state is a small envelope (`version`, `serial`, `lineage`, `terraform_version`, `outputs`) plus a `resources` array that is responsible for essentially all of the growth.
+Storing resources as their own documents, keyed by tenant and state name, removes the ceiling, keeps every field indexable, and makes resource-level queries cheaper for the consuming applications than digging into a nested array.
+It also converges with B-15 and B-16, which need a per-revision addressing scheme anyway, so the two should be designed together.
+
+Until that lands, returning `413 Payload Too Large` with a clear message is a small change that turns a mid-apply 500 into an actionable error.
 
 ### H2. State values outside the BSON numeric range are corrupted or rejected
 
@@ -88,9 +98,21 @@ Those are semantically equivalent in JSON and are unlikely to break Terraform, b
 
 The narrower concern raised as M1 in the previous review is **withdrawn**: keys containing dots and keys prefixed with `$` round-trip correctly on MongoDB 8.2, verified with `{"tags":{"kubernetes.io/cluster":"x","$ref":"y"}}`.
 
-The durable fix is to stop treating the state as a document to be parsed.
-Storing the raw state string, and parsing a copy only when a diff is required, removes the whole class of problem and also removes the `Parse` failure path.
-It is the same change as the one suggested for H1, which is why the two should be tackled together.
+The fix does not require giving up the document model, and it is narrower than it first appears.
+Measuring what BSON can and cannot carry gives a precise scope for the change.
+
+- `Decimal128` holds both values that break today, `1e400` and a thirty-digit integer, and only gives out beyond roughly `1e6144`.
+  Parsing an out-of-range JSON number into `Decimal128` instead of letting `Int64.Parse` throw removes the 500 on the write path.
+- On the read path, relaxed Extended JSON already emits plain JSON for the types that matter: `Int32`, `Int64`, `Double` and `String` all serialise as bare JSON values, which is why ordinary Terraform states round-trip cleanly today.
+  Only two BSON types leak a `$`-prefixed wrapper, non-finite `Double` and `Decimal128`, and both leak in every output mode the driver offers.
+
+So the read path needs a thin serialisation pass that renders those two types as plain JSON numbers, and nothing else needs to change.
+That keeps `tf_state` fully queryable, keeps every field indexable, and gives Terraform strict JSON.
+It also improves what the consuming applications see, since a `Decimal128` is a usable number whereas the current `{"$numberDouble":"Infinity"}` is not.
+
+A note on urgency: these values are rare in real Terraform state, which comes from provider attributes such as counts, ports and identifiers.
+The finding is ranked high because the failure is a broken apply and because silent corruption is hard to detect, not because it is likely to be hit this week.
+H1 is the more probable of the two to affect a real workspace.
 
 ## Medium severity
 

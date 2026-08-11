@@ -6,15 +6,17 @@ Size: S (hours), M (days), L (weeks).
 
 ## Storage fidelity
 
-The 2026-08-11 review found that the storage layer does not faithfully preserve the state it is given.
-These four items share one root cause, parsing the state into BSON instead of storing it as an opaque payload, and are best designed together rather than patched one at a time.
+The 2026-08-11 review found that the conversion between the request payload and the stored document is unguarded.
+Storing the state as a queryable BSON document is a fixed requirement, since other applications read `tf_state` directly, so every item below preserves it.
+Solutions that make the state opaque, such as GridFS, compressed binary, or a raw JSON string, are ruled out for that reason.
 
-ID   | Item                                                                                                            | Priority | Size | Origin
----- | --------------------------------------------------------------------------------------------------------------- | -------- | ---- | ---------
-B-27 | Remove the 16 MB ceiling on state size, and return `413` instead of `500` until it is removed                    | P1       | M    | Review H1
-B-05 | Guarantee JSON fidelity of state round-trips: store the raw state string rather than a parsed `BsonDocument`     | P1       | M    | Review H2
-B-28 | Apply the same treatment to `tf_state_history`, whose string-encoded patch hits the 16 MB limit before the state | P1       | S    | Review H1
-B-29 | Stop reading and re-parsing the full state on every POST: make history capture opt-in or move it off the request | P2       | M    | Review M3
+ID   | Item                                                                                                             | Priority | Size | Origin
+---- | ---------------------------------------------------------------------------------------------------------------- | -------- | ---- | ---------
+B-05 | Parse out-of-range JSON numbers into `Decimal128`, and render non-finite `Double` and `Decimal128` as plain JSON  | P1       | S    | Review H2
+B-27 | Return `413` instead of an unhandled `500` when a state exceeds the BSON document limit                          | P1       | S    | Review H1
+B-37 | Remove the 16 MB ceiling by decomposing the state, storing `resources` as their own documents, designed with B-15 | P2       | L    | Review H1
+B-28 | Store history patches as BSON documents and rename the `upgrade` field, so they stop hitting the limit first      | P2       | S    | Review H1, L3
+B-29 | Stop reading and re-parsing the full state on every POST: make history capture opt-in or move it off the request  | P2       | M    | Review M3
 
 ## Reliability and correctness
 
@@ -65,7 +67,6 @@ B-20 | Structured audit log for every state and lock operation (tenant, name, us
 ID   | Item                                                                   | Priority | Size | Origin
 ---- | ---------------------------------------------------------------------- | -------- | ---- | ---------
 B-21 | Retention/TTL policy for `tf_state_history`                            | P2       | S    | Review L5
-B-22 | Store history patches as BSON documents and rename the `upgrade` field | P3       | S    | Review L3
 
 ## Tests and developer experience
 
