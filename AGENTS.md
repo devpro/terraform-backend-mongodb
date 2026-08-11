@@ -35,25 +35,27 @@ MONGODB_URI="mongodb://localhost:27017/tfbackend_dev" ./scripts/tfbeadm create-i
 MONGODB_URI="mongodb://localhost:27017/tfbackend_dev" ./scripts/tfbeadm create-user admin admin123 dummy
 ```
 
-Tests authenticate as `admin:admin123` on tenant `dummy` — these exact values are hardcoded in `IntegrationTestBase`.
+Tests authenticate as `admin:admin123` on tenant `dummy`: these exact values are hardcoded in `IntegrationTestBase`.
 The `Scenarios/` tests additionally run the real `terraform` CLI (must be on PATH) against a Kestrel-hosted instance, applying the samples under `samples/`.
 
 Full stack via containers: `docker compose up` (API on :9001), then `docker compose run --rm dbinit` to seed the test user.
 
 ## Architecture
 
-Three projects with one-way dependencies — `WebApi` → `Infrastructure.MongoDb` → `Domain`:
+Three projects with one-way dependencies: `WebApi` → `Infrastructure.MongoDb` → `Domain`.
 
-- **`src/Domain`** — repository interfaces (`IStateRepository`, `IStateLockRepository`, `IUserRepository`) and models. No logic, no infrastructure references.
-- **`src/Infrastructure.MongoDb`** — repository implementations.
-  Collections: `tf_state` (current state, stored as raw `BsonDocument` — the domain `StateModel` is only used by test fakers), `tf_state_lock`, `user` (BCrypt password hashes).
+- **`src/Domain`**: repository interfaces (`IStateRepository`, `IStateLockRepository`, `IUserRepository`) and models.
+  No logic, no infrastructure references.
+- **`src/Infrastructure.MongoDb`**: repository implementations.
+  Collections: `tf_state` (current state, stored as raw `BsonDocument`, since the domain `StateModel` is only used by test fakers), `tf_state_lock`, `user` (BCrypt password hashes).
   `tf_state_history` holds JSON-diff patches computed with `SystemTextJson.JsonDiffPatch` on every state update.
-- **`src/WebApi`** — `StateController` (all protocol logic including lock checking), Basic authentication against the `user` collection, and `TenantAuthorizationFilter` matching the route `{tenant}` against the user's tenant claim.
+- **`src/WebApi`**: `StateController` (all protocol logic including lock checking), Basic authentication against the `user` collection, and `TenantAuthorizationFilter` matching the route `{tenant}` against the user's tenant claim.
   DI wiring lives in `WebApi/DependencyInjection/`.
 
 ### Protocol constraints
 
-`StateController` implements the Terraform HTTP backend contract — don't change these without checking the spec:
+`StateController` implements the Terraform HTTP backend contract.
+Do not change the following without checking the spec:
 
 - Lock ID comes as query param `ID` (uppercase) on state POST/DELETE, and as JSON body (`StateLockModel`, `ID` property) on lock endpoints.
 - Locked state → HTTP 423; lock held by someone else → HTTP 409 with the existing lock as body.
@@ -62,12 +64,63 @@ Three projects with one-way dependencies — `WebApi` → `Infrastructure.MongoD
 
 ### Configuration
 
-`ApplicationConfiguration` wraps `IConfiguration`: `DatabaseSettings:ConnectionString`, `DatabaseSettings:DatabaseName`, `Features:IsScalarEnabled`, `Features:IsHttpsRedirectionEnabled`. Override via env vars with `__` separators (e.g. `DatabaseSettings__ConnectionString`).
+`ApplicationConfiguration` wraps `IConfiguration`: `DatabaseSettings:ConnectionString`, `DatabaseSettings:DatabaseName`, `Features:IsScalarEnabled`, `Features:IsHttpsRedirectionEnabled`.
+Override via env vars with `__` separators, for example `DatabaseSettings__ConnectionString`.
+
+## Writing style
+
+These rules apply to Markdown, code comments, commit messages, and any prose in scripts.
+
+**One sentence per line.**
+A line break only ever happens at the end of a sentence.
+Never wrap a sentence across two lines.
+There is no maximum line length: screens are wide, and the 80 character convention is not used here.
+Wrapping is handled by the editor, not by hard newlines.
+
+**Never use the em dash (`—`) or the en dash (`–`).**
+Use a colon when introducing an explanation, a comma when joining clauses, or a full stop and a new sentence.
+This applies to prose, code comments, table cells, and error message strings.
+
+**Never use the second person.**
+No "you", no "your", not even in placeholders such as `<your-token>`, which should read `<token>`.
+The documentation describes the repository, it does not address a reader.
+Write "the working tree", not "your working tree".
+Write "a contribution is planned", not "are you willing to contribute".
+
+**Other conventions.**
+Use `ini` as the fence language for `.properties` blocks, never `properties`.
+Prefer `>` over `→` when describing UI navigation, for example **Project Settings > Quality Gate**.
 
 ## Conventions
 
-- NuGet versions are managed centrally in `Directory.Packages.props` — `PackageReference` entries in csproj files have no `Version` attribute.
+### Build and code
+
+- NuGet versions are managed centrally in `Directory.Packages.props`: `PackageReference` entries in csproj files have no `Version` attribute.
 - Release version is `VersionPrefix` in `Directory.Build.props`.
 - MongoDB field names are camelCase via a global `ConventionPack` (registered in `InfrastructureServiceCollectionExtensions`).
 - Markdown and YAML are linted in CI (`.markdownlint-cli2.yaml`, `.yamllint.yaml`); C# style is enforced by `.editorconfig`.
-- Docs site is MkDocs Material (`docs/`, `mkdocs.yml`), deployed by the Pages workflow.
+- Do not run markdownlint: linting is run manually by the maintainer and in CI.
+
+### Scripts
+
+Shell scripts are named in `snake_case`, which is the standard for bash.
+`sonar_bootstrap.sh`, not `sonar-bootstrap.sh`.
+
+Scripts must be committed with the executable bit set.
+A script committed as `100644` fails on a fresh clone even though it works locally:
+
+```bash
+git update-index --chmod=+x path/to/script.sh
+```
+
+### Documentation
+
+Docs site is MkDocs Material (`docs/`, `mkdocs.yml`), deployed by the Pages workflow.
+The root `README.md` stays as short as possible.
+Shared content lives in `docs/` and is linked, never copied.
+Contributor-facing material lives in `CONTRIBUTING.md` at the repository root.
+Each sample README is self-sufficient for that sample and links out for anything generic.
+
+### Target platform
+
+Target platform is Linux with Docker, including WSL2, and `bash`.
