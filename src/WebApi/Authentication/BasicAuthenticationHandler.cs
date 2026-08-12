@@ -1,7 +1,6 @@
 ﻿using System.Security.Claims;
 using System.Text;
 using System.Text.Encodings.Web;
-using Devpro.TerraformBackend.Domain.Repositories;
 using Microsoft.Extensions.Options;
 
 namespace Devpro.TerraformBackend.WebApi.Authentication;
@@ -10,7 +9,7 @@ public class BasicAuthenticationHandler(
     IOptionsMonitor<AuthenticationSchemeOptions> options,
     ILoggerFactory logger,
     UrlEncoder encoder,
-    IUserRepository userRepository)
+    ICredentialAuthenticator credentialAuthenticator)
     : AuthenticationHandler<AuthenticationSchemeOptions>(options, logger, encoder)
 {
     protected override async Task<AuthenticateResult> HandleAuthenticateAsync()
@@ -59,12 +58,21 @@ public class BasicAuthenticationHandler(
         var clientSecret = authSplit[1];
 
         // credentials
-        var user = await userRepository.CheckAuthentication(clientId, clientSecret);
-        if (user == null)
+        var outcome = await credentialAuthenticator.AuthenticateAsync(clientId, clientSecret,
+            Context.Connection.RemoteIpAddress);
+        if (outcome.Status != AuthenticationStatus.Success || outcome.User is null)
         {
+            // The source address is logged and the supplied username is not. The address is what makes a
+            // brute force detectable and attributable, and it is the half that was missing: a run of 361
+            // failures against this API recorded not one of them. The username is attacker-controlled text
+            // that would fill the log with whatever was sent, and would capture a password verbatim the day
+            // somebody transposes the two fields.
+            Logger.LogWarning("Authentication failed from {RemoteAddress} with status {Status}",
+                Context.Connection.RemoteIpAddress?.ToString() ?? "an unknown address", outcome.Status);
             return AuthenticateResult.Fail("Invalid username or password");
         }
 
+        var user = outcome.User;
         var client = new BasicAuthenticationClient
         {
             AuthenticationType = BasicAuthenticationClient.AuthenticationScheme,

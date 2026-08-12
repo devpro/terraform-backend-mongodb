@@ -16,4 +16,39 @@ public class ApplicationConfiguration(IConfigurationRoot configurationRoot)
     public string ConnectionString => configurationRoot.TryGetSection<string>("DatabaseSettings:ConnectionString");
 
     public string DatabaseName => configurationRoot.TryGetSection<string>("DatabaseSettings:DatabaseName");
+
+    /// <summary>
+    /// How long a verified credential stays usable without running BCrypt again.
+    /// Terraform re-sends the credential on every request, so without this every operation pays a work-factor
+    /// verify, around 139 ms of CPU measured on this codebase.
+    /// </summary>
+    public TimeSpan CredentialCacheDuration =>
+        TimeSpan.FromSeconds(configurationRoot.GetValue("Authentication:CredentialCacheSeconds", 60));
+
+    /// <summary>
+    /// Consecutive failures, counted per username and source address, before that pair is refused outright.
+    /// </summary>
+    public int MaxFailedAttempts => configurationRoot.GetValue("Authentication:MaxFailedAttempts", 10);
+
+    public TimeSpan LockoutDuration =>
+        TimeSpan.FromSeconds(configurationRoot.GetValue("Authentication:LockoutSeconds", 300));
+
+    /// <summary>
+    /// Addresses of the reverse proxies whose <c>X-Forwarded-For</c> the application may believe.
+    /// </summary>
+    public string[] KnownProxies =>
+        configurationRoot.GetSection("Network:KnownProxies").Get<string[]>() ?? [];
+
+    /// <summary>
+    /// Networks, in CIDR notation, whose forwarded headers the application may believe.
+    /// </summary>
+    public string[] KnownNetworks =>
+        configurationRoot.GetSection("Network:KnownNetworks").Get<string[]>() ?? [];
+
+    /// <summary>
+    /// Believes the forwarded headers of any caller.
+    /// Needed in a cluster where the ingress address is not known in advance, and safe only where the
+    /// application cannot be reached except through that ingress.
+    /// </summary>
+    public bool TrustAllProxies => configurationRoot.GetValue("Network:TrustAllProxies", false);
 }
