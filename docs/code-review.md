@@ -301,12 +301,16 @@ Behind an ingress, `HttpContext.Connection.RemoteIpAddress` is the proxy address
 There is also a floor that no platform raises: rate limiting at the edge does not make a weak password safe, it only slows the attempt rate.
 The generated-credential guidance in S6 is what actually sets the difficulty of the guess.
 
-### Tenant isolation holds
+### Tenant isolation holds, and is now covered
 
-Stated explicitly so that it is not mistaken for an untested assumption.
 `TenantAuthorizationFilter` rejects any request whose route `{tenant}` does not exactly match the tenant claim, every repository query filters on tenant, and the controller passes the route value that the filter has already validated.
 No cross-tenant path was found.
-This is the part of the security model that is working, and it should be covered by a regression test before anything in this section is changed.
+
+`TenantIsolationTest` now holds that ground, using a second fully valid account on a second tenant.
+Asserting isolation with one account only proves that a route naming an unclaimed tenant is refused, which was already covered; what these assert is that a caller who authenticates perfectly well still cannot read, overwrite, delete or lock another tenant's state, and that the refusal leaves the state untouched rather than merely returning the right status code.
+One of the five guards the repository filter instead of the authorization filter, by writing the same state name under two tenants and checking each reads back its own.
+
+The tests were verified against a deliberately disabled `TenantAuthorizationFilter`: four of the five fail, and the fifth survives, which is the expected split given that the repository still filters on tenant.
 
 ## Medium severity
 

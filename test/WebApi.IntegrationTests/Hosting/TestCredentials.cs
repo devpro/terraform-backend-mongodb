@@ -16,4 +16,18 @@ public static class TestCredentials
     public const string Password = "admin123";
 
     public const string Tenant = "dummy";
+
+    /// <summary>
+    /// A second, fully valid account on a different tenant.
+    /// <para>
+    /// It exists so that tenant isolation can be asserted against a caller who authenticates perfectly well
+    /// and still must not reach the first tenant's state. Testing isolation with one account only proves that
+    /// a route naming an unclaimed tenant is refused, which is the half that was already covered.
+    /// </para>
+    /// </summary>
+    public const string OtherUsername = "other-admin";
+
+    public const string OtherPassword = "other123";
+
+    public const string OtherTenant = "acme";
 }

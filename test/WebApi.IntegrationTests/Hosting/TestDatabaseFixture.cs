@@ -33,7 +33,7 @@ public sealed class TestDatabaseFixture : IAsyncLifetime
 
     private IMongoDatabase _database = null!;
 
-    private ObjectId _seededUserId;
+    private readonly List<ObjectId> _seededUserIds = [];
 
     public async ValueTask InitializeAsync()
     {
@@ -44,12 +44,13 @@ public sealed class TestDatabaseFixture : IAsyncLifetime
 
         await CreateIndexesAsync();
         await CaptureBaselineAsync();
-        await SeedUserAsync();
+        await SeedUserAsync(TestCredentials.Username, TestCredentials.Password, TestCredentials.Tenant);
+        await SeedUserAsync(TestCredentials.OtherUsername, TestCredentials.OtherPassword, TestCredentials.OtherTenant);
     }
 
     public async ValueTask DisposeAsync()
     {
-        await RemoveSeededUserAsync();
+        await RemoveSeededUsersAsync();
         await VerifyDatabaseWasLeftAsFoundAsync();
     }
 
@@ -90,36 +91,36 @@ public sealed class TestDatabaseFixture : IAsyncLifetime
     /// <c>UserModel</c>, because the camelCase convention pack that maps that model is registered while the
     /// host is being built and this fixture runs before any host exists.
     /// </summary>
-    private async Task SeedUserAsync()
+    private async Task SeedUserAsync(string username, string password, string tenant)
     {
         var collection = _database.GetCollection<BsonDocument>("user");
 
         // a leftover from an interrupted run would fail the unique index on username
         await collection.DeleteManyAsync(
-            Builders<BsonDocument>.Filter.Eq("username", TestCredentials.Username),
+            Builders<BsonDocument>.Filter.Eq("username", username),
             CancellationToken.None);
 
-        _seededUserId = ObjectId.GenerateNewId();
+        var id = ObjectId.GenerateNewId();
+        _seededUserIds.Add(id);
         await collection.InsertOneAsync(new BsonDocument
         {
-            ["_id"] = _seededUserId,
-            ["username"] = TestCredentials.Username,
+            ["_id"] = id,
+            ["username"] = username,
             // the work factor is taken from the application rather than left to the library default, which is
             // 11: seeding at a different cost from the one production writes (10, through htpasswd in
             // tfbeadm) makes the seeded account slower to verify than the dummy hash, which shows up as a
             // timing difference that AuthenticationTimingTest correctly reports as an enumeration oracle
-            ["password_hash"] = BCrypt.Net.BCrypt.HashPassword(
-                TestCredentials.Password, UserRepository.StoredHashWorkFactor),
-            ["tenant"] = TestCredentials.Tenant
+            ["password_hash"] = BCrypt.Net.BCrypt.HashPassword(password, UserRepository.StoredHashWorkFactor),
+            ["tenant"] = tenant
         }, cancellationToken: CancellationToken.None);
     }
 
-    private async Task RemoveSeededUserAsync()
+    private async Task RemoveSeededUsersAsync()
     {
-        if (_seededUserId == ObjectId.Empty) return;
+        if (_seededUserIds.Count == 0) return;
 
-        await _database.GetCollection<BsonDocument>("user").DeleteOneAsync(
-            Builders<BsonDocument>.Filter.Eq("_id", _seededUserId),
+        await _database.GetCollection<BsonDocument>("user").DeleteManyAsync(
+            Builders<BsonDocument>.Filter.In("_id", _seededUserIds),
             CancellationToken.None);
     }
 
