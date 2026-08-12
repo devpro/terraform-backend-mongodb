@@ -25,13 +25,24 @@ namespace Devpro.TerraformBackend.WebApi.IntegrationTests.Resources;
 /// band rather than a direction.
 /// </para>
 /// <para>
-/// Timing tests are noisy by nature, so this one is built to be stable: it runs in-process where BCrypt
+/// Timing tests are noisy by nature, so this one is built to be stable. It runs in-process where BCrypt
 /// dominates everything else in the request, discards a warm-up round, and compares medians rather than means
-/// so that one scheduling hiccup cannot decide the result. The tolerance is well inside both defects it
-/// guards against.
+/// so that one scheduling hiccup cannot decide the result.
+/// </para>
+/// <para>
+/// The two stabilisers that matter were added after it failed roughly one run in four. The samples are
+/// **interleaved** rather than measured as one batch after the other: with two consecutive batches, any drift
+/// in machine load between them lands entirely on one series, and a run that competed with the subprocesses
+/// of the `tfbeadm` tests read 134 ms against 71 ms on code with no oracle in it at all. Alternating makes
+/// both series see the same conditions. The class also runs alone, for the same reason.
+/// </para>
+/// <para>
+/// The tolerance is deliberately not loosened to absorb noise: at a factor of two it would stop detecting the
+/// inverted oracle, which was itself a factor of two.
 /// </para>
 /// </summary>
 [Trait("Category", "IntegrationTests")]
+[Collection(NonParallelCollection.Name)]
 public class AuthenticationTimingTest(TestWebApplicationFactory factory)
     : IntegrationTestBase(factory)
 {
@@ -55,9 +66,14 @@ public class AuthenticationTimingTest(TestWebApplicationFactory factory)
 
         await Measure(client, "warm-up-user", "warm-up-password");
 
-        // Act
-        var unknownUsernameTimings = await MeasureMany(client, sample => ($"no-such-user-{sample}", "any-password"));
-        var knownUsernameTimings = await MeasureMany(client, sample => (TestCredentials.Username, $"wrong-password-{sample}"));
+        // Act: interleaved, so that a change in machine load partway through affects both series equally
+        var unknownUsernameTimings = new List<double>(Samples);
+        var knownUsernameTimings = new List<double>(Samples);
+        for (var sample = 0; sample < Samples; sample++)
+        {
+            unknownUsernameTimings.Add(await Measure(client, $"no-such-user-{sample}", "any-password"));
+            knownUsernameTimings.Add(await Measure(client, TestCredentials.Username, $"wrong-password-{sample}"));
+        }
 
         // Assert
         var unknown = Median(unknownUsernameTimings);
@@ -67,18 +83,6 @@ public class AuthenticationTimingTest(TestWebApplicationFactory factory)
         ratio.Should().BeLessThan(MaximumRatio,
             "an unknown username must cost the same as a known one, but the medians were {0:F1} ms unknown "
             + "and {1:F1} ms known, which is an enumeration oracle", unknown, known);
-    }
-
-    private static async Task<List<double>> MeasureMany(HttpClient client, Func<int, (string Username, string Password)> credentials)
-    {
-        var timings = new List<double>(Samples);
-        for (var sample = 0; sample < Samples; sample++)
-        {
-            var (username, password) = credentials(sample);
-            timings.Add(await Measure(client, username, password));
-        }
-
-        return timings;
     }
 
     private static async Task<double> Measure(HttpClient client, string username, string password)

@@ -9,8 +9,19 @@ User passwords are hashed with BCrypt.
 
 ```bash
 curl -O https://raw.githubusercontent.com/devpro/terraform-backend-mongodb/refs/heads/main/scripts/tfbeadm
-MONGODB_URI=mongodb://<myserver>:27017/<mydb> tfbeadm create-user <myusername> <mypassword> <mytenant>
+MONGODB_URI=mongodb://<myserver>:27017/<mydb> tfbeadm create-user <myusername> <mytenant>
 ```
+
+The password is read from a prompt, so it is never written to the shell history and never appears in the process list.
+To create the account without a prompt, pipe the password in:
+
+```bash
+openssl rand -base64 24 | MONGODB_URI=mongodb://<myserver>:27017/<mydb> tfbeadm create-user <myusername> <mytenant>
+```
+
+A generated credential is strongly preferred over a chosen one.
+Terraform sends this password on every request, and it is the only thing standing between the internet and the state of every workspace in the tenant, so it should be long and random and kept in a secret manager.
+The form taking the password as a third argument still works and is deprecated, because an argument is visible to every user on the host for the lifetime of the command.
 
 ## Client configuration
 

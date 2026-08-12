@@ -3,6 +3,17 @@
 MONGODB_URI="${MONGODB_URI:-mongodb://mongodb:27017/tfbackend_dev}"
 MONGODB_VERSION="${MONGODB_VERSION:-8.2}"
 
+# The BCrypt work factor every stored hash is written at.
+# It must stay in step with UserRepository.StoredHashWorkFactor: the application verifies a dummy hash at that
+# cost when a username does not exist, so an account created at a different cost is measurably slower to
+# reject and reopens the username enumeration oracle for that account alone.
+BCRYPT_WORK_FACTOR=10
+
+# Names of the variables that carry a user's values into mongosh.
+# Values are passed through the environment and read in JavaScript as process.env, never interpolated into the
+# command string, so nothing in a username, a password or a tenant can be read as JavaScript.
+MONGOSH_ENV_NAMES=(TFBEADM_USERNAME TFBEADM_PASSWORD_HASH TFBEADM_TENANT)
+
 MONGODB_INDEX_COMMANDS=(
   'db.tf_state.createIndex({"tenant": 1, "name": 1}, {unique: true})'
   'db.tf_state_history.createIndex({"tenant": 1, "name": 1})'
@@ -39,8 +50,17 @@ usage() {
   echo -e "\033[1;34mUsage:\033[0m $0 [command] [arguments...]"
   echo -e "\033[1;34mCommands:\033[0m"
   echo "  create-indexes                             : Create indexes in database"
-  echo "  create-user <username> <password> <tenant> : Create user in database"
+  echo "  create-user <username> <tenant>            : Create user in database, reading the password from a prompt or standard input"
+  echo "  create-user <username> <password> <tenant> : Deprecated, the password is visible in the process list and the shell history"
   echo "  help                                       : Show this help message"
+  echo
+  echo -e "\033[1;34mExamples:\033[0m"
+  echo "  ./scripts/tfbeadm create-user admin dummy"
+  echo "  openssl rand -base64 24 | ./scripts/tfbeadm create-user admin dummy"
+  echo
+  echo "A generated credential is strongly preferred over a chosen one."
+  echo "The backend answers a Basic credential on every Terraform request, so a guessable password is the"
+  echo "weakest part of the deployment and no rate limit in front of it changes that."
   # echo "  (no arguments)                             : Run in interactive mode"
   exit 1
 }
@@ -63,6 +83,30 @@ check_htpasswd() {
       log_info "  CentOS/RHEL: sudo yum install httpd-tools"
       exit 1
   fi
+}
+
+# Fills the named array with "-e NAME" flags for the variables that are set, so that docker forwards them
+# without the values ever appearing in an argument.
+mongosh_env_flags() {
+  local -n target=$1
+  local name
+  for name in "${MONGOSH_ENV_NAMES[@]}"; do
+    if [[ -v $name ]]; then
+      target+=(-e "$name")
+    fi
+  done
+}
+
+# Fills the named array with "NAME=value" assignments for `env`, used where the command cannot inherit the
+# caller's environment.
+mongosh_env_assignments() {
+  local -n target=$1
+  local name
+  for name in "${MONGOSH_ENV_NAMES[@]}"; do
+    if [[ -v $name ]]; then
+      target+=("$name=${!name}")
+    fi
+  done
 }
 
 execute_mongosh() {
@@ -88,7 +132,9 @@ execute_mongosh() {
 execute_mongosh_kubectl() {
   local mongodb_cmd="$1"
   log_info "Executing MongoDB command in a Kubernetes pod shell: $mongodb_cmd"
-  if output=$(kubectl exec "$MONGODB_KUBEDEPLOYNAME" -n tfbackend -- mongosh "$MONGODB_URI" --eval "$mongodb_cmd" 2>&1); then
+  local env_assignments=()
+  mongosh_env_assignments env_assignments
+  if output=$(kubectl exec "$MONGODB_KUBEDEPLOYNAME" -n tfbackend -- env "${env_assignments[@]}" mongosh "$MONGODB_URI" --eval "$mongodb_cmd" 2>&1); then
     log_info "Output:\n$output"
   else
     log_warn "$output"
@@ -110,7 +156,9 @@ execute_mongosh_package() {
 execute_mongosh_docker() {
   local mongodb_cmd="$1"
   log_info "Executing MongoDB command in a container: $mongodb_cmd"
-  if output=$(docker run --rm "mongo:$MONGODB_VERSION" bash -c "mongosh \"$MONGODB_URI\" --eval \"$mongodb_cmd\"" 2>&1); then
+  local env_flags=()
+  mongosh_env_flags env_flags
+  if output=$(docker run --rm "${env_flags[@]}" "mongo:$MONGODB_VERSION" mongosh "$MONGODB_URI" --eval "$mongodb_cmd" 2>&1); then
     log_info "Output:\n$output"
   else
     log_warn "$output"
@@ -121,7 +169,9 @@ execute_mongosh_docker() {
 execute_mongosh_docker_link() {
   local mongodb_cmd="$1"
   log_info "Executing MongoDB command in a container with a link: $mongodb_cmd"
-  if output=$(docker run --rm --link "$MONGODB_CONTAINERNAME" --network "$MONGODB_CONTAINERNETWORK" "mongo:$MONGODB_VERSION" bash -c "mongosh \"$MONGODB_URI\" --quiet --eval \"$mongodb_cmd\"" 2>&1); then
+  local env_flags=()
+  mongosh_env_flags env_flags
+  if output=$(docker run --rm --link "$MONGODB_CONTAINERNAME" --network "$MONGODB_CONTAINERNETWORK" "${env_flags[@]}" "mongo:$MONGODB_VERSION" mongosh "$MONGODB_URI" --quiet --eval "$mongodb_cmd" 2>&1); then
     log_info "Output:\n$output"
   else
     log_warn "$output"
@@ -143,31 +193,61 @@ create_indexes() {
   return $status
 }
 
+# Reads a password without echoing it and without it ever becoming an argument.
+# Prompts on a terminal, and otherwise takes one line from standard input so that the command composes with a
+# generator, for example `openssl rand -base64 24 | tfbeadm create-user admin dummy`.
+read_password() {
+  local prompt_target=$1
+  local value
+  if [ -t 0 ]; then
+    read -rsp "Password: " value < /dev/tty
+    echo >&2
+  else
+    IFS= read -r value || true
+  fi
+
+  if [ -z "$value" ]; then
+    log_error "No password provided"
+    exit 1
+  fi
+
+  printf -v "$prompt_target" '%s' "$value"
+}
+
 create_user() {
   local username=$1
   local password=$2
   local tenant=$3
   log_header "Creating user"
 
-  hash=$(htpasswd -bnBC 10 "" "$password" | tr -d ':\n')
-  if [ $? -ne 0 ] || [ -z "$hash" ]; then
+  local hash
+  if ! hash=$(printf '%s' "$password" | htpasswd -niBC "$BCRYPT_WORK_FACTOR" "" | tr -d ':\n') || [ -z "$hash" ]; then
     log_error "Failed to generate BCrypt hash"
     exit 1
   fi
 
-  creation_command=$(cat <<EOF
-db.user.insertOne({
-    username: '$username',
-    password_hash: '$(printf "%q" "$hash")',
-    tenant: '$tenant'
-})
-EOF
-  )
+  # The values travel through the environment and are read as process.env, never interpolated into the command
+  # string. That is what makes a quote in a password or a username harmless: nothing the caller supplies is
+  # ever parsed as JavaScript, and nothing is quoted through two shells by hand.
+  local creation_command='db.user.insertOne({
+    username: process.env.TFBEADM_USERNAME,
+    password_hash: process.env.TFBEADM_PASSWORD_HASH,
+    tenant: process.env.TFBEADM_TENANT
+})'
 
-  if execute_mongosh "$creation_command"; then
+  export TFBEADM_USERNAME="$username"
+  export TFBEADM_PASSWORD_HASH="$hash"
+  export TFBEADM_TENANT="$tenant"
+
+  local status=0
+  execute_mongosh "$creation_command" || status=1
+
+  unset TFBEADM_USERNAME TFBEADM_PASSWORD_HASH TFBEADM_TENANT
+
+  if [ $status -eq 0 ]; then
     log_success "User created successfully"
   else
-    log_error "User created failed"
+    log_error "User creation failed"
     exit 1
   fi
 }
@@ -189,16 +269,25 @@ if [ $# -gt 0 ]; then
       username="$1"
       shift
       if [ -z "$1" ]; then
-        log_error "No password provided"
-        usage
-      fi
-      password="$1"
-      shift
-      if [ -z "$1" ]; then
         log_error "No tenant provided"
         usage
       fi
-      tenant="$1"
+
+      # Two forms are accepted, told apart by how many arguments are left.
+      # <username> <tenant> reads the password from a prompt or standard input, and is the one to use.
+      # <username> <password> <tenant> is kept so that existing scripts and the compose dbinit service keep
+      # working, and warns, because an argument is visible in the process list to every user on the host and
+      # is written to the shell history file.
+      if [ -n "$2" ]; then
+        password="$1"
+        tenant="$2"
+        log_warn "Passing the password as an argument exposes it in the process list and the shell history."
+        log_info "Prefer: $0 create-user <username> <tenant>"
+      else
+        tenant="$1"
+        read_password password
+      fi
+
       create_user "$username" "$password" "$tenant"
       exit $?
       ;;

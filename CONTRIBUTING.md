@@ -40,7 +40,7 @@ Configure the database (replace xxx by the password you want):
 
 ```bash
 MONGODB_CONTAINERNETWORK=bridge MONGODB_CONTAINERNAME=mongodb ./scripts/tfbeadm create-indexes
-MONGODB_CONTAINERNETWORK=bridge MONGODB_CONTAINERNAME=mongodb ./scripts/tfbeadm create-user admin xxx dummy
+MONGODB_CONTAINERNETWORK=bridge MONGODB_CONTAINERNAME=mongodb ./scripts/tfbeadm create-user admin dummy
 ```
 
 Run the web API from the build files ([.NET 10](https://dotnet.microsoft.com/download) must be installed):

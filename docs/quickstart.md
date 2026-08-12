@@ -50,7 +50,7 @@ TODO: add other options
 
         ```bash
         curl -O https://raw.githubusercontent.com/devpro/terraform-backend-mongodb/refs/heads/main/scripts/tfbeadm && chmod +x ./tfbeadm
-        MONGODB_CONTAINERNAME=tfbackmdb-mongodb-1 MONGODB_CONTAINERNETWORK=tfbackmdb_default ./tfbeadm create-user admin admin123 dummy
+        MONGODB_CONTAINERNAME=tfbackmdb-mongodb-1 MONGODB_CONTAINERNETWORK=tfbackmdb_default ./tfbeadm create-user admin dummy
         ```
 
 4. Write Terraform files from a pre-configured sample:

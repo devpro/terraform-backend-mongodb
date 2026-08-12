@@ -259,14 +259,33 @@ The blast radius of the database is therefore the blast radius of every secret i
 Nothing here argues for changing the storage model.
 It argues for the controls that the model makes necessary: encryption at rest on the MongoDB deployment, a least-privilege read-only database user for the consuming applications rather than a shared one, network isolation of the database, and an explicit statement in the documentation that a `tf_state` backup is a secret-bearing artefact.
 
-### S6. Credential handling in `tfbeadm` leaks and does not constrain
+### S6. Credential handling in `tfbeadm` leaks, and the quoting hid an injection
 
-**Observed.**
-`tfbeadm create-user <username> <password> <tenant>` takes the password as a command-line argument, so it is visible in `ps` output to every other user on the host for the lifetime of the command, and it lands in the shell history file.
-No strength requirement is applied, which matters directly given the brute-force budget computed in S2.
-Reading the password from a prompt or from standard input, and documenting that the credential should be generated rather than chosen, closes both.
+**Fixed on 2026-08-12**, covered by `TfbeadmTest`.
 
-The quoting fragility already noted in the operations section belongs to the same command: a password containing a quote breaks the `printf %q` hop into `mongosh`.
+The password was taken as a command-line argument, visible in `ps` to every other user on the host for the lifetime of the command and written to the shell history, and it was passed on to `htpasswd -b` as an argument again.
+`create-user` now takes `<username> <tenant>` and reads the password from a prompt or from standard input, and `htpasswd -i` reads it from a pipe.
+The three-argument form still works, since the compose `dbinit` service and existing scripts use it, and it now warns.
+
+The quoting fragility noted in the operations section turned out to be the smaller half of a worse problem.
+Values were interpolated into a JavaScript string that was passed through two shells, and only the hash went through `printf %q`: the username and the tenant went in raw.
+That is an injection, and it was confirmed against the previous script rather than assumed.
+A username of the form
+
+```text
+x'}); db.user.insertOne({username: 'chosen-name', password_hash: '
+```
+
+closes the `insertOne` call and opens a second one, leaving the fields that follow to complete the injected document, so the command creates a second account under a username and tenant of the caller's choosing.
+The payload shape matters: appending a field is won by the later real value, and terminating with a comment only produces a syntax error.
+
+Exploiting it requires supplying the username, so the exposure is bounded by who drives the script.
+It is an operator tool today, and the flaw would become serious the moment account creation is automated from any input the operator does not control.
+
+The fix removes interpolation rather than escaping it: the username, hash and tenant now travel through the environment and are read in JavaScript as `process.env`, so nothing supplied by the caller is ever parsed as JavaScript and nothing is quoted through two shells by hand.
+The work factor is pinned to a named constant that must stay in step with `UserRepository.StoredHashWorkFactor`, since an account created at a different cost reopens the S3 oracle for that account.
+
+No strength requirement is enforced, which remains open: the usage documentation now recommends a generated credential, and the brute-force budget in S2 is why that matters.
 
 ### Where each control belongs
 
