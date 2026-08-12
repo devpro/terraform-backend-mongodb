@@ -1,6 +1,6 @@
 # Code review
 
-Assessment of the repository as of 2026-08-11 (version 1.2.3, commit `d380eaa`).
+Assessment of the repository as of 2026-08-11 (version 1.2.3, commit `d380eaa`), extended with a dedicated security pass on 2026-08-12.
 It supersedes the review of 2026-07-10 (commit `a6de57c`): every earlier finding was re-checked against the current code, and the outcome is recorded in the [status of the previous review](#status-of-the-previous-review).
 The review covers source code, tests, CI/CD workflows, container packaging, and operational tooling.
 
@@ -21,9 +21,14 @@ CI is mature for a project of this size: Sonar, FOSSA, container CVE scanning wi
 The three high-severity findings of the previous review were fixed and the fixes hold up under inspection.
 The theme of this round is different: the protocol layer is correct, but the **conversion between the request payload and the stored document is unguarded**.
 
+The security pass added on 2026-08-12 found a second theme, and it is now the more urgent of the two.
+Tenant isolation is sound, and the multi-tenancy model holds under inspection.
+What is missing is everything around the credential: **there is no rate limiting, no lockout, no attributable record of a failed authentication, and the cost of rejecting a bad password is paid in full by the server on every attempt**.
+The application is in daily production use, so the [security](#security) section is ranked ahead of the medium findings.
+
 The design intent is not in question here.
-Storing the state as a queryable BSON document is the premise of the project, stated in the first line of the README and relied on by other applications that read `tf_state` directly.
-Both findings below take that constraint as given.
+Storing the state as a queryable BSON document is the premise of the project, stated in the first line of the README, fixed in `AGENTS.md`, and relied on by other applications that read `tf_state` directly.
+Every finding below takes that constraint as given.
 The defect is that the conversion has no guard rails: values that BSON cannot represent natively are either rejected with a 500 or silently reshaped on the way out, and a document that exceeds the BSON size limit is rejected outright.
 Both produce a failed `terraform apply` rather than a degraded experience, which is why they are ranked high.
 
@@ -133,6 +138,176 @@ A crash during development cannot leave a half-written document, because a singl
 What a crash does leave is a lock that no run will ever release, and, because of M4 below, a history entry describing a state transition that never completed.
 Those are the artefacts worth looking for after an interrupted run, not corrupt state values.
 
+## Security
+
+This section supersedes M5 of the first pass and is ranked ahead of the medium findings, because the application is in daily production use and the authentication endpoint is the only thing standing between the public internet and the infrastructure state of every workspace.
+
+### What Terraform allows, and what it does not
+
+The threat model is shaped by the client, which cannot be changed.
+The `http` backend authenticates with `username` and `password`, sent as an HTTP Basic header on every single request, and it offers no bearer token, no OAuth flow and no custom headers.
+Two consequences follow and neither is negotiable.
+
+- A long-lived credential travels on every request, so transport security is not optional and the credential cannot be short-lived.
+- The server pays the cost of verifying that credential on every request, including on every unauthenticated attempt.
+
+One option is often missed: the `http` backend does support mutual TLS through `client_certificate_pem`, `client_private_key_pem` and `client_ca_certificate_pem`.
+That is a Terraform-native way to add a second factor in front of Basic authentication, and it is the single largest available improvement to the authentication posture.
+
+### S1. Unlimited authentication attempts, with no lockout and no record
+
+**Fixed on 2026-08-12**, covered by `AuthenticationLockoutTest`.
+
+`ThrottledCredentialAuthenticator` counts consecutive failures and refuses the pair once the threshold is reached, and `BasicAuthenticationHandler` now logs every failure with the caller's address instead of the supplied username.
+
+Two decisions in that fix are worth stating, because both look like details and are not.
+
+The lockout is scoped to the username **and the caller's address together**, never to the username alone.
+A lockout on the username alone hands a denial of service to anybody on the internet: guessing at `admin` from anywhere would lock the real operator out of the backend their applies depend on, which is a worse outcome than the attack.
+An attacker spread across many addresses still gets only the configured allowance per address, and the volume case belongs to the ingress rate limit in S7 rather than to the application.
+
+A lockout answers with the same `401` as a wrong password.
+Answering with `429` would tell an attacker which usernames exist and which guesses were worth making, which is the oracle S3 exists to close.
+
+The finding as originally proven follows.
+
+**Proven.**
+There is no rate limiting, no failed-authentication lockout, and no backoff anywhere in the pipeline.
+
+```bash
+# 50 consecutive wrong passwords for a known account
+for i in $(seq 1 50); do
+  curl -s -o /dev/null -w "%{http_code} " -u "admin:guess$i" http://localhost:5293/dummy/state/probe
+done
+```
+
+All 50 returned `401` in 6.94 seconds, with no throttling, no `429`, and no growing delay.
+The 51st attempt was served exactly like the first.
+
+The absence of a record is the more serious half.
+The run above produced 361 authentication failures in the application log, and not one of them carries a source IP address, so a brute-force campaign is neither detectable nor attributable after the fact.
+`UserRepository.CheckAuthentication` logs the attacker-supplied username at `Information` level, which is the wrong half of the pair to record: it fills the log with attacker-controlled text, and it will capture a password verbatim on the day a user transposes the two fields.
+
+The fix is a rate limiter keyed on source IP and on username, a lockout after a threshold of consecutive failures, and an authentication-failure log carrying the source IP rather than the supplied username.
+
+### S2. BCrypt on every request is a CPU-exhaustion lever
+
+**Fixed on 2026-08-12.**
+A verified credential is now cached for a configurable window, 60 seconds by default, so repeat traffic from the same run no longer pays BCrypt.
+The cache is keyed by an HMAC of the username and password under a salt generated per process, so an entry cannot be carried back to a credential and nothing survives a restart.
+Only successes are cached: a wrong password must always pay the verify and always reach the lockout counter, or the cache would become a way around S1.
+
+The measured effect on the suite is a drop from roughly 9 seconds to 6.
+
+The finding as originally proven follows.
+
+**Proven, with the severity calibrated below.**
+The stored hashes are `$2b$10$`, so every request pays a work-factor-10 verify.
+Measured on this instance, a request that reaches BCrypt costs about 139 ms of CPU, and the credential is verified again on every request because Terraform re-sends it.
+
+Calibration matters here, because the finding is easy to overstate.
+On the 22-core development machine, 100 concurrent failed authentications completed in 0.96 s and `/health` continued to answer in 3 to 6 ms throughout.
+Nothing was saturated.
+The exposure is a function of the CPU limit of the deployment, not of the code: at roughly 139 ms per attempt, one core absorbs about seven attempts per second before it is fully consumed, and a container limited to one or two cores is therefore within reach of a single attacker on a domestic connection.
+
+That also sets the brute-force budget.
+Without the lockout of S1, an attacker gets on the order of seven guesses per second per core, which is around 600,000 guesses per day against a single core.
+That is fatal to a human-chosen password and irrelevant to a high-entropy generated one, which is why the credential guidance in S6 is part of this fix rather than separate from it.
+
+A short-lived cache of successful verifications removes BCrypt from the hot path for legitimate traffic and shrinks the attack surface to first-contact requests.
+It also removes the constant latency that every Terraform operation currently pays.
+
+### S3. The username enumeration oracle is blatant
+
+**Fixed on 2026-08-12**, covered by `AuthenticationTimingTest`, and worth reading for how the fix went wrong first.
+
+`UserRepository` now verifies a dummy hash when the lookup misses, so both outcomes cost a BCrypt verify.
+The first attempt at that closed nothing: the dummy was generated at the library's default work factor of 11 while every stored hash is written at 10, so an unknown username became roughly twice as *slow* as a known one, 123 to 184 ms against 58 to 74 ms.
+An inverted oracle is still an oracle.
+The work factor is now pinned in `UserRepository.StoredHashWorkFactor` and the test fixture seeds through the same constant, since a user created at a different cost reopens the gap for that account.
+After the fix both paths measure 82 to 90 ms.
+
+The original finding follows, since the reproduction is the regression test.
+
+**Proven.**
+`UserRepository.CheckAuthentication` returns immediately when the username does not exist and runs BCrypt when it does, so the two cases are separated by more than an order of magnitude.
+
+```bash
+curl -s -o /dev/null -w "%{time_total}\n" -u "nosuchuser:whatever" http://localhost:5293/dummy/state/probe
+curl -s -o /dev/null -w "%{time_total}\n" -u "admin:wrongpassword"  http://localhost:5293/dummy/state/probe
+```
+
+An unknown username answers in 3 to 11 ms, a known one in 160 to 175 ms.
+The gap is roughly fortyfold and needs no statistics to read, so an attacker can enumerate the valid accounts of every tenant before spending a single guess on a password.
+Verifying against a fixed dummy hash when the lookup misses equalises the two paths and costs one line.
+
+### S4. Basic credentials depend entirely on transport security
+
+**Observed.**
+`Features:IsHttpsRedirectionEnabled` defaults to `true` in `appsettings.json`, which is the right default, but the container serves plain HTTP on 8080 and TLS is expected to terminate at an ingress that is outside this repository.
+HSTS is not configured anywhere.
+Since the password is replayed on every request, a single plaintext hop exposes a credential that unlocks the state of every workspace in the tenant.
+The deployment documentation should state that TLS termination is mandatory rather than recommended, and that `skip_cert_verification` in a backend block defeats the protection it appears to configure.
+
+### S5. Terraform state is a secret store, and `tf_state` holds it in the clear
+
+**Observed.**
+This follows from the storage contract rather than from a defect, which is exactly why it needs to be written down.
+A Terraform state contains provider credentials, generated passwords and private keys in plaintext, and the design of this project stores that state as a queryable document that other applications, `liveship` among them, read directly.
+The blast radius of the database is therefore the blast radius of every secret in every managed workspace.
+
+Nothing here argues for changing the storage model.
+It argues for the controls that the model makes necessary: encryption at rest on the MongoDB deployment, a least-privilege read-only database user for the consuming applications rather than a shared one, network isolation of the database, and an explicit statement in the documentation that a `tf_state` backup is a secret-bearing artefact.
+
+### S6. Credential handling in `tfbeadm` leaks and does not constrain
+
+**Observed.**
+`tfbeadm create-user <username> <password> <tenant>` takes the password as a command-line argument, so it is visible in `ps` output to every other user on the host for the lifetime of the command, and it lands in the shell history file.
+No strength requirement is applied, which matters directly given the brute-force budget computed in S2.
+Reading the password from a prompt or from standard input, and documenting that the credential should be generated rather than chosen, closes both.
+
+The quoting fragility already noted in the operations section belongs to the same command: a password containing a quote breaks the `printf %q` hop into `mongosh`.
+
+### Where each control belongs
+
+Most of this section should not be built in C#, and saying which parts should is the useful half of the answer.
+
+The dividing line is what the control needs to know.
+A control that needs only the connection, the request rate or the certificate belongs to the platform, which sees those before any application code runs and enforces them across every replica at once.
+A control that needs the identity inside the request belongs to the application, because a Basic credential is Base64 inside a header and nothing in front of the application can read the username out of it without decoding credentials in the proxy, which is worse than the problem it solves.
+
+Control | Where | Why
+------- | ----- | ---
+Rate limit by source IP | Platform | Ingress, WAF or CDN rejects the request before any CPU is spent on it, holds one counter across all replicas, and survives a restart. An in-process limiter is per-pod and resets on deploy.
+TLS termination and HSTS | Platform | Standard ingress responsibility, with certificate rotation already solved there.
+Mutual TLS | Platform | The ingress validates the client certificate and passes the verified subject as a header. Doing it in Kestrel means owning certificate distribution and revocation.
+Encryption at rest, network isolation, database RBAC | Platform | A managed MongoDB (Atlas or the cloud provider's equivalent) gives all three, plus database auditing, with no application code.
+Alerting on authentication-failure bursts | Platform | The `compose.yaml` OpenTelemetry collector is already the pipeline. The application emits the event, the platform correlates and alerts.
+**Lockout after N consecutive failures for one account** | **Application** | Needs the username, which only the application decodes, and needs state tied to the user record.
+**Short-lived credential cache** | **Application** | Purely internal to the authentication handler. Nothing external can shortcut a BCrypt verify.
+**Dummy-hash verify on a username miss** | **Application** | The timing oracle is created inside `CheckAuthentication` and can only be closed there.
+**Authentication-failure events carrying the source IP** | **Application** | The platform can only alert on what the application emits, and today it emits no IP at all.
+**`tfbeadm` credential handling** | **Application** | An operator tool in this repository.
+
+Two things follow from the table.
+
+The irreducible application work is small, which is the argument for doing it: the four application rows are a cache, one dummy-hash line, a lockout counter and a log field.
+That is days, not weeks, and none of it depends on which platform the deployment lands on.
+
+The platform rows are worth nothing if the application cannot trust what the platform tells it.
+Behind an ingress, `HttpContext.Connection.RemoteIpAddress` is the proxy address, so an authentication-failure log carrying the source IP and any per-IP decision inside the application are both wrong until `UseForwardedHeaders` is configured with the known proxies and networks.
+`Program.cs` does not configure it today, which makes it a prerequisite for S1 and for B-41 rather than a detail.
+
+There is also a floor that no platform raises: rate limiting at the edge does not make a weak password safe, it only slows the attempt rate.
+The generated-credential guidance in S6 is what actually sets the difficulty of the guess.
+
+### Tenant isolation holds
+
+Stated explicitly so that it is not mistaken for an untested assumption.
+`TenantAuthorizationFilter` rejects any request whose route `{tenant}` does not exactly match the tenant claim, every repository query filters on tenant, and the controller passes the route value that the filter has already validated.
+No cross-tenant path was found.
+This is the part of the security model that is working, and it should be covered by a regression test before anything in this section is changed.
+
 ## Medium severity
 
 ### M1. A state POST without a `Content-Type` header returns 500
@@ -185,13 +360,8 @@ CI still installs a standalone `mongod`, which cannot run transactions, so align
 
 ### M5. BCrypt verification on every request, with no throttling
 
-**Observed.**
-Each authenticated request costs a BCrypt verify at work factor 10, roughly 50 to 100 ms of CPU.
-There is no rate limiting, no failed-login lockout, and no short-lived credential cache, so the endpoint is an inexpensive CPU-exhaustion target and adds constant latency to every Terraform operation.
-
-`UserRepository.CheckAuthentication` adds a second, smaller problem: `BCrypt.Verify` runs only when the username exists, so an unknown username returns in about a millisecond while a known one takes about a hundred.
-That difference is a reliable username-enumeration oracle.
-Verifying against a fixed dummy hash when the lookup misses equalises the two paths and costs one line.
+**Superseded.**
+Promoted to the [security](#security) section and split into S1, S2 and S3, where each half is now proven with measurements rather than estimated.
 
 ### M6. Cancellation tokens are not propagated
 
@@ -279,6 +449,10 @@ Re-running against a freshly seeded database passed 13 of 13.
 Any long-lived development database drifts this way, and the failure mode does not distinguish "the code is broken" from "the database is stale".
 That makes B-24, provisioning MongoDB through Testcontainers or compose, more valuable than its P3 ranking suggests, and it is raised to P2 in the backlog.
 
+The drift recurred within a day.
+On 2026-08-12 the local `tfbackend_dev` database held four users, and `admin` belonged to tenant `platform-eng` rather than to `dummy`, so every test that authenticates as `admin:admin123` on tenant `dummy` fails with a `401` that says nothing about the cause.
+A suite failing on authentication is therefore a reason to reseed before it is a reason to read the code, and the recurrence raises B-24 to P1.
+
 ### T2. Nothing asserts what comes back out of storage
 
 **Observed.**
@@ -344,7 +518,7 @@ M1 State JSON round-trips through Extended JSON | **Escalated** | H2, proven to 
 M2 Malformed `Authorization` header returns 500 | Fixed | Closed, covered by a test
 M3 `createdAt` is overwritten on every update | Confirmed | M2
 M4 Raw `text/plain` state POST likely fails with 500 | **Corrected** | M1, `text/plain` returns 415; the real hole is a missing `Content-Type`
-M5 BCrypt on every request, no throttling | Confirmed | M5, extended with a timing oracle
+M5 BCrypt on every request, no throttling | **Escalated** | S1, S2 and S3, all three now proven by measurement
 M6 Cancellation tokens are not propagated | Confirmed | M6
 L1 Route name constraint is unanchored | Confirmed | L1, proven
 L2 Authentication handler path workaround is redundant | Confirmed | L2, proven

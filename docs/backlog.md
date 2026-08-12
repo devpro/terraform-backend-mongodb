@@ -13,11 +13,47 @@ Identifiers are stable references, not an ordering.
 
 Two constraints rule out whole classes of solution, so they are stated once rather than repeated per item.
 
-The shape of a `tf_state` document is a published contract: other applications query it by resource attribute, and it will not change.
+The data model is a published contract: other applications query it by resource attribute, and it will not change.
+`tf_state` holds the latest version only, one document per `{tenant, name}`, and `tf_state_history` holds the computed change between one version and the next.
 That rules out making the state opaque (GridFS, compressed binary, a raw JSON string) and rules out restructuring it (splitting `resources` into separate documents).
 The 16 MB BSON document limit is therefore permanent, and the work is to fail cleanly at it rather than to escape it.
 
 Improvements belong in the .NET layer, not in the stored representation.
+The model changes only when the maintainer specifically asks for it, and an item in this backlog is not such a request.
+
+Three items below would change it and are therefore **blocked pending confirmation**, marked `needs decision` rather than removed, because each solves a real problem and the call is the maintainer's:
+
+- **B-07** adds an `updatedAt` field to `tf_state`.
+- **B-28** changes the `tf_state_history` document: the patch stored as BSON rather than as a string, and the `upgrade` field renamed.
+- **B-15** introduces a `tf_state_revision` collection, which conflicts directly with `tf_state` holding the latest version only. It came from the V2 ideas in [project](project.md) and predates the rule.
+
+The second constraint is the client.
+Terraform's `http` backend sends a Basic credential on every request and supports no bearer token, no OAuth flow and no custom headers, so the authentication scheme cannot be replaced.
+It does support mutual TLS (`client_certificate_pem`, `client_private_key_pem`, `client_ca_certificate_pem`), which is the only Terraform-native way to add a second factor.
+
+## Security
+
+Ranked first because the application is in daily production use and its database holds, in the clear, every secret of every managed workspace.
+Sourced from the [security section](code-review.md#security) of the code review.
+
+The application-side core is done: the failed-attempt lockout, the credential cache, the dummy-hash verify that closes the enumeration oracle, authentication failures logged with the caller's address, and the trusted-proxy configuration those two depend on.
+What remains is mostly the platform's half.
+
+Most of this belongs to the platform rather than to C#, and the [split is set out in the review](code-review.md#where-each-control-belongs).
+The `Where` column below records the outcome, so that no item is built twice or assumed to be somebody else's.
+The platform items land in the Helm chart, which lives in `devpro/helm-charts` rather than here, so each one needs an issue in that repository and a matching note in [setup](setup.md).
+
+ID   | Change | Why | Where | Priority | Size
+---- | ------ | --- | ----- | -------- | ----
+B-53 | Rate limit by source IP at the ingress, and alert on authentication-failure bursts through the existing collector | The edge rejects a request before any CPU is spent on it and holds one counter across every replica, which an in-process limiter cannot | Platform | P1 | S
+B-42 | Document that TLS termination is mandatory, and add HSTS | The password is replayed on every request, so one plaintext hop exposes every workspace in the tenant, and `skip_cert_verification` silently defeats the protection it appears to configure | Platform | P1 | S
+B-43 | Document the database as a secret-bearing store: encryption at rest, a least-privilege read-only user for consuming applications, network isolation, and backups treated as secrets | A Terraform state holds provider credentials and private keys in plaintext, and the storage contract makes `tf_state` directly readable by other applications | Platform | P1 | S
+B-44 | Read the `tfbeadm` password from a prompt or standard input instead of `argv`, and document generated rather than chosen credentials | The password is visible in `ps` to every user on the host and lands in the shell history, and no rate limit at the edge makes a weak password safe | App | P2 | S
+B-45 | Add a regression test for cross-tenant access | Tenant isolation is the part of the security model that works, and nothing currently proves it stays that way | App | P2 | S
+B-13 | Document secret management options for the deployment itself | Deployments have no guidance on mounted secret files or a secrets manager for the MongoDB connection string | Platform | P3 | S
+B-46 | Validate a client certificate at the ingress and pass the verified subject to the application | It is the only second factor the Terraform client can offer, and the ingress already owns certificate distribution and revocation | Platform | P3 | M
+B-12 | Lower the request body size limit below the Kestrel default of 30 MB | The default sits above the 16 MB BSON ceiling, so an oversized state reaches the driver and fails as a 500 rather than being rejected at the edge | App | P3 | S
+B-20 | Structured audit log for every state and lock operation | There is no record of who changed what | App | P3 | S
 
 ## Correctness
 
@@ -26,11 +62,11 @@ ID   | Change | Why | Priority | Size
 B-05 | Parse out-of-range JSON numbers into `Decimal128`, and render non-finite `Double` and `Decimal128` as plain JSON | A number beyond `Int64` returns 500, and `1e400` is stored and returned as a different shape from the one Terraform wrote | P1 | S
 B-27 | Return `413` with the limit named, and document it | A state above the BSON limit currently fails as an unhandled 500 in the middle of an apply | P1 | S
 B-06 | Delete `RawRequestBodyFormatter` | `[Consumes]` makes it unreachable for every case it was written for, while still leaving a 500 on a request with no `Content-Type` | P2 | S
-B-28 | Store history patches as BSON documents and rename the `upgrade` field | The string-encoded patch reaches the document limit before the state does, and the field name does not say what it holds | P2 | S
+B-28 | Store history patches as BSON documents and rename the `upgrade` field (**needs decision**, changes the data model) | The string-encoded patch reaches the document limit before the state does, and the field name does not say what it holds | P2 | S
 B-29 | Stop reading and re-parsing the whole state on every POST | Every apply pays a full read, parse and diff, whether or not the history is ever read | P2 | M
 B-30 | Run CI against a replica set, as `compose.yaml` already does | CI cannot run transactions today, which blocks B-31 and B-15 | P2 | S
 B-31 | Make the state write and the history write atomic | A failure between them leaves a history entry describing a transition that never happened | P2 | S
-B-07 | Keep `createdAt` on update and add `updatedAt` | `createdAt` currently records the last update, so the creation time is lost | P3 | S
+B-07 | Keep `createdAt` on update and add `updatedAt` (**needs decision**, changes the data model) | `createdAt` currently records the last update, so the creation time is lost | P3 | S
 B-08 | Propagate `CancellationToken` to the driver | An aborted Terraform request keeps its MongoDB query running | P3 | S
 B-09 | Widen and anchor the route `name` constraint, or remove it | It requires one letter anywhere in the value, so it neither validates nor documents anything | P3 | S
 B-10 | Remove the Scalar and OpenAPI path check in `BasicAuthenticationHandler` | `AllowAnonymous` already grants access, and the check is bypassed by `/scalar` without a trailing slash | P3 | S
@@ -40,41 +76,32 @@ B-33 | Align `StateModel` with what `tf_state` stores, or delete it | It maps `c
 ## Tests
 
 The suite does reach the storage layer, including a real `terraform apply` in the scenario test.
-The gap is narrower than that: nothing asserts what came back out, and the payload never varies.
+Database isolation is done, and the rules it now runs under are described in `AGENTS.md`.
+The remaining gap is narrower: nothing asserts what came back out, and the payload never varies.
 
 ID   | Change | Why | Priority | Size
 ---- | ------ | --- | -------- | ----
+B-50 | Decide whether deleting a state should also delete its history | `StateRepository.DeleteAsync` removes only the `tf_state` document, so history entries survive their state forever in production. The scenario and resource tests now clean up all three collections themselves, which leaves only the product question | P2 | S
 B-23 | Assert that the state returned by GET equals the state that was POSTed, and drive that test from a table of payloads including numeric edge cases | Nothing compares input to output today, and the sample only ever produces strings and small integers, so no test can observe a fidelity loss | P2 | S
 B-38 | Add a concurrent lock-acquisition test | The 2026-07-10 atomicity fix is unproven under the race it was written for | P2 | S
 B-39 | Assert that a state update writes a `tf_state_history` entry | The history path has no coverage at all | P3 | S
-B-36 | Replace the process-wide environment variable in `IntegrationTestBase` with `UseSetting` | The value leaks across tests and is never reset, so the suite is order-dependent | P3 | S
-
-## Security
-
-ID   | Change | Why | Priority | Size
----- | ------ | --- | -------- | ----
-B-11 | Rate limiting or failed-authentication lockout, with optional credential caching | A BCrypt verify runs on every request, which is a cheap CPU-exhaustion target and adds latency to every Terraform operation | P2 | M
-B-34 | Verify a dummy hash when the username lookup misses | The timing difference between a known and an unknown username is a reliable enumeration oracle | P3 | S
-B-12 | Request body size limits and payload validation | Nothing bounds a request before it reaches the driver | P3 | S
-B-13 | Document secret management options | Deployments have no guidance on mounted secret files or a secrets manager | P3 | S
 
 ## Features
 
 ID   | Change | Why | Priority | Size
 ---- | ------ | --- | -------- | ----
 B-14 | Capture caller run context, see the [feasibility study](feasibility-run-context.md) | Requested, and there is no way to tell which repository or branch produced a state | P2 | M
-B-15 | Keep the latest state in `tf_state` and previous versions in `tf_state_revision` | Planned for V2, and the current forward-only patch history cannot reconstruct a past state | P2 | M
+B-15 | Keep previous versions in a `tf_state_revision` collection (**needs decision**, changes the data model) | Planned for V2, and the current forward-only patch history cannot reconstruct a past state | P2 | M
 B-16 | State history API: list revisions, fetch one, reconstruct a past state | The history is written but there is no way to read it | P2 | M/L
 B-19 | OpenTelemetry SDK-native instrumentation with custom spans | Auto-instrumentation gives no visibility into MongoDB operations | P2 | M
 B-17 | Administrative API for states, tenants and users | Administration is only possible through `tfbeadm` | P3 | M
 B-18 | Stale lock handling: lock age, optional TTL, force-unlock runbook | A crashed run leaves a lock that nothing will ever release | P3 | S/M
-B-20 | Structured audit log for every state and lock operation | There is no record of who changed what | P3 | S
 
 ## Operations and developer experience
 
 ID   | Change | Why | Priority | Size
 ---- | ------ | --- | -------- | ----
-B-24 | Provision MongoDB for tests through Testcontainers or compose | The suite depends on a hand-seeded database, and against a drifted one it fails with an authentication error that points nowhere near the cause | P2 | M
+B-24 | Provision MongoDB for tests through Testcontainers or compose | B-47 to B-49 remove the need for this locally, so what is left is CI, where a container also supplies the replica set that B-30 needs | P3 | M
 B-21 | Retention or TTL policy for `tf_state_history` | The collection grows without bound | P2 | S
 B-25 | Derive the OpenAPI document version from `VersionPrefix` | Two version numbers are kept in sync by hand | P3 | S
 B-26 | Add a `CHANGELOG.md` or automated release notes | Releases have no record of what changed | P3 | S
