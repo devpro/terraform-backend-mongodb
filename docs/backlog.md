@@ -58,8 +58,6 @@ B-20 | Structured audit log for every state and lock operation | There is no rec
 
 ID   | Change | Why | Priority | Size
 ---- | ------ | --- | -------- | ----
-B-05 | Parse out-of-range JSON numbers into `Decimal128`, and render non-finite `Double` and `Decimal128` as plain JSON | A number beyond `Int64` returns 500, and `1e400` is stored and returned as a different shape from the one Terraform wrote | P1 | S
-B-27 | Return `413` with the limit named, and document it | A state above the BSON limit currently fails as an unhandled 500 in the middle of an apply | P1 | S
 B-06 | Delete `RawRequestBodyFormatter` | `[Consumes]` makes it unreachable for every case it was written for, while still leaving a 500 on a request with no `Content-Type` | P2 | S
 B-28 | Store history patches as BSON documents and rename the `upgrade` field (**needs decision**, changes the data model) | The string-encoded patch reaches the document limit before the state does, and the field name does not say what it holds | P2 | S
 B-29 | Stop reading and re-parsing the whole state on every POST | Every apply pays a full read, parse and diff, whether or not the history is ever read | P2 | M
@@ -76,12 +74,11 @@ B-33 | Align `StateModel` with what `tf_state` stores, or delete it | It maps `c
 
 The suite does reach the storage layer, including a real `terraform apply` in the scenario test.
 Database isolation is done, and the rules it now runs under are described in `AGENTS.md`.
-The remaining gap is narrower: nothing asserts what came back out, and the payload never varies.
+`StateFidelityTest` now compares what comes back out against what went in, across a table of payloads that includes the numeric edge cases and an oversized state, so the two gaps that let H1 and H2 through are closed.
 
 ID   | Change | Why | Priority | Size
 ---- | ------ | --- | -------- | ----
 B-50 | Decide whether deleting a state should also delete its history | `StateRepository.DeleteAsync` removes only the `tf_state` document, so history entries survive their state forever in production. The scenario and resource tests now clean up all three collections themselves, which leaves only the product question | P2 | S
-B-23 | Assert that the state returned by GET equals the state that was POSTed, and drive that test from a table of payloads including numeric edge cases | Nothing compares input to output today, and the sample only ever produces strings and small integers, so no test can observe a fidelity loss | P2 | S
 B-38 | Add a concurrent lock-acquisition test | The 2026-07-10 atomicity fix is unproven under the race it was written for | P2 | S
 B-39 | Assert that a state update writes a `tf_state_history` entry | The history path has no coverage at all | P3 | S
 
@@ -102,5 +99,6 @@ ID   | Change | Why | Priority | Size
 ---- | ------ | --- | -------- | ----
 B-24 | Provision MongoDB for tests through Testcontainers or compose | B-47 to B-49 remove the need for this locally, so what is left is CI, where a container also supplies the replica set that B-30 needs | P3 | M
 B-21 | Retention or TTL policy for `tf_state_history` | The collection grows without bound | P2 | S
-B-25 | Derive the OpenAPI document version from `VersionPrefix` | Two version numbers are kept in sync by hand | P3 | S
+B-25 | Derive the OpenAPI document version from `VersionPrefix` | Two version numbers are kept in sync by hand, and the 1.3.0 release had to touch both | P2 | S
+B-54 | Declare the response body of the `409` on the state and lock endpoints | It returns the existing lock, but the generated OpenAPI now infers `ProblemDetails` for it, which is wrong and became visible when `400` and `413` were declared | P3 | S
 B-26 | Add a `CHANGELOG.md` or automated release notes | Releases have no record of what changed | P3 | S

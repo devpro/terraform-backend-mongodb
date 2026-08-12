@@ -46,6 +46,18 @@ The first test run did fail 6 of 13 tests, for an environmental reason that is a
 
 ### H1. A state larger than 16 MB is rejected with an unhandled 500
 
+**Fixed on 2026-08-12**, covered by `StateFidelityTest`.
+The ceiling is unchanged and permanent, as argued below; what changed is how it is reported.
+An oversized state now answers `413` naming the limit rather than letting a driver `FormatException` escape as a 500:
+
+```text
+{"message":"The state exceeds the maximum document size of 16777216 bytes (16 MB), which is the limit of the underlying storage."}
+```
+
+The limit is taken from MongoDB's documented value rather than from `BsonDefaults.MaxDocumentSize`, which is `int.MaxValue` until a connection reports otherwise and would have named a limit no operator can act on.
+
+The finding as originally proven follows.
+
 **Proven.**
 `StateRepository.CreateAsync` stores the state as a parsed `BsonDocument`, so a state document is bound by the MongoDB maximum BSON document size of 16 MB.
 
@@ -75,6 +87,21 @@ The correct response is to accept the ceiling and fail cleanly at it.
 Return `413 Payload Too Large` with a message naming the limit, rather than letting a driver `FormatException` escape as a 500 in the middle of an apply, and document the limit alongside the backend configuration so that it is known before a workspace grows into it.
 
 ### H2. State values outside the BSON numeric range are corrupted or rejected
+
+**Fixed on 2026-08-12**, covered by `StateFidelityTest`, which drives a table of payloads through a full write and read and compares the two.
+
+The fix is the one scoped below, and it is confined to the .NET layer: `JsonToBsonConverter` reproduces what `BsonDocument.Parse` did for every value in range and maps the two out-of-range cases to `Decimal128` instead of failing or storing an infinity, and `BsonToJsonConverter` renders the stored document as plain JSON on the way out.
+
+Verified against a running instance:
+
+- `{"v":123456789012345678901234567890}` stores and reads back identically, where it used to answer 500.
+- `{"v":1e400}` reads back as `{"v":1E+400}`, a JSON number, where it used to read back as `{"v":{"$numberDouble":"Infinity"}}`.
+- `{"c":0.1}` reads back as `0.1` rather than `0.10000000000000001`, since the renderer now writes the shortest representation that reads back as the same double.
+
+What is stored is unchanged in kind: both values above are native `Decimal128` in `tf_state`, and a numeric range query still matches them, so the document remains queryable field by field.
+`1e3` still reads back as `1000.0` and `-0.0` as `0.0`, which the finding already recorded as acceptable.
+
+The finding as originally proven follows.
 
 **Proven.**
 The state is round-tripped through BSON, so JSON numbers are coerced into BSON numeric types, and the response is produced by `BsonDocument.ToJson()`, which emits MongoDB Extended JSON rather than the JSON that was stored.

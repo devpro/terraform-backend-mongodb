@@ -1,4 +1,5 @@
 ﻿using System.Text.Json;
+using Devpro.TerraformBackend.Domain.Exceptions;
 using Devpro.TerraformBackend.Domain.Models;
 using Devpro.TerraformBackend.Domain.Repositories;
 using Devpro.TerraformBackend.WebApi.Filters;
@@ -50,7 +51,9 @@ public class StateController(IStateRepository stateRepository, IStateLockReposit
     [HttpPost("", Name = "CreateState")]
     [Consumes("application/json", "text/json")]
     [ProducesResponseType(200)]
+    [ProducesResponseType(400)]
     [ProducesResponseType(409)]
+    [ProducesResponseType(413)]
     [ProducesResponseType(423)]
     public async Task<IActionResult> Create(string tenant, string name, [FromBody] object input, [FromQuery(Name = "ID")] string? lockId = "")
     {
@@ -59,7 +62,22 @@ public class StateController(IStateRepository stateRepository, IStateLockReposit
         if (existingLock != null && existingLock.Id != lockId) return Conflict(existingLock);
 
         var jsonInput = JsonSerializer.Serialize(input);
-        await stateRepository.CreateAsync(tenant, name, jsonInput);
+
+        try
+        {
+            await stateRepository.CreateAsync(tenant, name, jsonInput);
+        }
+        catch (StateTooLargeException exception)
+        {
+            // the ceiling is permanent, so this reports it in the terms the operator needs rather than
+            // failing as a 500 in the middle of an apply that has already changed real infrastructure
+            return StatusCode(StatusCodes.Status413PayloadTooLarge, new { Message = exception.Message });
+        }
+        catch (JsonException exception)
+        {
+            return BadRequest(new { Message = exception.Message });
+        }
+
         return Ok();
     }
 
