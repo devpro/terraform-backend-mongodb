@@ -2,13 +2,13 @@
 using System.Threading.Tasks;
 using AwesomeAssertions;
 using Microsoft.AspNetCore.Hosting;
-using Microsoft.AspNetCore.Mvc.Testing;
+using Devpro.TerraformBackend.WebApi.IntegrationTests.Hosting;
 using Xunit;
 
 namespace Devpro.TerraformBackend.WebApi.IntegrationTests.Resources;
 
 [Trait("Category", "IntegrationTests")]
-public class ScalarResourceTest(WebApplicationFactory<Program> factory)
+public class ScalarResourceTest(TestWebApplicationFactory factory)
     : IntegrationTestBase(factory)
 {
     [Fact]

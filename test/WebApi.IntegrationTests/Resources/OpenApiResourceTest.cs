@@ -1,13 +1,13 @@
 ﻿using System.Net;
 using System.Threading.Tasks;
-using Microsoft.AspNetCore.Mvc.Testing;
+using Devpro.TerraformBackend.WebApi.IntegrationTests.Hosting;
 using VerifyXunit;
 using Xunit;
 
 namespace Devpro.TerraformBackend.WebApi.IntegrationTests.Resources;
 
 [Trait("Category", "IntegrationTests")]
-public class OpenApiResourceTest(WebApplicationFactory<Program> factory)
+public class OpenApiResourceTest(TestWebApplicationFactory factory)
     : IntegrationTestBase(factory)
 {
     [Fact]

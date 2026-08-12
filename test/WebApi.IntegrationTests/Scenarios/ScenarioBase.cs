@@ -6,17 +6,22 @@ using System.Threading.Tasks;
 using AwesomeAssertions;
 using CliWrap;
 using CliWrap.Buffered;
-using Withywoods.AspNetCore.Mvc.Testing;
+using Devpro.TerraformBackend.WebApi.IntegrationTests.Hosting;
+using Microsoft.Extensions.DependencyInjection;
+using MongoDB.Bson;
+using MongoDB.Driver;
 using Xunit;
 
 namespace Devpro.TerraformBackend.WebApi.IntegrationTests.Scenarios;
 
-public abstract class ScenarioBase(KestrelWebAppFactory<Program> factory, ITestOutputHelper testOutputHelper)
-    : IClassFixture<KestrelWebAppFactory<Program>>, IAsyncLifetime
+public abstract class ScenarioBase(TestKestrelWebAppFactory factory, ITestOutputHelper testOutputHelper)
+    : IClassFixture<TestKestrelWebAppFactory>, IAsyncLifetime
 {
     private readonly string _runId = Guid.NewGuid().ToString();
 
     private string LocalDirectory { get { return Path.Combine(Path.GetTempPath(), $"tfbackend-test-{_runId}"); } }
+
+    private string StateName { get { return $"local-files-{_runId}"; } }
 
     protected abstract string ScenarioPath { get; }
 
@@ -30,8 +35,10 @@ public abstract class ScenarioBase(KestrelWebAppFactory<Program> factory, ITestO
         return ValueTask.CompletedTask;
     }
 
-    public ValueTask DisposeAsync()
+    public async ValueTask DisposeAsync()
     {
+        await RemoveScenarioStateAsync();
+
         if (Directory.Exists(LocalDirectory))
         {
             try
@@ -46,8 +53,40 @@ public abstract class ScenarioBase(KestrelWebAppFactory<Program> factory, ITestO
         }
 
         GC.SuppressFinalize(this);
+    }
 
-        return ValueTask.CompletedTask;
+    /// <summary>
+    /// Removes everything the scenario wrote to the database.
+    /// <para>
+    /// A completed run ends on <c>terraform destroy</c>, which destroys the infrastructure but still leaves
+    /// the state document behind, holding an empty state, plus one <c>tf_state_history</c> entry per apply.
+    /// Nothing in the protocol deletes them, so the scenario has to.
+    /// </para>
+    /// <para>
+    /// This runs under <see cref="CancellationToken.None"/> rather than the test's token, which is cancelled
+    /// exactly when a run times out, and that is when leftovers are most likely.
+    /// </para>
+    /// </summary>
+    private async Task RemoveScenarioStateAsync()
+    {
+        var filter = Builders<BsonDocument>.Filter.And(
+            Builders<BsonDocument>.Filter.Eq("tenant", TestCredentials.Tenant),
+            Builders<BsonDocument>.Filter.Eq("name", StateName));
+
+        try
+        {
+            var database = factory.Services.GetRequiredService<IMongoDatabase>();
+            foreach (var collectionName in new[] { "tf_state", "tf_state_lock", "tf_state_history" })
+            {
+                await database.GetCollection<BsonDocument>(collectionName)
+                    .DeleteManyAsync(filter, CancellationToken.None);
+            }
+        }
+        catch (Exception ex)
+        {
+            testOutputHelper.WriteLine("Scenario state cleanup failed: {0}", ex.Message);
+            throw;
+        }
     }
 
     protected async Task ExecuteTerraformAsync(
@@ -61,11 +100,11 @@ public abstract class ScenarioBase(KestrelWebAppFactory<Program> factory, ITestO
 
         var environmentVariables = new Dictionary<string, string?>
         {
-            ["TF_HTTP_ADDRESS"] = $"{baseAddress}/dummy/state/local-files-{_runId}",
-            ["TF_HTTP_LOCK_ADDRESS"] = $"{baseAddress}/dummy/state/local-files-{_runId}/lock",
-            ["TF_HTTP_UNLOCK_ADDRESS"] = $"{baseAddress}/dummy/state/local-files-{_runId}/lock",
-            ["TF_HTTP_USERNAME"] = "admin",
-            ["TF_HTTP_PASSWORD"] = "admin123"
+            ["TF_HTTP_ADDRESS"] = $"{baseAddress}/{TestCredentials.Tenant}/state/{StateName}",
+            ["TF_HTTP_LOCK_ADDRESS"] = $"{baseAddress}/{TestCredentials.Tenant}/state/{StateName}/lock",
+            ["TF_HTTP_UNLOCK_ADDRESS"] = $"{baseAddress}/{TestCredentials.Tenant}/state/{StateName}/lock",
+            ["TF_HTTP_USERNAME"] = TestCredentials.Username,
+            ["TF_HTTP_PASSWORD"] = TestCredentials.Password
         };
 
         testOutputHelper.WriteLine("Executing Terraform command {0}", command);

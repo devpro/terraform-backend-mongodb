@@ -2,16 +2,16 @@
 using System.Net.Http;
 using System.Threading.Tasks;
 using AwesomeAssertions;
-using Microsoft.AspNetCore.Mvc.Testing;
+using Devpro.TerraformBackend.WebApi.IntegrationTests.Hosting;
 using Xunit;
 
 namespace Devpro.TerraformBackend.WebApi.IntegrationTests.Resources;
 
 [Trait("Category", "IntegrationTests")]
-public class StateControllerResourceTest(WebApplicationFactory<Program> factory)
+public class StateControllerResourceTest(TestWebApplicationFactory factory)
     : IntegrationTestBase(factory)
 {
-    private const string Tenant = "dummy";
+    private const string Tenant = TestCredentials.Tenant;
 
     [Fact]
     [Trait("Mode", "Readonly")]
@@ -19,7 +19,7 @@ public class StateControllerResourceTest(WebApplicationFactory<Program> factory)
     {
         // Arrange
         var client = CreateClient(true);
-        var name = Faker.Random.Word();
+        var name = UniqueStateName();
 
         // Act
         var response = await client.GetAsync($"/{Tenant}/state/{name}", TestContext.Current.CancellationToken);
@@ -35,7 +35,7 @@ public class StateControllerResourceTest(WebApplicationFactory<Program> factory)
     {
         // Arrange
         var client = CreateClient(true);
-        var name = Faker.Random.Word();
+        var name = UniqueStateName();
 
         // Act
         var response = await client.GetAsync($"/acme/state/{name}", TestContext.Current.CancellationToken);
@@ -51,7 +51,7 @@ public class StateControllerResourceTest(WebApplicationFactory<Program> factory)
     {
         // Arrange
         var client = CreateClient();
-        var request = new HttpRequestMessage(HttpMethod.Get, $"/{Tenant}/state/{Faker.Random.Word()}");
+        var request = new HttpRequestMessage(HttpMethod.Get, $"/{Tenant}/state/{UniqueStateName()}");
         request.Headers.TryAddWithoutValidation("Authorization", "Basic ###not-base64###");
 
         // Act
@@ -66,8 +66,9 @@ public class StateControllerResourceTest(WebApplicationFactory<Program> factory)
     {
         // Arrange
         var client = CreateClient(true);
-        var name = Faker.Random.Word();
+        var name = UniqueStateName();
         var state = StateFaker.Generate();
+        TrackState(Tenant, name);
 
         // Act & Assert
         var createResponse = await client.PostAsync($"/{Tenant}/state/{name}", Serialize(state), TestContext.Current.CancellationToken);
@@ -88,9 +89,12 @@ public class StateControllerResourceTest(WebApplicationFactory<Program> factory)
     {
         // Arrange
         var client = CreateClient(true);
-        var name = Faker.Random.Word();
+        var name = UniqueStateName();
         var state = StateFaker.Generate();
         var stateLock = StateLockFaker.Generate();
+        // this test posts the state twice, so it also writes a tf_state_history entry, and it never deletes
+        // the state itself
+        TrackState(Tenant, name);
 
         // Act & Assert
         var createLockResponse = await client.PostAsync($"/{Tenant}/state/{name}/lock", Serialize(stateLock), TestContext.Current.CancellationToken);

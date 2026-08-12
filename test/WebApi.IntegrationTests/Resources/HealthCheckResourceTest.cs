@@ -1,13 +1,13 @@
 ﻿using System.Net;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Hosting;
-using Microsoft.AspNetCore.Mvc.Testing;
+using Devpro.TerraformBackend.WebApi.IntegrationTests.Hosting;
 using Xunit;
 
 namespace Devpro.TerraformBackend.WebApi.IntegrationTests.Resources;
 
 [Trait("Category", "IntegrationTests")]
-public class HealthCheckResourceTest(WebApplicationFactory<Program> factory)
+public class HealthCheckResourceTest(TestWebApplicationFactory factory)
     : IntegrationTestBase(factory)
 {
     [Fact]

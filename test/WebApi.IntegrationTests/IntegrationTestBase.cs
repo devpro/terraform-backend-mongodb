@@ -9,20 +9,17 @@ using System.Threading.Tasks;
 using AwesomeAssertions;
 using Bogus;
 using Devpro.TerraformBackend.Domain.Models;
+using Devpro.TerraformBackend.WebApi.IntegrationTests.Hosting;
 using Microsoft.AspNetCore.Hosting;
-using Microsoft.AspNetCore.Mvc.Testing;
-using Xunit;
 
 namespace Devpro.TerraformBackend.WebApi.IntegrationTests;
 
 /// <summary>
 /// Ref. https://learn.microsoft.com/en-us/aspnet/core/test/integration-tests
 /// </summary>
-public abstract class IntegrationTestBase(WebApplicationFactory<Program> factory)
-    : IClassFixture<WebApplicationFactory<Program>>
+public abstract class IntegrationTestBase(TestWebApplicationFactory factory)
+    : DatabaseTestBase(factory)
 {
-    protected WebApplicationFactory<Program> Factory { get; } = factory;
-
     protected Faker Faker { get; } = new();
 
     protected Faker<StateModel> StateFaker { get; } = new("en");
@@ -31,18 +28,24 @@ public abstract class IntegrationTestBase(WebApplicationFactory<Program> factory
         .RuleFor(u => u.Id, _ => Guid.NewGuid().ToString())
         .RuleFor(o => o.Created, _ => DateTime.UtcNow.ToString("yyyy-MM-ddTHH:mm:ss.fff+00:00"));
 
+    /// <summary>
+    /// Builds a client against the suite's host.
+    /// <para>
+    /// The Scalar feature flag is applied by <see cref="TestHostConfiguration"/> through <c>UseSetting</c>.
+    /// It used to be set here with <c>Environment.SetEnvironmentVariable</c>, which is process-wide and was
+    /// never reset, so it leaked into every later test and made the suite order-dependent.
+    /// </para>
+    /// </summary>
     protected HttpClient CreateClient(bool isAuthorizationNeeded = false, Action<IWebHostBuilder>? builderConfiguration = null)
     {
-        // ref. https://blog.markvincze.com/overriding-configuration-in-asp-net-core-integration-tests/
-        Environment.SetEnvironmentVariable("Features__IsScalarEnabled", "true");
-
         var client = (builderConfiguration == null) ? Factory.CreateClient()
             : Factory.WithWebHostBuilder(builderConfiguration).CreateClient();
 
         if (isAuthorizationNeeded)
         {
             client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Basic",
-                Convert.ToBase64String(Encoding.ASCII.GetBytes("admin:admin123")));
+                Convert.ToBase64String(Encoding.ASCII.GetBytes(
+                    $"{TestCredentials.Username}:{TestCredentials.Password}")));
         }
 
         return client;
@@ -84,6 +87,17 @@ public abstract class IntegrationTestBase(WebApplicationFactory<Program> factory
 
         return result;
     }
+
+    /// <summary>
+    /// A state name no other test or earlier run can be holding.
+    /// <para>
+    /// <c>tf_state</c> is uniquely indexed on <c>{tenant, name}</c>, and tests used to name states with
+    /// <c>Faker.Random.Word()</c>, which repeats. A collision either fails the write or, worse, makes a test
+    /// that expects a 404 find somebody else's state. The <c>test</c> prefix also guarantees the letter the
+    /// route constraint requires, since a bare GUID may be all digits at the start.
+    /// </para>
+    /// </summary>
+    protected static string UniqueStateName() => $"test{Guid.NewGuid():N}";
 
     protected static StringContent Serialize<T>(T value, string mediaType = "application/json")
     {
