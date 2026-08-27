@@ -19,9 +19,21 @@ public abstract class ScenarioBase(TestKestrelWebAppFactory factory, ITestOutput
 {
     private readonly string _runId = Guid.NewGuid().ToString();
 
+    /// <summary>
+    /// Exposed so a scenario can reach the same database the running instance is wired to, without capturing the constructor parameter itself and duplicating what this base already holds.
+    /// </summary>
+    protected TestKestrelWebAppFactory Factory { get; } = factory;
+
     private string LocalDirectory { get { return Path.Combine(Path.GetTempPath(), $"tfbackend-test-{_runId}"); } }
 
-    private string StateName { get { return $"local-files-{_runId}"; } }
+    /// <summary>
+    /// The tenant, name pair a scenario writes under.
+    /// <para>
+    /// Protected rather than private so a scenario can query <c>tf_state</c> and <c>tf_state_history</c> directly for the same document its own <c>terraform apply</c> just wrote.
+    /// That is what proves the state landed as a queryable document, rather than only that Terraform accepted it.
+    /// </para>
+    /// </summary>
+    protected string StateName { get { return $"local-files-{_runId}"; } }
 
     protected abstract string ScenarioPath { get; }
 
@@ -75,7 +87,7 @@ public abstract class ScenarioBase(TestKestrelWebAppFactory factory, ITestOutput
 
         try
         {
-            var database = factory.Services.GetRequiredService<IMongoDatabase>();
+            var database = Factory.Services.GetRequiredService<IMongoDatabase>();
             foreach (var collectionName in new[] { "tf_state", "tf_state_lock", "tf_state_history" })
             {
                 await database.GetCollection<BsonDocument>(collectionName)
@@ -96,7 +108,7 @@ public abstract class ScenarioBase(TestKestrelWebAppFactory factory, ITestOutput
         string expectedError = "",
         TimeSpan? timeout = null)
     {
-        var baseAddress = factory.ServerAddress;
+        var baseAddress = Factory.ServerAddress;
 
         var environmentVariables = new Dictionary<string, string?>
         {

@@ -1,4 +1,5 @@
 using System;
+using System.Linq;
 using System.Threading.Tasks;
 using AwesomeAssertions;
 using Devpro.TerraformBackend.Domain.Repositories;
@@ -41,6 +42,50 @@ public class StateLockRepositoryTest(TestWebApplicationFactory factory)
         conflicting.Should().BeNull();
 
         var deleted = await repository.DeleteAsync(firstLock);
+        deleted.Should().BeTrue();
+    }
+
+    /// <summary>
+    /// The sequential test above simulates the race by comment, this one actually runs it.
+    /// <para>
+    /// The 2026-07-10 fix made <see cref="Devpro.TerraformBackend.Infrastructure.MongoDb.Repositories.StateLockRepository.CreateAsync"/> insert first and map the duplicate-key error, rather than checking for an existing lock and inserting as two separate steps.
+    /// That closes the race between the check and the insert, but nothing before this test ever ran two inserts at the same time to prove it.
+    /// A check-then-insert bug only shows up under real concurrency, never when the calls happen one after another.
+    /// </para>
+    /// </summary>
+    [Fact]
+    public async Task StateLockRepository_ConcurrentCreate_OnlyOneWins()
+    {
+        // Arrange
+        var name = UniqueStateName();
+        var locks = Enumerable.Range(0, 8)
+            .Select(_ =>
+            {
+                var stateLock = StateLockFaker.Generate();
+                stateLock.Tenant = Tenant;
+                stateLock.Name = name;
+                return stateLock;
+            })
+            .ToList();
+        // a failure part-way through the race must not leave a lock holding the unique index against the
+        // next run
+        TrackState(Tenant, name);
+
+        using var scope = Factory.Services.CreateScope();
+        var repository = scope.ServiceProvider.GetRequiredService<IStateLockRepository>();
+
+        // Act: races every insert against the same {tenant, name} unique index at once
+        var results = await Task.WhenAll(locks.Select(repository.CreateAsync));
+
+        // Assert
+        results.Count(result => result != null).Should().Be(1, "exactly one concurrent run must win the lock");
+        var winner = results.Single(result => result != null)!;
+
+        var stored = await repository.FindOneAsync(Tenant, name);
+        stored.Should().NotBeNull();
+        stored!.Id.Should().Be(winner.Id);
+
+        var deleted = await repository.DeleteAsync(winner);
         deleted.Should().BeTrue();
     }
 }
