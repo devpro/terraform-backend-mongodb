@@ -75,12 +75,13 @@ B-33 | Align `StateModel` with what `tf_state` stores, or delete it | It maps `c
 The suite does reach the storage layer, including a real `terraform apply` in the scenario test.
 Database isolation is done, and the rules it now runs under are described in `AGENTS.md`.
 `StateFidelityTest` now compares what comes back out against what went in, across a table of payloads that includes the numeric edge cases and an oversized state, so the two gaps that let H1 and H2 through are closed.
+`StateLockRepositoryTest` now races real concurrent inserts rather than simulating the race sequentially, and `StateHistoryTest` asserts that an update writes exactly one `tf_state_history` entry and a create writes none, closing B-38 and B-39.
+`ComplexStateScenarioTest` drives a real Terraform lifecycle against a state shape no C# class models, and asserts it is queryable in MongoDB by resource attribute rather than only readable back through the API.
+A `WebApi.UnitTests` project now sits alongside the integration suite, covering the H1/H2 numeric conversion in isolation.
 
 ID   | Change | Why | Priority | Size
 ---- | ------ | --- | -------- | ----
 B-50 | Decide whether deleting a state should also delete its history | `StateRepository.DeleteAsync` removes only the `tf_state` document, so history entries survive their state forever in production. The scenario and resource tests now clean up all three collections themselves, which leaves only the product question | P2 | S
-B-38 | Add a concurrent lock-acquisition test | The 2026-07-10 atomicity fix is unproven under the race it was written for | P2 | S
-B-39 | Assert that a state update writes a `tf_state_history` entry | The history path has no coverage at all | P3 | S
 
 ## Features
 

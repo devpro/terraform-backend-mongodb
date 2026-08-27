@@ -505,6 +505,11 @@ A suite failing on authentication is therefore a reason to reseed before it is a
 
 ### T2. Nothing asserts what comes back out of storage
 
+**Fixed on 2026-08-12**, covered by `StateFidelityTest`, and extended on 2026-08-27 by `ComplexStateScenarioTest`.
+The round trip is now asserted, and the payload now varies in both senses described below: `StateFidelityTest` drives a table of constructed payloads that includes the numeric edge cases and an oversized document, and `ComplexStateScenarioTest` drives a real Terraform-produced state whose value classes a hand-built payload cannot reproduce, nested maps, a list of objects, and an integer beyond `Int64`, then queries it back out of MongoDB by resource attribute rather than only reading it back through the API.
+
+The finding as originally observed follows.
+
 **Observed.**
 The suite does exercise the storage layer with a real state.
 The scenario test drives `terraform apply` over three real resources, reads the state back, applies a second time and destroys, so a genuine Terraform state does make the full round trip.
@@ -523,6 +528,11 @@ The fix reuses what already exists: assert that the GET body equals the posted s
 
 ### T3. `IntegrationTestBase` mutates process-wide environment variables
 
+**Fixed on 2026-08-12**, in `IntegrationTestBase.CreateClient`.
+The Scalar feature flag is now applied by `TestHostConfiguration` through `UseSetting`, which is scoped to one factory rather than to the whole process.
+
+The finding as originally observed follows.
+
 **Observed.**
 `CreateClient` calls `Environment.SetEnvironmentVariable("Features__IsScalarEnabled", "true")` on every invocation.
 That value leaks across tests within the process and is never reset, so the suite depends on the fact that no test currently needs the opposite value from the environment.
@@ -530,11 +540,10 @@ That value leaks across tests within the process and is never reset, so the suit
 
 ### Remaining gaps
 
-- No concurrent lock-acquisition test, so the H3 fix of the previous review is unproven under the race it was written for.
 - No test for a state POST without a `Content-Type` header (would have caught M1).
-- No assertion that a state update writes a `tf_state_history` entry.
-- No test for numeric edge cases or oversized states (would have caught H1 and H2).
-- No unit tests, which is acceptable while the domain has no logic, but the diff logic in `StateRepository` is worth testing in isolation.
+  `RawRequestBodyFormatterTest`, added 2026-08-27, pins the formatter's own behavior for that case in isolation, and confirms a real `terraform apply` never sends it, but the controller-level 500 itself is still unasserted end to end, since deleting the formatter (B-06) is a decision still open.
+- The diff logic in `StateRepository` is still not tested in isolation.
+  A `WebApi.UnitTests` project exists now, added 2026-08-27, and covers the H1/H2 numeric conversion at the unit level, but `GenerateJsonDiff` is private and reached today only through the integration and scenario suites.
 
 ## CI/CD and operations
 
