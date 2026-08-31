@@ -104,4 +104,3 @@ B-21 | Retention or TTL policy for `tf_state_history` | The collection grows wit
 B-25 | Derive the OpenAPI document version from `VersionPrefix` | Two version numbers are kept in sync by hand, and the 1.3.0 release had to touch both | P2 | S
 B-54 | Declare the response body of the `409` on the state and lock endpoints | It returns the existing lock, but the generated OpenAPI now infers `ProblemDetails` for it, which is wrong and became visible when `400` and `413` were declared | P3 | S
 B-26 | Add a `CHANGELOG.md` or automated release notes | Releases have no record of what changed | P3 | S
-B-57 | Set and document the MongoDB connection pool size instead of relying on the driver default | Invisible today, nothing sets or explains it; worth stating once the deployment's expected concurrency is written down anywhere, see [L9](code-review.md#l9-the-mongodb-connection-pool-uses-driver-defaults) | P3 | S

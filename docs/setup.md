@@ -17,6 +17,9 @@ Once the database is available, grab the connection string for a user with admin
 
     Double check any network/security restrictions such as MongoDB IP access list as the application needs to access the MongoDB server
 
+The application does not set a connection pool size, so the driver default of 100 applies.
+That is fine at ordinary scale, and it does not need a code change to raise: `maxPoolSize` is a standard connection string option, for example `mongodb://<host>/<db>?maxPoolSize=200`.
+
 ### Database indexes
 
 Add indexes for optimal performances:

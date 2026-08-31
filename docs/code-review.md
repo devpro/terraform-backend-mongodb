@@ -525,10 +525,14 @@ It is noted only because the inconsistency is easy to mistake for intent when re
 
 ### L9. The MongoDB connection pool uses driver defaults
 
+**Fixed on 2026-08-31.**
+[setup.md](setup.md#database-server) now states the driver default of 100, and that raising it needs no code change: `maxPoolSize` is a standard connection string option, for example `mongodb://<host>/<db>?maxPoolSize=200`.
+
+The finding as originally observed follows.
+
 **Observed.**
 `InfrastructureServiceCollectionExtensions` constructs `MongoClient(configuration.ConnectionString)` with no `MongoClientSettings`, so the connection pool size is the driver default of 100.
 Fine at today's scale, and invisible today: nothing sets it, and nothing documents it.
-See B-57.
 
 ## Test coverage
 
