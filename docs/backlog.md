@@ -36,7 +36,7 @@ It does support mutual TLS (`client_certificate_pem`, `client_private_key_pem`, 
 Ranked first because the application is in daily production use and its database holds, in the clear, every secret of every managed workspace.
 Sourced from the [security section](code-review.md#security) of the code review.
 
-The application-side core is done: the failed-attempt lockout, the credential cache, the dummy-hash verify that closes the enumeration oracle, authentication failures logged with the caller's address, and the trusted-proxy configuration those two depend on.
+The application-side core is done: the failed-attempt lockout, the credential cache, the dummy-hash verify that closes the enumeration oracle, authentication failures logged with the caller's address, and the trusted-proxy configuration those two depend on, all now validated at startup and documented.
 What remains is mostly the platform's half.
 
 Most of this belongs to the platform rather than to C#, and the [split is set out in the review](code-review.md#where-each-control-belongs).
@@ -53,6 +53,7 @@ B-13 | Document secret management options for the deployment itself | Deployment
 B-46 | Validate a client certificate at the ingress and pass the verified subject to the application | It is the only second factor the Terraform client can offer, and the ingress already owns certificate distribution and revocation | Platform | P3 | M
 B-12 | Lower the request body size limit below the Kestrel default of 30 MB | The default sits above the 16 MB BSON ceiling, so an oversized state reaches the driver and fails as a 500 rather than being rejected at the edge | App | P3 | S
 B-20 | Structured audit log for every state and lock operation | There is no record of who changed what | App | P3 | S
+B-55 | Share the failed-attempt lockout and credential cache across replicas (**needs decision**, backing store) | Effective lockout budget and cache hit rate both divide by replica count once more than one replica runs behind a load balancer, see [M7](code-review.md#m7-the-failed-attempt-lockout-and-credential-cache-are-scoped-to-one-replica) | App | P3 | M
 
 ## Correctness
 
@@ -82,6 +83,7 @@ A `WebApi.UnitTests` project now sits alongside the integration suite, covering 
 ID   | Change | Why | Priority | Size
 ---- | ------ | --- | -------- | ----
 B-50 | Decide whether deleting a state should also delete its history | `StateRepository.DeleteAsync` removes only the `tf_state` document, so history entries survive their state forever in production. The scenario and resource tests now clean up all three collections themselves, which leaves only the product question | P2 | S
+B-58 | Publish the coverage report in CI, and decide whether to gate a minimum | The collector is already referenced by both test projects but nothing captures or enforces the number; line coverage on `src/` measured 43.4% on 2026-08-31, see [T4](code-review.md#t4-line-coverage-had-never-been-measured) | P3 | S
 
 ## Features
 
@@ -103,3 +105,4 @@ B-21 | Retention or TTL policy for `tf_state_history` | The collection grows wit
 B-25 | Derive the OpenAPI document version from `VersionPrefix` | Two version numbers are kept in sync by hand, and the 1.3.0 release had to touch both | P2 | S
 B-54 | Declare the response body of the `409` on the state and lock endpoints | It returns the existing lock, but the generated OpenAPI now infers `ProblemDetails` for it, which is wrong and became visible when `400` and `413` were declared | P3 | S
 B-26 | Add a `CHANGELOG.md` or automated release notes | Releases have no record of what changed | P3 | S
+B-57 | Set and document the MongoDB connection pool size instead of relying on the driver default | Invisible today, nothing sets or explains it; worth stating once the deployment's expected concurrency is written down anywhere, see [L9](code-review.md#l9-the-mongodb-connection-pool-uses-driver-defaults) | P3 | S

@@ -1,6 +1,6 @@
 # Code review
 
-Assessment of the repository as of 2026-08-11 (version 1.2.3, commit `d380eaa`), extended with a dedicated security pass on 2026-08-12.
+Assessment of the repository as of 2026-08-11 (version 1.2.3, commit `d380eaa`), extended with a dedicated security pass on 2026-08-12, and again on 2026-08-31 with a configuration-validation, scaling, and coverage pass.
 It supersedes the review of 2026-07-10 (commit `a6de57c`): every earlier finding was re-checked against the current code, and the outcome is recorded in the [status of the previous review](#status-of-the-previous-review).
 The review covers source code, tests, CI/CD workflows, container packaging, and operational tooling.
 
@@ -314,6 +314,20 @@ The work factor is pinned to a named constant that must stay in step with `UserR
 
 No strength requirement is enforced, which remains open: the usage documentation now recommends a generated credential, and the brute-force budget in S2 is why that matters.
 
+### S7. Authentication thresholds had no startup validation, and were undocumented
+
+**Fixed on 2026-08-31**, covered by `AuthenticationServiceCollectionExtensionsTest`.
+`AddCredentialAuthentication` now throws `InvalidOperationException` before registering anything if `Authentication:MaxFailedAttempts` is below 1 or `Authentication:LockoutSeconds` is at or below zero, either of which would silently defeat the lockout of S1.
+`Authentication:CredentialCacheSeconds` needs no such check: `ThrottledCredentialAuthenticator` already treats zero or negative as "do not cache", which is a valid opt-out rather than a misconfiguration.
+The six settings behind S1 and S2 are now documented in [setup.md](setup.md#authentication-and-network-settings), including `Network:KnownProxies` and `Network:KnownNetworks`, without which the trusted-proxy prerequisite noted above could not be configured at all.
+
+The finding as originally observed follows.
+
+**Observed.**
+`ApplicationConfiguration.MaxFailedAttempts` and `LockoutDuration` read straight from configuration with a numeric default and no bounds check.
+`Authentication__MaxFailedAttempts=0` locked out the first attempt of every account from every address, and `Authentication__LockoutSeconds=0` made a lockout expire immediately, neither failing until the bad value surfaced as a confusing runtime symptom rather than at startup.
+None of the six settings appeared in `setup.md`.
+
 ### Where each control belongs
 
 Most of this section should not be built in C#, and saying which parts should is the useful half of the answer.
@@ -419,6 +433,32 @@ Promoted to the [security](#security) section and split into S1, S2 and S3, wher
 Controller actions and repository methods do not accept or forward `CancellationToken`, so aborted Terraform requests keep running their MongoDB queries.
 Low effort to add, since `HttpContext.RequestAborted` flows naturally through the driver's async APIs.
 
+### M7. The failed-attempt lockout and credential cache are scoped to one replica
+
+**Observed.**
+`ThrottledCredentialAuthenticator` (S1, S2) is backed by a singleton `IMemoryCache`, registered in-process.
+Behind a load balancer with more than one replica, each pod holds its own failure counter and its own credential cache, so the effective lockout budget is `MaxFailedAttempts` per pod rather than per deployment, and a credential verified on one pod is not recognised on another.
+
+Neither is a defect in what shipped.
+The "where each control belongs" table above already assigns per-IP rate limiting to the platform for exactly this reason, one counter across every replica that survives a restart, an in-process limiter cannot offer that.
+The gap is that S1 and S2 do not state the same boundary, and nothing in `setup.md` or the backlog says that scaling this deployment past one replica needs a shared store.
+
+Fine while the Helm chart runs one replica.
+See B-55.
+
+### M8. `BCrypt.Verify` runs synchronously inside an async method
+
+**Observed.**
+`UserRepository.CheckAuthentication` calls `BCrypt.Net.BCrypt.Verify` directly, with no offload, inside a method awaited from the async request pipeline.
+At roughly 139 ms of CPU per verify (S2), every cold-cache request occupies a thread-pool worker for that duration: the thread that resumes after the MongoDB lookup runs the verify to completion before the method returns.
+
+Wrapping the call in `Task.Run` would not help.
+The work is CPU-bound, so `Task.Run` still queues it onto the same shared thread pool; it moves which thread pays the cost without reducing how much thread-pool time the deployment spends on it, which is the well-known reason `Task.Run` is discouraged for CPU-bound work in ASP.NET Core.
+A real fix, if this ever needs one, is to bound concurrent verifies with a `SemaphoreSlim` so a burst cannot occupy the whole pool at once, not to relocate the work.
+
+No action is recommended today.
+This is the same cost the review already calibrated for S2, "nothing was saturated" on a 22-core development machine with 100 concurrent failed authentications, and that calibration covers this finding too.
+
 ## Low severity
 
 ### L1. The route name constraint is unanchored
@@ -483,6 +523,13 @@ Either align the model with what is stored or delete it and move the faker to a 
 Terraform always sends an ID on lock, so the branch is not reachable through the CLI and the practical impact is nil.
 It is noted only because the inconsistency is easy to mistake for intent when reading the controller.
 
+### L9. The MongoDB connection pool uses driver defaults
+
+**Observed.**
+`InfrastructureServiceCollectionExtensions` constructs `MongoClient(configuration.ConnectionString)` with no `MongoClientSettings`, so the connection pool size is the driver default of 100.
+Fine at today's scale, and invisible today: nothing sets it, and nothing documents it.
+See B-57.
+
 ## Test coverage
 
 The integration suite covers the happy paths well: state create, read and delete, the full lock lifecycle including 423 and 409 responses, wrong-tenant 401, malformed `Authorization` headers, health, an OpenAPI snapshot, a Scalar feature-flag override, and a real `terraform init/plan/apply` scenario.
@@ -537,6 +584,14 @@ The finding as originally observed follows.
 `CreateClient` calls `Environment.SetEnvironmentVariable("Features__IsScalarEnabled", "true")` on every invocation.
 That value leaks across tests within the process and is never reset, so the suite depends on the fact that no test currently needs the opposite value from the environment.
 `ScalarResourceTest` already demonstrates the cleaner mechanism, `UseSetting` on the host builder, which is scoped to one factory.
+
+### T4. Line coverage had never been measured
+
+**Fixed on 2026-08-31.**
+`dotnet test -- --coverage --coverage-output-format cobertura` was run for the first time; both test projects already reference `Microsoft.Testing.Extensions.CodeCoverage`, so no new tooling was needed.
+Line coverage on `src/` is 43.4% (903/2081 lines), with `StateController.cs` (44.5%), `BasicAuthenticationHandler.cs` (45.8%) and `Program.cs` (46.2%, mostly the untested `IsScalarEnabled: false` and `IsHttpsRedirectionEnabled: false` branches) the thinnest, and the H1/H2 numeric converters the best covered at 88.7% and 95.5%.
+Nothing in CI collects or gates on this number.
+See B-58.
 
 ### Remaining gaps
 

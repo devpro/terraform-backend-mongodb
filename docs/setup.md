@@ -40,6 +40,24 @@ Add indexes for optimal performances:
 
         `mongosh` or `Docker` must be available on the machine running the commands
 
+### Authentication and network settings
+
+Six settings, introduced alongside the brute-force and proxy hardening, override with the `Section__Key` environment variable convention documented in `AGENTS.md`.
+
+Setting | Environment variable | Default | Purpose
+------- | --------------------- | ------- | -------
+`Authentication:CredentialCacheSeconds` | `Authentication__CredentialCacheSeconds` | `60` | How long a verified credential skips BCrypt.
+`Authentication:MaxFailedAttempts` | `Authentication__MaxFailedAttempts` | `10` | Consecutive failures, per username and source address, before that pair is refused.
+`Authentication:LockoutSeconds` | `Authentication__LockoutSeconds` | `300` | How long a pair stays refused once locked out.
+`Network:KnownProxies` | `Network__KnownProxies__0`, `__1`, ... | none | Reverse proxy addresses whose `X-Forwarded-For` header the application believes.
+`Network:KnownNetworks` | `Network__KnownNetworks__0`, `__1`, ... | none | Same, as CIDR ranges.
+`Network:TrustAllProxies` | `Network__TrustAllProxies` | `false` | Believes the forwarded headers of any caller, safe only where the application is reachable through the ingress alone.
+
+!!! warning
+
+    Behind a reverse proxy, at least one of `Network:KnownProxies`, `Network:KnownNetworks` or `Network:TrustAllProxies` must be set.
+    Left unset, the application sees the proxy's own address on every request: every caller then shares a single lockout bucket, and every authentication-failure log entry names the proxy instead of the attacker.
+
 ## Installation
 
 ### Kubernetes

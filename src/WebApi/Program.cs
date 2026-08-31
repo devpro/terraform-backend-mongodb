@@ -15,7 +15,7 @@ var configuration = new ApplicationConfiguration(builder.Configuration);
 builder.Services.AddSingleton(configuration);
 builder.Services.AddMongoDbInfrastructure(configuration);
 builder.Services.AddOpenApiWithBasicAuth(configuration);
-builder.Services.AddCredentialAuthentication();
+builder.Services.AddCredentialAuthentication(configuration);
 builder.Services.AddTrustedProxies(configuration);
 
 // creates the application and configures the HTTP request pipeline

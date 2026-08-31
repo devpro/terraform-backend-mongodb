@@ -8,9 +8,28 @@ public static class AuthenticationServiceCollectionExtensions
 {
     /// <summary>
     /// Registers the credential cache and the failed-attempt lockout that sit around the BCrypt verify.
+    /// <para>
+    /// Validates the lockout thresholds before registering anything, so a value that would defeat the lockout
+    /// fails at startup rather than as a silent runtime surprise.
+    /// </para>
     /// </summary>
-    public static void AddCredentialAuthentication(this IServiceCollection services)
+    public static void AddCredentialAuthentication(this IServiceCollection services, ApplicationConfiguration configuration)
     {
+        if (configuration.MaxFailedAttempts < 1)
+        {
+            // a threshold below 1 locks out a pair on its very first attempt, indistinguishable from every
+            // account being permanently refused
+            throw new InvalidOperationException(
+                $"Authentication:MaxFailedAttempts must be at least 1, but is {configuration.MaxFailedAttempts}.");
+        }
+
+        if (configuration.LockoutDuration <= TimeSpan.Zero)
+        {
+            // a lockout that expires immediately never actually withholds access, which defeats S1 silently
+            throw new InvalidOperationException(
+                $"Authentication:LockoutSeconds must be greater than zero, but is {configuration.LockoutDuration.TotalSeconds}.");
+        }
+
         // bounded so that a flood of distinct usernames cannot grow the lockout table without limit, which
         // would turn a brute force into a memory-exhaustion attack instead of a throttled one
         services.AddMemoryCache(options => options.SizeLimit = 10_000);
