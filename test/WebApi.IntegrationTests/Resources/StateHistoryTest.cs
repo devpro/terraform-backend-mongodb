@@ -48,6 +48,36 @@ public class StateHistoryTest(TestWebApplicationFactory factory)
     }
 
     [Fact]
+    public async Task StateResource_Updated_WritesCreatedAtAsSnakeCaseOnBothCollections()
+    {
+        // Arrange
+        var client = CreateClient(true);
+        var name = UniqueStateName();
+        TrackState(Tenant, name);
+
+        // Act
+        await client.PostAsync($"/{Tenant}/state/{name}",
+            new StringContent("""{"version":4,"serial":1}""", Encoding.UTF8, "application/json"),
+            TestContext.Current.CancellationToken);
+        await client.PostAsync($"/{Tenant}/state/{name}",
+            new StringContent("""{"version":4,"serial":2}""", Encoding.UTF8, "application/json"),
+            TestContext.Current.CancellationToken);
+
+        // Assert: created_at, not the old camelCase createdAt, on the state itself and on the history entry
+        // the update wrote, so a regression back to the old name is caught here rather than by an operator
+        // reading a document by hand
+        var state = await FindStateAsync(name);
+        state.Should().NotBeNull();
+        state!.Contains("created_at").Should().BeTrue();
+        state.Contains("createdAt").Should().BeFalse();
+
+        var entries = await FindHistoryEntriesAsync(name);
+        entries.Should().ContainSingle();
+        entries[0].Contains("created_at").Should().BeTrue();
+        entries[0].Contains("createdAt").Should().BeFalse();
+    }
+
+    [Fact]
     public async Task StateResource_CreatedOnce_WritesNoTfStateHistoryEntry()
     {
         // Arrange
@@ -73,5 +103,15 @@ public class StateHistoryTest(TestWebApplicationFactory factory)
             Builders<BsonDocument>.Filter.Eq("tenant", Tenant),
             Builders<BsonDocument>.Filter.Eq("name", name));
         return await history.Find(filter).ToListAsync(TestContext.Current.CancellationToken);
+    }
+
+    private async Task<BsonDocument?> FindStateAsync(string name)
+    {
+        var state = Factory.Services.GetRequiredService<IMongoDatabase>()
+            .GetCollection<BsonDocument>("tf_state");
+        var filter = Builders<BsonDocument>.Filter.And(
+            Builders<BsonDocument>.Filter.Eq("tenant", Tenant),
+            Builders<BsonDocument>.Filter.Eq("name", name));
+        return await state.Find(filter).FirstOrDefaultAsync(TestContext.Current.CancellationToken);
     }
 }

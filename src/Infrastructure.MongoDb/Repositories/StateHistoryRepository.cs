@@ -26,7 +26,7 @@ public class StateHistoryRepository : RepositoryBase
             ["_id"] = new BsonObjectId(ObjectId.GenerateNewId()),
             ["tenant"] = tenant,
             ["name"] = name,
-            ["createdAt"] = new BsonDateTime(DateTime.UtcNow),
+            ["created_at"] = new BsonDateTime(DateTime.UtcNow),
             ["upgrade"] = patch.ToJsonString()
         };
         await _bsonCollection.InsertOneAsync(document);

@@ -23,7 +23,7 @@ The model changes only when the maintainer specifically asks for it, and an item
 
 Three items below would change it and are therefore **blocked pending confirmation**, marked `needs decision` rather than removed, because each solves a real problem and the call is the maintainer's:
 
-- **B-07** adds an `updatedAt` field to `tf_state`.
+- **B-07** adds an `updated_at` field to `tf_state`.
 - **B-28** changes the `tf_state_history` document: the patch stored as BSON rather than as a string, and the `upgrade` field renamed.
 - **B-15** introduces a `tf_state_revision` collection, which conflicts directly with `tf_state` holding the latest version only. It came from the V2 ideas in [project](project.md) and predates the rule.
 
@@ -63,12 +63,12 @@ B-28 | Store history patches as BSON documents and rename the `upgrade` field (*
 B-29 | Stop reading and re-parsing the whole state on every POST | Every apply pays a full read, parse and diff, whether or not the history is ever read | P2 | M
 B-30 | Run CI against a replica set, as `compose.yaml` already does | CI cannot run transactions today, which blocks B-31 and B-15 | P2 | S
 B-31 | Make the state write and the history write atomic | A failure between them leaves a history entry describing a transition that never happened | P2 | S
-B-07 | Keep `createdAt` on update and add `updatedAt` (**needs decision**, changes the data model) | `createdAt` currently records the last update, so the creation time is lost | P3 | S
+B-07 | Keep `created_at` on update and add `updated_at` (**needs decision**, changes the data model) | `created_at` currently records the last update, so the creation time is lost | P3 | S
 B-08 | Propagate `CancellationToken` to the driver | An aborted Terraform request keeps its MongoDB query running | P3 | S
 B-09 | Widen and anchor the route `name` constraint, or remove it | It requires one letter anywhere in the value, so it neither validates nor documents anything | P3 | S
 B-10 | Remove the Scalar and OpenAPI path check in `BasicAuthenticationHandler` | `AllowAnonymous` already grants access, and the check is bypassed by `/scalar` without a trailing slash | P3 | S
 B-32 | Bound the MongoDB health check with a timeout | `/health` can hold a request for the full server selection timeout while the database is down | P3 | S
-B-33 | Align `StateModel` with what `tf_state` stores, or delete it | It maps `created_at` while the repository writes `createdAt`, which is a trap for B-15 and B-16 | P3 | S
+B-33 | Align `StateModel` with what `tf_state` stores, or delete it | The `created_at` naming now matches; the nested `StateValueModel` still does not correspond to a real Terraform state's shape, which is a trap for B-15 and B-16 | P3 | S
 
 ## Tests
 

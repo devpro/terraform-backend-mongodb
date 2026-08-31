@@ -62,7 +62,7 @@ public class StateRepository : RepositoryBase, IStateRepository
             ["_id"] = existing == null ? new BsonObjectId(ObjectId.GenerateNewId()) : existing["_id"].AsObjectId,
             ["tenant"] = tenant,
             ["name"] = name,
-            ["createdAt"] = new BsonDateTime(DateTime.UtcNow),
+            ["created_at"] = new BsonDateTime(DateTime.UtcNow),
             ["value"] = value
         };
 

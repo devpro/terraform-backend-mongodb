@@ -23,6 +23,16 @@ MONGODB_INDEX_COMMANDS=(
   'db.auth_lockout.createIndex({"expires_at": 1}, {expireAfterSeconds: 0})'
 )
 
+# Renames the pre-existing camelCase createdAt to created_at in tf_state and tf_state_history, the one field
+# name the application changed when the schema moved to snake_case.
+# $rename only touches a document that still carries createdAt, so this is safe to run more than once, and
+# safe to run before or after the application itself is upgraded: a document a newer application has already
+# written, or already renamed by an earlier run of this command, is simply not matched.
+MONGODB_MIGRATION_COMMANDS=(
+  'db.tf_state.updateMany({createdAt: {$exists: true}}, {$rename: {"createdAt": "created_at"}})'
+  'db.tf_state_history.updateMany({createdAt: {$exists: true}}, {$rename: {"createdAt": "created_at"}})'
+)
+
 log_info() {
   local message="$1"
   echo -e "$message"
@@ -52,6 +62,7 @@ usage() {
   echo -e "\033[1;34mUsage:\033[0m $0 [command] [arguments...]"
   echo -e "\033[1;34mCommands:\033[0m"
   echo "  create-indexes                             : Create indexes in database"
+  echo "  migrate-created-at                         : Rename createdAt to created_at in tf_state and tf_state_history, safe to run more than once"
   echo "  create-user <username> <tenant>            : Create user in database, reading the password from a prompt or standard input"
   echo "  create-user <username> <password> <tenant> : Deprecated, the password is visible in the process list and the shell history"
   echo "  help                                       : Show this help message"
@@ -195,6 +206,20 @@ create_indexes() {
   return $status
 }
 
+migrate_created_at() {
+  local status=0
+  log_header "Renaming createdAt to created_at in tf_state and tf_state_history"
+  for cmd in "${MONGODB_MIGRATION_COMMANDS[@]}"; do
+    execute_mongosh "$cmd" || status=1
+  done
+  if [ $status -eq 0 ]; then
+    log_success "Migration complete"
+  else
+    log_error "One or more renames failed"
+  fi
+  return $status
+}
+
 # Reads a password without echoing it and without it ever becoming an argument.
 # Prompts on a terminal, and otherwise takes one line from standard input so that the command composes with a
 # generator, for example `openssl rand -base64 24 | tfbeadm create-user admin dummy`.
@@ -259,6 +284,10 @@ if [ $# -gt 0 ]; then
   case "$1" in
     "create-indexes")
       create_indexes
+      exit $?
+      ;;
+    "migrate-created-at")
+      migrate_created_at
       exit $?
       ;;
     "create-user")

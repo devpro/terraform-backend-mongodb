@@ -45,6 +45,17 @@ Add indexes for optimal performances:
 
         `mongosh` or `Docker` must be available on the machine running the commands
 
+### Upgrading from before the `created_at` rename
+
+A deployment created before this change stores its state and history documents with a `createdAt` field.
+The application itself now writes `created_at`, and every document a `terraform apply` touches from now on is rewritten with the new name automatically, so an upgrade needs nothing to keep working.
+Run `tfbeadm migrate-created-at` to rename the field on every document immediately instead of waiting for it to be touched, for example before a read that lists states by `created_at`.
+The command is safe to run more than once, and safe to run before or after the application itself is upgraded.
+
+```bash
+MONGODB_URI=mongodb://<myserver>:27017/<mydb> tfbeadm migrate-created-at
+```
+
 ### Authentication and network settings
 
 Six settings, introduced alongside the brute-force and proxy hardening, override with the `Section__Key` environment variable convention documented in `AGENTS.md`.

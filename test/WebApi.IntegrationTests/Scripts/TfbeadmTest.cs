@@ -1,14 +1,10 @@
 using System;
-using System.Collections.Generic;
-using System.IO;
 using System.Net;
 using System.Net.Http;
 using System.Net.Http.Headers;
 using System.Text;
 using System.Threading.Tasks;
 using AwesomeAssertions;
-using CliWrap;
-using CliWrap.Buffered;
 using Devpro.TerraformBackend.WebApi.IntegrationTests.Hosting;
 using Microsoft.Extensions.DependencyInjection;
 using MongoDB.Bson;
@@ -44,7 +40,8 @@ public class TfbeadmTest(TestWebApplicationFactory factory)
         TrackUser(username);
 
         // Act
-        var result = await RunTfbeadm(["create-user", username, TestCredentials.Tenant], AwkwardPassword);
+        var result = await TfbeadmRunner.RunAsync(["create-user", username, TestCredentials.Tenant], AwkwardPassword,
+            TestContext.Current.CancellationToken);
 
         // Assert
         result.ExitCode.Should().Be(0, "tfbeadm failed: {0}{1}", result.StandardOutput, result.StandardError);
@@ -62,7 +59,8 @@ public class TfbeadmTest(TestWebApplicationFactory factory)
         TrackUser(username);
 
         // Act
-        var result = await RunTfbeadm(["create-user", username, TestCredentials.Tenant], AwkwardPassword);
+        var result = await TfbeadmRunner.RunAsync(["create-user", username, TestCredentials.Tenant], AwkwardPassword,
+            TestContext.Current.CancellationToken);
 
         // Assert: the script echoes the MongoDB command it runs, which used to carry the credential material
         (result.StandardOutput + result.StandardError).Should().NotContain(AwkwardPassword);
@@ -86,7 +84,8 @@ public class TfbeadmTest(TestWebApplicationFactory factory)
 
         // Act: through the deprecated three-argument form, which is the one that existed when this was
         // exploitable and which the script still accepts
-        await RunTfbeadm(["create-user", username, AwkwardPassword, TestCredentials.Tenant], password: null);
+        await TfbeadmRunner.RunAsync(["create-user", username, AwkwardPassword, TestCredentials.Tenant], password: null,
+            TestContext.Current.CancellationToken);
 
         // Assert: whether the script refuses the value or stores it verbatim, what it must never do is execute
         // it. An account an attacker can create is an account whose password they already know.
@@ -110,31 +109,5 @@ public class TfbeadmTest(TestWebApplicationFactory factory)
             Convert.ToBase64String(Encoding.UTF8.GetBytes($"{username}:{password}")));
         using var response = await client.SendAsync(request, TestContext.Current.CancellationToken);
         return response.StatusCode;
-    }
-
-    /// <summary>
-    /// Runs the script against the suite's own database, with the password supplied on standard input rather
-    /// than as an argument, since an argument is visible in <c>ps</c> to every user on the host and lands in
-    /// the shell history.
-    /// </summary>
-    private static async Task<BufferedCommandResult> RunTfbeadm(string[] arguments, string? password)
-    {
-        var repositoryRoot = Path.GetFullPath(Path.Combine(AppContext.BaseDirectory, "../../../../../"));
-
-        if (!File.Exists(Path.Combine(repositoryRoot, "scripts/tfbeadm")))
-        {
-            Assert.Skip("scripts/tfbeadm was not found next to the test assembly");
-        }
-
-        return await Cli.Wrap("bash")
-            .WithWorkingDirectory(repositoryRoot)
-            .WithArguments(["scripts/tfbeadm", .. arguments])
-            .WithEnvironmentVariables(new Dictionary<string, string?>
-            {
-                ["MONGODB_URI"] = $"{IntegrationTestDatabase.ConnectionString}/{IntegrationTestDatabase.Name}"
-            })
-            .WithStandardInputPipe(password is null ? PipeSource.Null : PipeSource.FromString(password))
-            .WithValidation(CommandResultValidation.None)
-            .ExecuteBufferedAsync(TestContext.Current.CancellationToken);
     }
 }
