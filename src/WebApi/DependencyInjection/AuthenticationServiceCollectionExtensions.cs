@@ -7,10 +7,12 @@ namespace Devpro.TerraformBackend.WebApi.DependencyInjection;
 public static class AuthenticationServiceCollectionExtensions
 {
     /// <summary>
-    /// Registers the credential cache and the failed-attempt lockout that sit around the BCrypt verify.
+    /// Registers the credential cache that sits in front of the BCrypt verify, and validates the failed-attempt
+    /// lockout thresholds that <see cref="Authentication.ThrottledCredentialAuthenticator"/> enforces against
+    /// <c>auth_lockout</c> in MongoDB.
     /// <para>
-    /// Validates the lockout thresholds before registering anything, so a value that would defeat the lockout
-    /// fails at startup rather than as a silent runtime surprise.
+    /// Validated here, before registering anything, so a value that would defeat the lockout fails at startup
+    /// rather than as a silent runtime surprise.
     /// </para>
     /// </summary>
     public static void AddCredentialAuthentication(this IServiceCollection services, ApplicationConfiguration configuration)
@@ -30,13 +32,15 @@ public static class AuthenticationServiceCollectionExtensions
                 $"Authentication:LockoutSeconds must be greater than zero, but is {configuration.LockoutDuration.TotalSeconds}.");
         }
 
-        // bounded so that a flood of distinct usernames cannot grow the lockout table without limit, which
-        // would turn a brute force into a memory-exhaustion attack instead of a throttled one
+        // the lockout itself lives in MongoDB, not here: this cache now only ever holds a successful
+        // credential's verification result, and an attacker cannot grow it, since only a verification that
+        // already succeeded is ever stored. The bound is a defensive cap on legitimate traffic, not a defence
+        // against a flood of distinct usernames, which auth_lockout's TTL index already handles.
         services.AddMemoryCache(options => options.SizeLimit = 10_000);
 
-        // scoped, not singleton: the repository it verifies through is scoped, and every piece of state that
-        // has to outlive a request (the credential cache, the failure counters) already lives in the
-        // singleton IMemoryCache rather than in this service
+        // scoped, not singleton: the repository it verifies through is scoped, and the one piece of state that
+        // has to outlive a request within a single pod, the credential cache, already lives in the singleton
+        // IMemoryCache rather than in this service
         services.TryAddScoped<ICredentialAuthenticator, ThrottledCredentialAuthenticator>();
     }
 

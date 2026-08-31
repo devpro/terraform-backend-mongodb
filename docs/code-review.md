@@ -435,16 +435,22 @@ Low effort to add, since `HttpContext.RequestAborted` flows naturally through th
 
 ### M7. The failed-attempt lockout and credential cache are scoped to one replica
 
+**Fixed on 2026-09-01** for the lockout half, covered by `LockoutRepositoryTest`, `AuthenticationLockoutTest` and `AuthenticationTimingTest`.
+The failed-attempt counter now lives in MongoDB, in `auth_lockout`, through `ILockoutRepository`, rather than in the process: `RecordFailureAsync` increments or starts a window through a single aggregation-pipeline update, evaluated atomically against one document, so the counter is correct under concurrent failures and holds across every replica of the deployment.
+A document expires through a TTL index on `expiresAt`, and the read path filters on the same field independently, so a document the TTL monitor has not yet swept still reads as expired rather than as still counting.
+
+The credential cache is deliberately left in `IMemoryCache`, unchanged.
+It is a performance optimisation, not a security control: a cache miss on a different pod costs a repeat BCrypt verify, not a weakened lockout, so moving it would add a MongoDB round trip to the hot path S2 exists to remove for no security benefit.
+
+The finding as originally observed follows.
+
 **Observed.**
-`ThrottledCredentialAuthenticator` (S1, S2) is backed by a singleton `IMemoryCache`, registered in-process.
-Behind a load balancer with more than one replica, each pod holds its own failure counter and its own credential cache, so the effective lockout budget is `MaxFailedAttempts` per pod rather than per deployment, and a credential verified on one pod is not recognised on another.
+`ThrottledCredentialAuthenticator` (S1, S2) was backed by a singleton `IMemoryCache`, registered in-process.
+Behind a load balancer with more than one replica, each pod held its own failure counter, so the effective lockout budget was `MaxFailedAttempts` per pod rather than per deployment.
 
-Neither is a defect in what shipped.
+Neither was a defect in what shipped.
 The "where each control belongs" table above already assigns per-IP rate limiting to the platform for exactly this reason, one counter across every replica that survives a restart, an in-process limiter cannot offer that.
-The gap is that S1 and S2 do not state the same boundary, and nothing in `setup.md` or the backlog says that scaling this deployment past one replica needs a shared store.
-
-Fine while the Helm chart runs one replica.
-See B-55.
+The gap was that S1 did not state the same boundary, and nothing in `setup.md` or the backlog said that scaling this deployment past one replica needed a shared store.
 
 ### M8. `BCrypt.Verify` runs synchronously inside an async method
 

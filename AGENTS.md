@@ -89,12 +89,12 @@ The suite runs against a real, long-lived MongoDB rather than a throwaway one pe
 
 Three projects with one-way dependencies: `WebApi` > `Infrastructure.MongoDb` > `Domain`.
 
-- **`src/Domain`**: repository interfaces (`IStateRepository`, `IStateLockRepository`, `IUserRepository`) and models.
+- **`src/Domain`**: repository interfaces (`IStateRepository`, `IStateLockRepository`, `IUserRepository`, `ILockoutRepository`) and models.
   No logic, no infrastructure references.
 - **`src/Infrastructure.MongoDb`**: repository implementations.
-  Collections: `tf_state` (current state, stored as a raw `BsonDocument`, since the domain `StateModel` is only used by test fakers), `tf_state_lock`, `user` (BCrypt password hashes).
+  Collections: `tf_state` (current state, stored as a raw `BsonDocument`, since the domain `StateModel` is only used by test fakers), `tf_state_lock`, `user` (BCrypt password hashes), `auth_lockout` (failed-attempt counters, TTL-expired).
   `tf_state_history` holds JSON-diff patches computed with `SystemTextJson.JsonDiffPatch` on every state update.
-- **`src/WebApi`**: `StateController` (all protocol logic including lock checking), Basic authentication against the `user` collection, and `TenantAuthorizationFilter` matching the route `{tenant}` against the user's tenant claim.
+- **`src/WebApi`**: `StateController` (all protocol logic including lock checking), Basic authentication against the `user` collection, `TenantAuthorizationFilter` matching the route `{tenant}` against the user's tenant claim, and `ThrottledCredentialAuthenticator` enforcing the failed-attempt lockout through `auth_lockout`.
   DI wiring lives in `WebApi/DependencyInjection/`.
 
 ### Protocol constraints

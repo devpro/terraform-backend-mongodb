@@ -27,7 +27,8 @@ namespace Devpro.TerraformBackend.WebApi.IntegrationTests.Hosting;
 /// </summary>
 public sealed class TestDatabaseFixture : IAsyncLifetime
 {
-    private static readonly string[] TrackedCollections = ["tf_state", "tf_state_lock", "tf_state_history", "user"];
+    private static readonly string[] TrackedCollections =
+        ["tf_state", "tf_state_lock", "tf_state_history", "user", "auth_lockout"];
 
     private readonly Dictionary<string, long> _baselineCounts = [];
 
@@ -75,6 +76,16 @@ public sealed class TestDatabaseFixture : IAsyncLifetime
             new CreateIndexModel<BsonDocument>(
                 Builders<BsonDocument>.IndexKeys.Ascending("username"),
                 new CreateIndexOptions { Unique = true }),
+            cancellationToken: CancellationToken.None);
+        await _database.GetCollection<BsonDocument>("auth_lockout").Indexes.CreateOneAsync(
+            new CreateIndexModel<BsonDocument>(
+                Builders<BsonDocument>.IndexKeys.Ascending("username").Ascending("remoteAddress"),
+                new CreateIndexOptions { Unique = true }),
+            cancellationToken: CancellationToken.None);
+        await _database.GetCollection<BsonDocument>("auth_lockout").Indexes.CreateOneAsync(
+            new CreateIndexModel<BsonDocument>(
+                Builders<BsonDocument>.IndexKeys.Ascending("expiresAt"),
+                new CreateIndexOptions { ExpireAfter = TimeSpan.Zero }),
             cancellationToken: CancellationToken.None);
     }
 

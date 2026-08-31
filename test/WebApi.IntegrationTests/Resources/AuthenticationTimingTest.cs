@@ -9,6 +9,8 @@ using System.Threading.Tasks;
 using AwesomeAssertions;
 using Devpro.TerraformBackend.WebApi.IntegrationTests.Hosting;
 using Microsoft.AspNetCore.Hosting;
+using MongoDB.Bson;
+using MongoDB.Driver;
 using Xunit;
 
 namespace Devpro.TerraformBackend.WebApi.IntegrationTests.Resources;
@@ -35,6 +37,12 @@ namespace Devpro.TerraformBackend.WebApi.IntegrationTests.Resources;
 /// in machine load between them lands entirely on one series, and a run that competed with the subprocesses
 /// of the `tfbeadm` tests read 134 ms against 71 ms on code with no oracle in it at all. Alternating makes
 /// both series see the same conditions. The class also runs alone, for the same reason.
+/// </para>
+/// <para>
+/// It shares <see cref="NonParallelCollection"/> with <see cref="AuthenticationLockoutTest"/> for a second,
+/// unrelated reason: this test sends nine wrong passwords for <see cref="TestCredentials.Username"/>, and the
+/// failure count they contribute is now shared MongoDB state rather than per-host memory, so running the two
+/// classes concurrently could lock the account out mid-measurement.
 /// </para>
 /// <para>
 /// The tolerance is deliberately not loosened to absorb noise: at a factor of two it would stop detecting the
@@ -64,6 +72,13 @@ public class AuthenticationTimingTest(TestWebApplicationFactory factory)
         var client = CreateClient(builderConfiguration: builder =>
             builder.UseSetting("Authentication:MaxFailedAttempts", "10000"));
 
+        // every username this test authenticates as writes an auth_lockout document; tracked up front, since
+        // the failure count is shared MongoDB state rather than per-host memory and must not leak into other
+        // tests that authenticate as TestCredentials.Username
+        var unknownUsernames = Enumerable.Range(0, Samples).Select(sample => $"no-such-user-{sample}").ToList();
+        TrackDocumentsWhere("auth_lockout", Builders<BsonDocument>.Filter.In("username",
+            unknownUsernames.Append("warm-up-user").Append(TestCredentials.Username)));
+
         await Measure(client, "warm-up-user", "warm-up-password");
 
         // Act: interleaved, so that a change in machine load partway through affects both series equally
@@ -71,7 +86,7 @@ public class AuthenticationTimingTest(TestWebApplicationFactory factory)
         var knownUsernameTimings = new List<double>(Samples);
         for (var sample = 0; sample < Samples; sample++)
         {
-            unknownUsernameTimings.Add(await Measure(client, $"no-such-user-{sample}", "any-password"));
+            unknownUsernameTimings.Add(await Measure(client, unknownUsernames[sample], "any-password"));
             knownUsernameTimings.Add(await Measure(client, TestCredentials.Username, $"wrong-password-{sample}"));
         }
 

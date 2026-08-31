@@ -30,6 +30,8 @@ Add indexes for optimal performances:
     db.tf_state.createIndex({"tenant": 1, "name": 1})
     db.tf_state_lock.createIndex({"tenant": 1, "name": 1}, {unique: true})
     db.user.createIndex({"username": 1}, {unique: true})
+    db.auth_lockout.createIndex({"username": 1, "remoteAddress": 1}, {unique: true})
+    db.auth_lockout.createIndex({"expiresAt": 1}, {expireAfterSeconds: 0})
     ```
 
 === "Script"

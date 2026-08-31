@@ -36,7 +36,7 @@ It does support mutual TLS (`client_certificate_pem`, `client_private_key_pem`, 
 Ranked first because the application is in daily production use and its database holds, in the clear, every secret of every managed workspace.
 Sourced from the [security section](code-review.md#security) of the code review.
 
-The application-side core is done: the failed-attempt lockout, the credential cache, the dummy-hash verify that closes the enumeration oracle, authentication failures logged with the caller's address, and the trusted-proxy configuration those two depend on, all now validated at startup and documented.
+The application-side core is done: the failed-attempt lockout (shared across replicas through MongoDB, see [M7](code-review.md#m7-the-failed-attempt-lockout-and-credential-cache-are-scoped-to-one-replica)), the credential cache, the dummy-hash verify that closes the enumeration oracle, authentication failures logged with the caller's address, and the trusted-proxy configuration those two depend on, all now validated at startup and documented.
 What remains is mostly the platform's half.
 
 Most of this belongs to the platform rather than to C#, and the [split is set out in the review](code-review.md#where-each-control-belongs).
@@ -53,7 +53,6 @@ B-13 | Document secret management options for the deployment itself | Deployment
 B-46 | Validate a client certificate at the ingress and pass the verified subject to the application | It is the only second factor the Terraform client can offer, and the ingress already owns certificate distribution and revocation | Platform | P3 | M
 B-12 | Lower the request body size limit below the Kestrel default of 30 MB | The default sits above the 16 MB BSON ceiling, so an oversized state reaches the driver and fails as a 500 rather than being rejected at the edge | App | P3 | S
 B-20 | Structured audit log for every state and lock operation | There is no record of who changed what | App | P3 | S
-B-55 | Share the failed-attempt lockout and credential cache across replicas (**needs decision**, backing store) | Effective lockout budget and cache hit rate both divide by replica count once more than one replica runs behind a load balancer, see [M7](code-review.md#m7-the-failed-attempt-lockout-and-credential-cache-are-scoped-to-one-replica) | App | P3 | M
 
 ## Correctness
 
