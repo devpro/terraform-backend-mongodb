@@ -585,13 +585,14 @@ The finding as originally observed follows.
 That value leaks across tests within the process and is never reset, so the suite depends on the fact that no test currently needs the opposite value from the environment.
 `ScalarResourceTest` already demonstrates the cleaner mechanism, `UseSetting` on the host builder, which is scoped to one factory.
 
-### T4. Line coverage had never been measured
+### T4. The actual coverage number, read directly rather than through Sonar
 
-**Fixed on 2026-08-31.**
-`dotnet test -- --coverage --coverage-output-format cobertura` was run for the first time; both test projects already reference `Microsoft.Testing.Extensions.CodeCoverage`, so no new tooling was needed.
-Line coverage on `src/` is 43.4% (903/2081 lines), with `StateController.cs` (44.5%), `BasicAuthenticationHandler.cs` (45.8%) and `Program.cs` (46.2%, mostly the untested `IsScalarEnabled: false` and `IsHttpsRedirectionEnabled: false` branches) the thinnest, and the H1/H2 numeric converters the best covered at 88.7% and 95.5%.
-Nothing in CI collects or gates on this number.
-See B-58.
+**Observed.**
+CI already collects coverage: `dotnet-test-args` has carried `--coverage --coverage-output-format cobertura` since Sonar was enabled, and the reusable `build-test-sonar` action converts the result with ReportGenerator into `SonarQube.xml`, feeds it to the scanner via `sonar.coverageReportPaths`, and archives the HTML and cobertura reports as a workflow artifact.
+The number has therefore been visible on the Sonar dashboard the whole time; a first draft of this finding claimed otherwise and was wrong.
+
+What had not been done before is reading the number directly, without opening Sonar.
+Running the same collector locally on 2026-08-31 measured 43.4% line coverage on `src/` (903/2081 lines), with `StateController.cs` (44.5%), `BasicAuthenticationHandler.cs` (45.8%) and `Program.cs` (46.2%, mostly the untested `IsScalarEnabled: false` and `IsHttpsRedirectionEnabled: false` branches) the thinnest, and the H1/H2 numeric converters the best covered at 88.7% and 95.5%.
 
 ### Remaining gaps
 

@@ -83,7 +83,6 @@ A `WebApi.UnitTests` project now sits alongside the integration suite, covering 
 ID   | Change | Why | Priority | Size
 ---- | ------ | --- | -------- | ----
 B-50 | Decide whether deleting a state should also delete its history | `StateRepository.DeleteAsync` removes only the `tf_state` document, so history entries survive their state forever in production. The scenario and resource tests now clean up all three collections themselves, which leaves only the product question | P2 | S
-B-58 | Publish the coverage report in CI, and decide whether to gate a minimum | The collector is already referenced by both test projects but nothing captures or enforces the number; line coverage on `src/` measured 43.4% on 2026-08-31, see [T4](code-review.md#t4-line-coverage-had-never-been-measured) | P3 | S
 
 ## Features
 
