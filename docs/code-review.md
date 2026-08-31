@@ -437,7 +437,8 @@ Low effort to add, since `HttpContext.RequestAborted` flows naturally through th
 
 **Fixed on 2026-09-01** for the lockout half, covered by `LockoutRepositoryTest`, `AuthenticationLockoutTest` and `AuthenticationTimingTest`.
 The failed-attempt counter now lives in MongoDB, in `auth_lockout`, through `ILockoutRepository`, rather than in the process: `RecordFailureAsync` increments or starts a window through a single aggregation-pipeline update, evaluated atomically against one document, so the counter is correct under concurrent failures and holds across every replica of the deployment.
-A document expires through a TTL index on `expiresAt`, and the read path filters on the same field independently, so a document the TTL monitor has not yet swept still reads as expired rather than as still counting.
+A document expires through a TTL index on `expires_at`, and the read path filters on the same field independently, so a document the TTL monitor has not yet swept still reads as expired rather than as still counting.
+Field names in `auth_lockout` are snake_case (`remote_address`, `expires_at`), an explicit override of the app's own camelCase convention, matching `user.password_hash` and the Terraform state's own field names in `tf_state.value` rather than this app's camelCase envelope fields around it.
 
 The credential cache is deliberately left in `IMemoryCache`, unchanged.
 It is a performance optimisation, not a security control: a cache miss on a different pod costs a repeat BCrypt verify, not a weakened lockout, so moving it would add a MongoDB round trip to the hot path S2 exists to remove for no security benefit.

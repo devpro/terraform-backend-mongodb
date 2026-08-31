@@ -79,12 +79,12 @@ public sealed class TestDatabaseFixture : IAsyncLifetime
             cancellationToken: CancellationToken.None);
         await _database.GetCollection<BsonDocument>("auth_lockout").Indexes.CreateOneAsync(
             new CreateIndexModel<BsonDocument>(
-                Builders<BsonDocument>.IndexKeys.Ascending("username").Ascending("remoteAddress"),
+                Builders<BsonDocument>.IndexKeys.Ascending("username").Ascending("remote_address"),
                 new CreateIndexOptions { Unique = true }),
             cancellationToken: CancellationToken.None);
         await _database.GetCollection<BsonDocument>("auth_lockout").Indexes.CreateOneAsync(
             new CreateIndexModel<BsonDocument>(
-                Builders<BsonDocument>.IndexKeys.Ascending("expiresAt"),
+                Builders<BsonDocument>.IndexKeys.Ascending("expires_at"),
                 new CreateIndexOptions { ExpireAfter = TimeSpan.Zero }),
             cancellationToken: CancellationToken.None);
     }

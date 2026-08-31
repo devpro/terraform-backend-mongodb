@@ -19,8 +19,8 @@ MONGODB_INDEX_COMMANDS=(
   'db.tf_state_history.createIndex({"tenant": 1, "name": 1})'
   'db.tf_state_lock.createIndex({"tenant": 1, "name": 1}, {unique: true})'
   'db.user.createIndex({"username": 1}, {unique: true})'
-  'db.auth_lockout.createIndex({"username": 1, "remoteAddress": 1}, {unique: true})'
-  'db.auth_lockout.createIndex({"expiresAt": 1}, {expireAfterSeconds: 0})'
+  'db.auth_lockout.createIndex({"username": 1, "remote_address": 1}, {unique: true})'
+  'db.auth_lockout.createIndex({"expires_at": 1}, {expireAfterSeconds: 0})'
 )
 
 log_info() {

@@ -17,6 +17,13 @@ public class LockoutModel
 
     public string Username { get; set; } = string.Empty;
 
+    /// <summary>
+    /// Overrides the global camelCase convention, matching <see cref="UserModel.PasswordHash"/>'s
+    /// <c>password_hash</c> and the snake_case field names in the Terraform state stored in <c>tf_state</c>
+    /// itself, rather than the camelCase envelope fields (<c>tenant</c>, <c>name</c>, <c>createdAt</c>) around
+    /// it, which are this app's own and stay as they are.
+    /// </summary>
+    [BsonElement("remote_address")]
     public string RemoteAddress { get; set; } = string.Empty;
 
     public int Failures { get; set; }
@@ -29,5 +36,6 @@ public class LockoutModel
     /// since the TTL monitor only sweeps roughly once a minute and must not be the only thing standing between
     /// an expired window and a caller reading it as still active.
     /// </summary>
+    [BsonElement("expires_at")]
     public DateTime ExpiresAt { get; set; }
 }

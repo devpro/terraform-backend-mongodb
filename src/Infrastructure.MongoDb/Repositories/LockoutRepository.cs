@@ -44,16 +44,18 @@ public class LockoutRepository : RepositoryBase, ILockoutRepository
         var now = DateTime.UtcNow;
         var expiry = now + lockoutDuration;
 
+        // this pipeline stage is raw BSON rather than a typed builder expression, so it references the actual
+        // stored field names directly: remote_address and expires_at, not the BsonElement-mapped properties
         var stillOpen = new BsonDocument("$cond", new BsonDocument
         {
-            ["if"] = new BsonDocument("$gt", new BsonArray { "$expiresAt", now }),
+            ["if"] = new BsonDocument("$gt", new BsonArray { "$expires_at", now }),
             ["then"] = new BsonDocument("$add", new BsonArray { "$failures", 1 }),
             ["else"] = 1
         });
         var keepOrRenewExpiry = new BsonDocument("$cond", new BsonDocument
         {
-            ["if"] = new BsonDocument("$gt", new BsonArray { "$expiresAt", now }),
-            ["then"] = "$expiresAt",
+            ["if"] = new BsonDocument("$gt", new BsonArray { "$expires_at", now }),
+            ["then"] = "$expires_at",
             ["else"] = expiry
         });
 
@@ -61,9 +63,9 @@ public class LockoutRepository : RepositoryBase, ILockoutRepository
             new BsonDocument("$set", new BsonDocument
             {
                 ["username"] = username,
-                ["remoteAddress"] = remoteAddress,
+                ["remote_address"] = remoteAddress,
                 ["failures"] = stillOpen,
-                ["expiresAt"] = keepOrRenewExpiry
+                ["expires_at"] = keepOrRenewExpiry
             }));
 
         var updated = await _modelCollection.FindOneAndUpdateAsync(
