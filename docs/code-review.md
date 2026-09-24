@@ -106,6 +106,14 @@ Changing it changes the data model (B-28).
 `tf_state_history` has no retention, deleting a state leaves its history behind (B-50), and locks never expire.
 A single-document write is atomic, so an interrupted run never leaves a half-written state: it leaves a lock nothing releases, which needs `terraform force-unlock` (B-18, B-21).
 
+### L12. A lock ID is unique across every tenant and state
+
+**Proven.**
+`tf_state_lock` uses the client's lock ID as `_id`, so the ID must be unique in the whole collection, not per `{tenant, name}`.
+A lock request reusing an ID held on another state fails the insert, finds no lock on its own state, and answers `409` with the caller's own lock as if it were the holder.
+Terraform and OpenTofu generate a fresh UUID for every lock, so this does not occur with a real client.
+Scoping the ID to its state changes the `tf_state_lock` document, which waits on the maintainer (B-59).
+
 ## Test coverage
 
 82 tests: 30 unit tests, and 52 integration tests against a real MongoDB and, for the scenarios, the real `terraform` CLI.
@@ -158,13 +166,13 @@ T1 | The suite failed confusingly against a drifted development database | `Test
 T2 | Nothing asserted what comes back out of storage | `StateFidelityTest`, `ComplexStateScenarioTest`
 T3 | Tests mutated process-wide environment variables | `TestHostConfiguration`
 S8 | An unparseable trusted proxy silently disabled forwarded headers; it now fails at startup | `AuthenticationServiceCollectionExtensionsTest`
-M1 | A state POST without `Content-Type` answered 500; `RawRequestBodyFormatter` is deleted and it answers 415 | `StateControllerResourceTest`
+M1 | `RawRequestBodyFormatter` served no client, since Terraform and OpenTofu always send `application/json`; it is deleted, and a POST without `Content-Type` answers 415 rather than 400 | `StateControllerResourceTest`
 M6 | Cancellation tokens were not propagated; state and lock operations take the request's token, the authentication path deliberately does not, so a disconnect after a wrong guess is still counted | Compiler
 L1 | The route name constraint was unanchored; it is removed, since it validated nothing | `StateControllerResourceTest`, OpenAPI snapshot
 L2 | The authentication handler duplicated `AllowAnonymous` with a path check | `ScalarResourceTest`, `OpenApiResourceTest`
 L4 | The OpenAPI version was kept in step with `VersionPrefix` by hand; it is derived from the assembly | OpenAPI snapshot
-L6 | The health check had no timeout; it is bounded at 5 seconds | `HealthCheckResourceTest`
+L6 | The health check had no timeout; it is bounded at 30 seconds, which a cold Atlas cluster can need | `HealthCheckResourceTest`
 L7 | `StateModel` and `StateValueModel` did not describe `tf_state`; both are deleted, and tests build a minimal state | Compiler
-L8 | The `Lock` endpoint had an unreachable `423` branch; a conflicting lock always answers `409` | `StateControllerResourceTest`, OpenAPI snapshot
+L8 | The `Lock` endpoint answered an empty `ID` with `423` and a message body, which Terraform cannot read as lock info; a conflicting lock always answers `409` with the holding lock | `StateControllerResourceTest`, OpenAPI snapshot
 L10 | A number beyond 34 significant digits was refused as out of range; the message names the precision | `JsonToBsonConverterTest`
 L11 | CI created indexes in a database the suite does not use | CI

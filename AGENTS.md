@@ -35,6 +35,15 @@ At the ceiling the work is to fail cleanly, with a `413` naming the limit, never
 Improvements belong in the .NET layer.
 Whatever changes there, the bytes that land in MongoDB keep the same shape.
 
+## Working rules
+
+**Everything runs in the foreground.**
+No background task, no fork, no subagent, whatever the task, including research or a read-only investigation.
+A server needed for a manual check is started, exercised and stopped within one foreground command, so nothing outlives the command that started it.
+
+**The machine is left as it was found, apart from the intended changes.**
+Anything created for a check, a database, a git worktree, a process, a scratch file, is removed as part of the work, without asking, and the cleanup is verified rather than assumed.
+
 ## Common commands
 
 ```bash

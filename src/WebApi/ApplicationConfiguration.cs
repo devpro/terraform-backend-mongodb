@@ -8,10 +8,10 @@ public class ApplicationConfiguration(IConfigurationRoot configurationRoot)
     public static string HealthCheckEndpoint => "/health";
 
     /// <summary>
-    /// Bounds the database ping, which otherwise waits for the driver's 30 second server selection timeout
-    /// while MongoDB is down.
+    /// Bounds the database ping, matching the driver's server selection timeout,
+    /// since a managed cluster such as Atlas can take that long to answer after a cold start.
     /// </summary>
-    public static TimeSpan HealthCheckTimeout => TimeSpan.FromSeconds(5);
+    public static TimeSpan HealthCheckTimeout => TimeSpan.FromSeconds(30);
 
     public bool IsHttpsRedirectionEnabled => configurationRoot.TryGetSection<bool>("Features:IsHttpsRedirectionEnabled");
 
