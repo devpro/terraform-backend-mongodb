@@ -22,7 +22,18 @@ public abstract class IntegrationTestBase(TestWebApplicationFactory factory)
 {
     protected Faker Faker { get; } = new();
 
-    protected Faker<StateModel> StateFaker { get; } = new("en");
+    /// <summary>
+    /// A minimal Terraform state, with a fresh lineage so that no two tests share one.
+    /// </summary>
+    protected static object NewState() => new
+    {
+        version = 4,
+        terraform_version = "1.9.0",
+        serial = 1,
+        lineage = Guid.NewGuid().ToString(),
+        outputs = new { },
+        resources = Array.Empty<object>()
+    };
 
     protected Faker<StateLockModel> StateLockFaker { get; } = new Faker<StateLockModel>("en")
         .RuleFor(u => u.Id, _ => Guid.NewGuid().ToString())
@@ -31,9 +42,8 @@ public abstract class IntegrationTestBase(TestWebApplicationFactory factory)
     /// <summary>
     /// Builds a client against the suite's host.
     /// <para>
-    /// The Scalar feature flag is applied by <see cref="TestHostConfiguration"/> through <c>UseSetting</c>.
-    /// It used to be set here with <c>Environment.SetEnvironmentVariable</c>, which is process-wide and was
-    /// never reset, so it leaked into every later test and made the suite order-dependent.
+    /// The Scalar feature flag is applied by <see cref="TestHostConfiguration"/> through <c>UseSetting</c>,
+    /// which is scoped to one factory, never through an environment variable, which would leak across tests.
     /// </para>
     /// </summary>
     protected HttpClient CreateClient(bool isAuthorizationNeeded = false, Action<IWebHostBuilder>? builderConfiguration = null)

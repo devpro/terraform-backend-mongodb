@@ -67,6 +67,22 @@ public class AuthenticationServiceCollectionExtensionsTest
         services.Should().Contain(descriptor => descriptor.ServiceType == typeof(ICredentialAuthenticator));
     }
 
+    [Theory]
+    [InlineData("Network:KnownProxies:0", "10.0.0.300", "*KnownProxies*10.0.0.300*")]
+    [InlineData("Network:KnownNetworks:0", "10.42.0.0/99", "*KnownNetworks*10.42.0.0/99*")]
+    public void AddTrustedProxies_WithUnparseableEntry_Throws(string key, string value, string expectedMessage)
+    {
+        // Arrange: a skipped entry would clear the loopback default and trust nothing, with no sign of it
+        var configuration = BuildConfiguration(new Dictionary<string, string?> { [key] = value });
+        var services = new ServiceCollection();
+
+        // Act
+        var act = () => services.AddTrustedProxies(configuration);
+
+        // Assert
+        act.Should().Throw<InvalidOperationException>().WithMessage(expectedMessage);
+    }
+
     private static ApplicationConfiguration BuildConfiguration(Dictionary<string, string?> values)
     {
         var configurationRoot = new ConfigurationBuilder()

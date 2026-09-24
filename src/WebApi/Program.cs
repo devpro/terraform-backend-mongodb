@@ -1,16 +1,12 @@
-﻿// creates the web application builder
-var builder = WebApplication.CreateBuilder(args);
+﻿var builder = WebApplication.CreateBuilder(args);
 
-// adds services to the container
-builder.Services.AddControllers(x => x.InputFormatters.Insert(0, new RawRequestBodyFormatter()));
-builder.Services.AddOpenApi();
+builder.Services.AddControllers();
 builder.Services.AddAuthentication()
     .AddScheme<AuthenticationSchemeOptions, BasicAuthenticationHandler>(BasicAuthenticationClient.AuthenticationScheme, null);
 builder.Services.AddHealthChecks()
-    .AddCheck<MongoDbHealthCheck>("mongodb");
+    .AddCheck<MongoDbHealthCheck>("mongodb", timeout: ApplicationConfiguration.HealthCheckTimeout);
 builder.Services.AddInvalidModelStateLog();
 
-// reads the application configuration and configures additional services
 var configuration = new ApplicationConfiguration(builder.Configuration);
 builder.Services.AddSingleton(configuration);
 builder.Services.AddMongoDbInfrastructure(configuration);
@@ -18,11 +14,9 @@ builder.Services.AddOpenApiWithBasicAuth(configuration);
 builder.Services.AddCredentialAuthentication(configuration);
 builder.Services.AddTrustedProxies(configuration);
 
-// creates the application and configures the HTTP request pipeline
 var app = builder.Build();
 
-// must run before anything reads the caller's address, so that the lockout and the authentication failure
-// log see the real client rather than the reverse proxy in front of the application
+// first, so that the lockout and the failure log see the client rather than the reverse proxy
 app.UseForwardedHeaders();
 
 if (configuration.IsScalarEnabled)
@@ -49,5 +43,4 @@ app.MapControllers();
 app.MapHealthChecks(ApplicationConfiguration.HealthCheckEndpoint)
     .AllowAnonymous();
 
-// runs the application
 await app.RunAsync();

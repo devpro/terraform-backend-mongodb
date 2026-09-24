@@ -92,7 +92,7 @@ Three projects with one-way dependencies: `WebApi` > `Infrastructure.MongoDb` > 
 - **`src/Domain`**: repository interfaces (`IStateRepository`, `IStateLockRepository`, `IUserRepository`, `ILockoutRepository`) and models.
   No logic, no infrastructure references.
 - **`src/Infrastructure.MongoDb`**: repository implementations.
-  Collections: `tf_state` (current state, stored as a raw `BsonDocument`, since the domain `StateModel` is only used by test fakers), `tf_state_lock`, `user` (BCrypt password hashes), `auth_lockout` (failed-attempt counters, TTL-expired).
+  Collections: `tf_state` (current state, stored as a raw `BsonDocument` with no C# model, since its shape is whatever Terraform wrote), `tf_state_lock`, `user` (BCrypt password hashes), `auth_lockout` (failed-attempt counters, TTL-expired).
   `tf_state_history` holds JSON-diff patches computed with `SystemTextJson.JsonDiffPatch` on every state update.
 - **`src/WebApi`**: `StateController` (all protocol logic including lock checking), Basic authentication against the `user` collection, `TenantAuthorizationFilter` matching the route `{tenant}` against the user's tenant claim, and `ThrottledCredentialAuthenticator` enforcing the failed-attempt lockout through `auth_lockout`.
   DI wiring lives in `WebApi/DependencyInjection/`.
@@ -116,10 +116,21 @@ Override via env vars with `__` separators, for example `DatabaseSettings__Conne
 
 These rules apply to Markdown, code comments, commit messages, and any prose in scripts.
 
-**One sentence per line.**
-A line break only ever happens at the end of a sentence, and a sentence is never wrapped across two lines.
-There is no maximum line length: screens are wide, and the 80 character convention is not used here.
-Wrapping is handled by the editor, not by hard newlines.
+**Conventions are the repository's, never a person's preference.**
+They are applied by default, not because someone asked, and a report states what the repository does rather than presenting a convention as a request the reader made.
+
+**A comment says why, not what, and the why is timeless.**
+The code says what it does.
+A comment records only what cannot be read off it: the failure it prevents, the constraint that made the obvious shape wrong, the alternative rejected and why.
+It is written as if the code had always been so: never "used to", never "this replaces", never the story of the change that produced it.
+What was done and when belongs to git history.
+The same rule decides what goes into this file: a decision and its reason, in one or two lines, never a walkthrough of the code.
+When editing a file, existing comments and formatting are preserved unless they break these rules.
+
+**One thought per line.**
+Every sentence starts on its own line, and a long sentence may break at a clause boundary, after a colon or the comma that closes a clause, never mid-clause.
+There is no maximum line length: screens are wide, the editor wraps, and the 80 character convention is not used here.
+A line length reported by a tool is never a reason to break a line.
 
 **Never use the em dash (`—`) or the en dash (`–`).**
 Use a colon when introducing an explanation, a comma when joining clauses, or a full stop and a new sentence.
@@ -132,7 +143,7 @@ Write "the working tree", not "your working tree".
 
 **Other conventions.**
 Use `ini` as the fence language for `.properties` blocks, never `properties`.
-Prefer `>` over `→` when describing UI navigation, for example **Project Settings > Quality Gate**.
+Use `>` for UI navigation, for example **Project Settings > Quality Gate**, and keep arrows for diagrams and data flows.
 
 ## Conventions
 
@@ -140,9 +151,11 @@ Prefer `>` over `→` when describing UI navigation, for example **Project Setti
 
 - NuGet versions are managed centrally in `Directory.Packages.props`: `PackageReference` entries in csproj files have no `Version` attribute.
 - Release version is `VersionPrefix` in `Directory.Build.props`.
-- MongoDB field names are camelCase via a global `ConventionPack` (registered in `InfrastructureServiceCollectionExtensions`).
+- MongoDB field names are camelCase via a global `ConventionPack` (registered in `InfrastructureServiceCollectionExtensions`), except multi-word fields, which `[BsonElement]` or the raw `BsonDocument` writes in snake_case: `created_at`, `password_hash`, `remote_address`, `expires_at`.
 - Markdown and YAML are linted in CI (`.markdownlint-cli2.yaml`, `.yamllint.yaml`); C# style is enforced by `.editorconfig`.
-- Do not run markdownlint: linting is run manually by the maintainer and in CI.
+- Linters are never run by an agent, and never imitated either: no `markdownlint`, no `yamllint`, no formatter in write mode, and no reshaping text to fit a lint configuration.
+  The maintainer runs them and decides about every finding, and an agent that notices text a linter might flag says so in its report.
+  Test commands are not linters.
 
 ### Scripts
 

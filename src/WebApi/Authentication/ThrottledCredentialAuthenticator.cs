@@ -10,17 +10,18 @@ namespace Devpro.TerraformBackend.WebApi.Authentication;
 /// <summary>
 /// Verifies credentials with a short-lived cache in front of BCrypt and a lockout behind it.
 /// <para>
-/// Both exist because of what the Terraform client forces. The <c>http</c> backend sends a Basic credential
-/// on every single request and supports no token, so the server verifies the same password over and over: at
-/// work factor 10 that is about 139 ms of CPU per request, which is latency on every legitimate operation and
-/// a cheap exhaustion lever for everybody else. The cache removes that cost for traffic that has already
-/// proven itself, and the lockout puts a ceiling on traffic that has not.
+/// The Terraform <c>http</c> backend sends a Basic credential on every request and supports no token,
+/// so without the cache every operation pays a BCrypt verify, about 139 ms of CPU at work factor 10.
+/// The cache removes that cost for a credential already verified, and the lockout caps the attempts of one
+/// that is not.
 /// </para>
 /// <para>
-/// The lockout is stored in MongoDB through <see cref="ILockoutRepository"/> rather than in process memory, so
-/// it holds across every replica of the deployment instead of resetting on whichever pod an attacker happens
-/// to land on. The credential cache stays local: it is a performance optimisation, not a security control, and
-/// a cache miss on a different pod only costs a repeat BCrypt verify rather than weakening the lockout.
+/// The lockout lives in MongoDB so that it holds across every replica.
+/// The cache stays in process: a miss on another replica costs one more verify and weakens nothing.
+/// </para>
+/// <para>
+/// Nothing here takes the request's cancellation token, so a caller that disconnects after a wrong guess is
+/// still counted.
 /// </para>
 /// </summary>
 public sealed class ThrottledCredentialAuthenticator(
@@ -33,11 +34,7 @@ public sealed class ThrottledCredentialAuthenticator(
 {
     /// <summary>
     /// Keys the credential cache without holding the credential.
-    /// <para>
-    /// Generated per process, so a cache entry cannot be carried back to a password even by something reading
-    /// the heap, and nothing survives a restart. A fixed salt would let identical deployments share
-    /// precomputable keys, which is the property being avoided.
-    /// </para>
+    /// Generated per process, because a fixed salt would let identical deployments share precomputable keys.
     /// </summary>
     private static readonly byte[] CacheKeySalt = RandomNumberGenerator.GetBytes(32);
 
@@ -90,14 +87,12 @@ public sealed class ThrottledCredentialAuthenticator(
     }
 
     /// <summary>
-    /// Records one failure, scoped to the username and the caller's address together rather than to the
-    /// username alone.
+    /// Records one failure against the username and the caller's address together.
     /// <para>
-    /// A lockout on the username alone is a denial-of-service handed to anybody on the internet: guessing at
-    /// <c>admin</c> from anywhere would lock the real operator out of the backend their applies depend on.
-    /// Pairing it with the address stops one attacker's brute force while leaving the legitimate caller
-    /// working. An attacker spread across many addresses still gets only the same allowance per address, and
-    /// the volume case is the ingress rate limit's to answer, not the application's.
+    /// A lockout on the username alone is a denial of service anybody can trigger:
+    /// guessing at <c>admin</c> from anywhere would lock the real operator out.
+    /// An attacker spread across many addresses gets the same allowance per address,
+    /// and that volume is for the ingress rate limit to stop.
     /// </para>
     /// </summary>
     private async Task RecordFailureAsync(string username, string addressKey)

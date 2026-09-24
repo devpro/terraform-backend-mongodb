@@ -66,9 +66,6 @@ jobs:
             sleep 1
           done
         "
-        echo "Initialize database (indexes)"
-        export MONGODB_URI="mongodb://localhost:27017/tfbackend_dev"
-        ./scripts/tfbeadm create-indexes
       dotnet-test-args: "--report-xunit-trx --coverage --coverage-output-format cobertura"
       extra-vars: |
         Features__IsHttpsRedirectionEnabled="false"

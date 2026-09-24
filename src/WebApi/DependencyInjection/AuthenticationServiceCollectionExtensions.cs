@@ -11,53 +11,53 @@ public static class AuthenticationServiceCollectionExtensions
     /// lockout thresholds that <see cref="Authentication.ThrottledCredentialAuthenticator"/> enforces against
     /// <c>auth_lockout</c> in MongoDB.
     /// <para>
-    /// Validated here, before registering anything, so a value that would defeat the lockout fails at startup
-    /// rather than as a silent runtime surprise.
+    /// Validated before registering anything, so a value that would defeat the lockout fails at startup.
     /// </para>
     /// </summary>
     public static void AddCredentialAuthentication(this IServiceCollection services, ApplicationConfiguration configuration)
     {
         if (configuration.MaxFailedAttempts < 1)
         {
-            // a threshold below 1 locks out a pair on its very first attempt, indistinguishable from every
-            // account being permanently refused
+            // below 1, every pair is locked out on its first attempt
             throw new InvalidOperationException(
                 $"Authentication:MaxFailedAttempts must be at least 1, but is {configuration.MaxFailedAttempts}.");
         }
 
         if (configuration.LockoutDuration <= TimeSpan.Zero)
         {
-            // a lockout that expires immediately never actually withholds access, which defeats S1 silently
+            // a lockout that expires immediately never withholds access
             throw new InvalidOperationException(
                 $"Authentication:LockoutSeconds must be greater than zero, but is {configuration.LockoutDuration.TotalSeconds}.");
         }
 
-        // the lockout itself lives in MongoDB, not here: this cache now only ever holds a successful
-        // credential's verification result, and an attacker cannot grow it, since only a verification that
-        // already succeeded is ever stored. The bound is a defensive cap on legitimate traffic, not a defence
-        // against a flood of distinct usernames, which auth_lockout's TTL index already handles.
+        // only a successful verification is ever cached, so an attacker cannot grow the cache,
+        // and the bound is a cap on legitimate traffic
         services.AddMemoryCache(options => options.SizeLimit = 10_000);
 
-        // scoped, not singleton: the repository it verifies through is scoped, and the one piece of state that
-        // has to outlive a request within a single pod, the credential cache, already lives in the singleton
-        // IMemoryCache rather than in this service
+        // scoped, since the repositories it calls are scoped and its only lasting state is the singleton cache
         services.TryAddScoped<ICredentialAuthenticator, ThrottledCredentialAuthenticator>();
     }
 
     /// <summary>
     /// Configures which reverse proxies the application believes when it reads the caller's address.
     /// <para>
-    /// This is a prerequisite for the lockout and for the authentication failure log, not a detail. Behind an
-    /// ingress, an unconfigured application sees the proxy's address on every request, so every caller shares
-    /// one lockout bucket and every logged address names the proxy instead of the attacker.
-    /// </para>
-    /// <para>
-    /// ASP.NET Core trusts only loopback by default, which is why the configured values have to replace that
-    /// default rather than extend it.
+    /// Behind an unconfigured ingress, every request carries the proxy's address,
+    /// so every caller shares one lockout bucket and every failure is logged against the proxy.
+    /// The configured values replace the loopback-only default rather than extend it,
+    /// which is why an entry that does not parse fails at startup: skipping it would leave nothing trusted.
     /// </para>
     /// </summary>
     public static void AddTrustedProxies(this IServiceCollection services, ApplicationConfiguration configuration)
     {
+        var proxies = configuration.KnownProxies.Select(value => IPAddress.TryParse(value, out var address)
+            ? address
+            : throw new InvalidOperationException($"Network:KnownProxies holds '{value}', which is not an IP address."))
+            .ToList();
+        var networks = configuration.KnownNetworks.Select(value => System.Net.IPNetwork.TryParse(value, out var network)
+            ? network
+            : throw new InvalidOperationException($"Network:KnownNetworks holds '{value}', which is not a network in CIDR notation."))
+            .ToList();
+
         services.Configure<ForwardedHeadersOptions>(options =>
         {
             options.ForwardedHeaders = ForwardedHeaders.XForwardedFor | ForwardedHeaders.XForwardedProto;
@@ -71,29 +71,15 @@ public static class AuthenticationServiceCollectionExtensions
                 return;
             }
 
-            if (configuration.KnownProxies.Length == 0 && configuration.KnownNetworks.Length == 0)
+            if (proxies.Count == 0 && networks.Count == 0)
             {
                 return;
             }
 
             options.KnownIPNetworks.Clear();
             options.KnownProxies.Clear();
-
-            foreach (var proxy in configuration.KnownProxies)
-            {
-                if (IPAddress.TryParse(proxy, out var address))
-                {
-                    options.KnownProxies.Add(address);
-                }
-            }
-
-            foreach (var network in configuration.KnownNetworks)
-            {
-                if (System.Net.IPNetwork.TryParse(network, out var parsed))
-                {
-                    options.KnownIPNetworks.Add(parsed);
-                }
-            }
+            proxies.ForEach(options.KnownProxies.Add);
+            networks.ForEach(options.KnownIPNetworks.Add);
         });
     }
 }

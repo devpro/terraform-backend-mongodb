@@ -75,7 +75,7 @@ public class StateLockRepositoryTest(TestWebApplicationFactory factory)
         var repository = scope.ServiceProvider.GetRequiredService<IStateLockRepository>();
 
         // Act: races every insert against the same {tenant, name} unique index at once
-        var results = await Task.WhenAll(locks.Select(repository.CreateAsync));
+        var results = await Task.WhenAll(locks.Select(stateLock => repository.CreateAsync(stateLock, TestContext.Current.CancellationToken)));
 
         // Assert
         results.Count(result => result != null).Should().Be(1, "exactly one concurrent run must win the lock");

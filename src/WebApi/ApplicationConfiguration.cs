@@ -7,6 +7,12 @@ public class ApplicationConfiguration(IConfigurationRoot configurationRoot)
 {
     public static string HealthCheckEndpoint => "/health";
 
+    /// <summary>
+    /// Bounds the database ping, which otherwise waits for the driver's 30 second server selection timeout
+    /// while MongoDB is down.
+    /// </summary>
+    public static TimeSpan HealthCheckTimeout => TimeSpan.FromSeconds(5);
+
     public bool IsHttpsRedirectionEnabled => configurationRoot.TryGetSection<bool>("Features:IsHttpsRedirectionEnabled");
 
     public bool IsScalarEnabled => configurationRoot.TryGetSection<bool>("Features:IsScalarEnabled");
@@ -19,8 +25,7 @@ public class ApplicationConfiguration(IConfigurationRoot configurationRoot)
 
     /// <summary>
     /// How long a verified credential stays usable without running BCrypt again.
-    /// Terraform re-sends the credential on every request, so without this every operation pays a work-factor
-    /// verify, around 139 ms of CPU measured on this codebase.
+    /// Zero or less disables the cache.
     /// </summary>
     public TimeSpan CredentialCacheDuration =>
         TimeSpan.FromSeconds(configurationRoot.GetValue("Authentication:CredentialCacheSeconds", 60));

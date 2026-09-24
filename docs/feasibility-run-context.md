@@ -20,13 +20,13 @@ There is no protocol extension point for custom metadata, so any solution combin
 
 ### What the backend already receives for free
 
-The lock payload (`StateLockModel`) carries `Who` (user@host), `Version` (Terraform version), `Operation`, `Created`, and `Path` — Terraform fills these in on every `lock` call.
+The lock payload (`StateLockModel`) carries `Who` (user@host), `Version` (Terraform version), `Operation`, `Created`, and `Path`, which Terraform fills in on every `lock` call.
 Basic auth identifies the tenant and user, and the connection provides a source IP.
 None of this includes git information, but it is enough to attribute *who* changed *what* and *when* without any client cooperation.
 
 ## Transport options for client-provided context
 
-### Option A — custom headers (OpenTofu only)
+### Option A: custom headers (OpenTofu only)
 
 OpenTofu's HTTP backend supports an optional [`headers` map](https://opentofu.org/docs/language/settings/backends/http/) in the backend block, so a pipeline can inject e.g. `X-TF-Context: <base64 JSON>` generated before `tofu init`.
 HashiCorp Terraform's HTTP backend has **no custom header support** (a long-standing feature request), so this option alone excludes Terraform users.
@@ -34,7 +34,7 @@ HashiCorp Terraform's HTTP backend has **no custom header support** (a long-stan
 - Pros: clean, invisible in URLs and access logs, natural fit for structured data.
 - Cons: OpenTofu-only; headers must be baked into the backend block or partial backend config at `init` time.
 
-### Option B — query parameters on the backend address
+### Option B: query parameters on the backend address
 
 `TF_HTTP_ADDRESS`, `TF_HTTP_LOCK_ADDRESS`, and `TF_HTTP_UNLOCK_ADDRESS` accept any URL, including a query string, e.g.:
 
@@ -49,7 +49,7 @@ The existing `Scenarios/` infrastructure makes this cheap: pass a decorated `TF_
 - Pros: works with both Terraform and OpenTofu today, zero protocol changes, trivial server-side parsing.
 - Cons: limited payload size, values appear in access logs and proxies (fine for git metadata, never for secrets), relies on tested-but-undocumented client behavior.
 
-### Option C — dedicated context endpoint
+### Option C: dedicated context endpoint
 
 Add an authenticated endpoint, e.g. `POST /{tenant}/state/{name}/context`, that a wrapper calls once before running Terraform with a client-generated `runId` and a rich JSON body.
 Combined with Option B carrying only `runId=...`, every subsequent state/lock request correlates to the full context document.
@@ -57,7 +57,7 @@ Combined with Option B carrying only `runId=...`, every subsequent state/lock re
 - Pros: unlimited structured payload, explicit contract owned by this project, versionable schema.
 - Cons: requires the wrapper to make an extra HTTP call; context and state writes are correlated, not transactional.
 
-### Option D — server-side correlation only (no client changes)
+### Option D: server-side correlation only (no client changes)
 
 On every state POST/DELETE that carries `?ID=<lockId>`, the backend already looks up the lock; it can persist the lock's `Who`, `Version`, `Operation`, and `Path` into the `tf_state_history` entry (and into a run record).
 This ships value immediately with zero adoption effort, but can never provide git or CI information.

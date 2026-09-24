@@ -76,4 +76,14 @@ public class JsonToBsonConverterTest
         document["arr"].AsBsonArray.Should().HaveCount(3);
         document["nested"].AsBsonDocument["a"].Should().Be(new BsonInt32(1));
     }
+
+    [Fact]
+    public void Convert_WithAnIntegerBeyondDecimal128Precision_ThrowsNamingThePrecision()
+    {
+        // Arrange: L10, forty-one digits, within range but beyond the 34 significant digits Decimal128 holds
+        var act = () => JsonToBsonConverter.Convert("""{"v":12345678901234567890123456789012345678901}""");
+
+        // Act & Assert
+        act.Should().Throw<JsonException>().WithMessage("*34 significant digits*");
+    }
 }

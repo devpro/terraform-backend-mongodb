@@ -35,7 +35,7 @@ public class BsonToJsonConverterTest
     [Fact]
     public void Convert_WithAPositiveInfinity_WritesAMagnitudeNoDoubleCanReach()
     {
-        // Arrange: only a document written before H2's fix can hold this, since JsonToBsonConverter now maps an out-of-range literal to Decimal128 instead.
+        // Arrange: JsonToBsonConverter never stores an infinity, so only a document written by another client holds one.
         // Handled anyway, since the alternative is emitting an object or a null in place of a number the caller once sent.
         var json = BsonToJsonConverter.Convert(new BsonDouble(double.PositiveInfinity));
 

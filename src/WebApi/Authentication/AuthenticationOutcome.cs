@@ -12,11 +12,9 @@ public enum AuthenticationStatus
 /// <summary>
 /// The result of one authentication attempt.
 /// <para>
-/// <see cref="AuthenticationStatus.LockedOut"/> is reported separately from
-/// <see cref="AuthenticationStatus.InvalidCredentials"/> so that the two can be logged apart, but both must
-/// produce the same <c>401</c> to the caller. Answering a lockout with a distinct status code would tell an
-/// attacker which usernames exist and which of their guesses were worth making, which is the enumeration
-/// oracle the dummy-hash verify in <c>UserRepository</c> exists to close.
+/// <see cref="AuthenticationStatus.LockedOut"/> is distinct from <see cref="AuthenticationStatus.InvalidCredentials"/>
+/// so that the two are logged apart, but both answer the same <c>401</c>:
+/// a distinct status would tell an attacker which usernames exist, the oracle <c>UserRepository</c> closes.
 /// </para>
 /// </summary>
 public sealed record AuthenticationOutcome(AuthenticationStatus Status, UserModel? User)

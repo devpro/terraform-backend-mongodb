@@ -67,7 +67,7 @@ public class StateControllerResourceTest(TestWebApplicationFactory factory)
         // Arrange
         var client = CreateClient(true);
         var name = UniqueStateName();
-        var state = StateFaker.Generate();
+        var state = NewState();
         TrackState(Tenant, name);
 
         // Act & Assert
@@ -90,7 +90,7 @@ public class StateControllerResourceTest(TestWebApplicationFactory factory)
         // Arrange
         var client = CreateClient(true);
         var name = UniqueStateName();
-        var state = StateFaker.Generate();
+        var state = NewState();
         var stateLock = StateLockFaker.Generate();
         // this test posts the state twice, so it also writes a tf_state_history entry, and it never deletes
         // the state itself
@@ -120,5 +120,35 @@ public class StateControllerResourceTest(TestWebApplicationFactory factory)
         var deleteLockResponse = await client.SendAsync(deleteLockRequest, TestContext.Current.CancellationToken);
         await CheckResponseAndGetContentAsync(deleteLockResponse, HttpStatusCode.OK, null,
             cancellationToken: TestContext.Current.CancellationToken);
+    }
+
+    [Fact]
+    [Trait("Mode", "Readonly")]
+    public async Task StateResource_CreateWithoutContentType_IsUnsupportedMediaType()
+    {
+        // Arrange: M1, a body with no Content-Type header at all, which Terraform never sends
+        var client = CreateClient(true);
+        var content = new ByteArrayContent("{\"version\":4}"u8.ToArray());
+
+        // Act
+        var response = await client.PostAsync($"/{Tenant}/state/{UniqueStateName()}", content, TestContext.Current.CancellationToken);
+
+        // Assert
+        response.StatusCode.Should().Be(HttpStatusCode.UnsupportedMediaType);
+    }
+
+    [Fact]
+    public async Task StateResource_WithANameOfDigitsOnly_IsRouted()
+    {
+        // Arrange: L1, the name is not constrained, so a name with no letter reaches the controller
+        var client = CreateClient(true);
+        var name = Faker.Random.Number(100_000, 999_999).ToString(System.Globalization.CultureInfo.InvariantCulture);
+        TrackState(Tenant, name);
+
+        // Act
+        var createResponse = await client.PostAsync($"/{Tenant}/state/{name}", Serialize(NewState()), TestContext.Current.CancellationToken);
+
+        // Assert
+        createResponse.StatusCode.Should().Be(HttpStatusCode.OK);
     }
 }

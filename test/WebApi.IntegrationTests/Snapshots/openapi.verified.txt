@@ -31,7 +31,6 @@
             in: path,
             required: true,
             schema: {
-              pattern: [a-zA-Z]+,
               type: string
             }
           }
@@ -72,7 +71,6 @@
             in: path,
             required: true,
             schema: {
-              pattern: [a-zA-Z]+,
               type: string
             }
           },
@@ -198,7 +196,6 @@
             in: path,
             required: true,
             schema: {
-              pattern: [a-zA-Z]+,
               type: string
             }
           },
@@ -278,7 +275,6 @@
             in: path,
             required: true,
             schema: {
-              pattern: [a-zA-Z]+,
               type: string
             }
           }
@@ -317,16 +313,6 @@
                 }
               }
             }
-          },
-          423: {
-            description: Locked,
-            content: {
-              application/json: {
-                schema: {
-                  $ref: #/components/schemas/ProblemDetails
-                }
-              }
-            }
           }
         }
       },
@@ -349,7 +335,6 @@
             in: path,
             required: true,
             schema: {
-              pattern: [a-zA-Z]+,
               type: string
             }
           }

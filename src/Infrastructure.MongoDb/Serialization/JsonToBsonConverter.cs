@@ -8,10 +8,9 @@ namespace Devpro.TerraformBackend.Infrastructure.MongoDb.Serialization;
 /// <summary>
 /// Turns the JSON a Terraform client sends into the BSON document that is stored.
 /// <para>
-/// This replaces <c>BsonDocument.Parse</c>, which throws on any integer beyond <see cref="long"/> and so
-/// answered a valid Terraform state with a 500. The mapping below reproduces what <c>BsonDocument.Parse</c>
-/// does for every value in range, since the stored document shape is a contract that other applications read,
-/// and only adds a case where the alternative was failing.
+/// <c>BsonDocument.Parse</c> is not used because it throws on any integer beyond <see cref="long"/>.
+/// The mapping matches <c>BsonDocument.Parse</c> for every value in range, since the stored shape is a
+/// contract other applications read, and differs only where <c>BsonDocument.Parse</c> would fail.
 /// </para>
 /// </summary>
 public static class JsonToBsonConverter
@@ -69,15 +68,10 @@ public static class JsonToBsonConverter
     /// <summary>
     /// Chooses the BSON numeric type from the literal as it was written, not from its value.
     /// <para>
-    /// An integer literal becomes <c>Int32</c>, then <c>Int64</c>, exactly as before. Beyond that it becomes
-    /// <c>Decimal128</c> instead of throwing: a thirty-digit integer is a number Terraform is entitled to
-    /// send, and BSON can hold it.
-    /// </para>
-    /// <para>
-    /// A literal with a fraction or an exponent becomes <c>Double</c>, again as before, unless it is beyond
-    /// the range of a double. That case used to be stored as <c>Infinity</c>, which is not the value that was
-    /// written and does not come back as a number at all, so it becomes <c>Decimal128</c>, which holds
-    /// magnitudes up to roughly 1e6144.
+    /// An integer literal becomes <c>Int32</c>, then <c>Int64</c>, then <c>Decimal128</c>:
+    /// a thirty-digit integer is a number Terraform is entitled to send, and BSON can hold it.
+    /// A literal with a fraction or an exponent becomes <c>Double</c>, or <c>Decimal128</c> beyond the range
+    /// of a double, which would otherwise be stored as an infinity rather than the value written.
     /// </para>
     /// </summary>
     private static BsonValue ConvertNumber(JsonElement element)
@@ -108,6 +102,7 @@ public static class JsonToBsonConverter
             return new BsonDecimal128(decimalValue);
         }
 
-        throw new JsonException($"The number {raw} is outside every numeric range BSON can represent.");
+        throw new JsonException(
+            $"The number {raw} cannot be stored: BSON holds at most 34 significant digits and magnitudes up to about 1e6144.");
     }
 }
