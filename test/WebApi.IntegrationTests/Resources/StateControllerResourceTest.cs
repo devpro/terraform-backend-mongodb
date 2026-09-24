@@ -151,4 +151,38 @@ public class StateControllerResourceTest(TestWebApplicationFactory factory)
         // Assert
         createResponse.StatusCode.Should().Be(HttpStatusCode.OK);
     }
+
+    [Fact]
+    public async Task StateLockResource_SameLockIdOnTwoStates_LocksAndUnlocksEach()
+    {
+        // Arrange: L12, a lock ID is scoped to its state, so reusing one elsewhere must not collide
+        var client = CreateClient(true);
+        var names = new[] { UniqueStateName(), UniqueStateName() };
+        var stateLock = StateLockFaker.Generate();
+        foreach (var name in names)
+        {
+            TrackState(Tenant, name);
+        }
+
+        foreach (var name in names)
+        {
+            // Act
+            var lockResponse = await client.PostAsync($"/{Tenant}/state/{name}/lock", Serialize(stateLock), TestContext.Current.CancellationToken);
+
+            // Assert
+            var lockContent = await lockResponse.Content.ReadAsStringAsync(TestContext.Current.CancellationToken);
+            lockResponse.StatusCode.Should().Be(HttpStatusCode.OK, lockContent);
+            lockContent.Should().Contain($"\"name\":\"{name}\"");
+        }
+
+        foreach (var name in names)
+        {
+            var unlockRequest = new HttpRequestMessage(HttpMethod.Delete, $"/{Tenant}/state/{name}/lock")
+            {
+                Content = Serialize(stateLock)
+            };
+            var unlockResponse = await client.SendAsync(unlockRequest, TestContext.Current.CancellationToken);
+            unlockResponse.StatusCode.Should().Be(HttpStatusCode.OK);
+        }
+    }
 }

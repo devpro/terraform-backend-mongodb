@@ -20,12 +20,11 @@ The 16 MB BSON document limit is therefore permanent, and the work is to fail cl
 Improvements belong in the .NET layer, not in the stored representation.
 The model changes only when the maintainer specifically asks for it, and an item in this backlog is not such a request.
 
-Four items below would change it, so they are marked **needs decision** and wait on the maintainer:
+Three items below would change it, so they are marked **needs decision** and wait on the maintainer:
 
 - **B-07** adds an `updated_at` field to `tf_state`.
 - **B-28** changes the `tf_state_history` document: the patch stored as BSON rather than as a string, and the `upgrade` field renamed.
 - **B-15** introduces a `tf_state_revision` collection, which conflicts with `tf_state` holding the latest version only.
-- **B-59** changes the `tf_state_lock` document so that a lock ID is unique per state rather than globally.
 
 The second constraint is the client.
 Terraform's `http` backend sends a Basic credential on every request and supports no bearer token, no OAuth flow and no custom headers, so the authentication scheme cannot be replaced.
@@ -57,7 +56,6 @@ B-29 | Stop reading and re-parsing the whole state on every POST | Every apply p
 B-30 | Run CI against a replica set, as `compose.yaml` already does | CI cannot run transactions today, which blocks B-31 and B-15 | P2 | S
 B-31 | Make the state write and the history write atomic | A failure between them leaves a history entry describing a transition that never happened | P2 | S
 B-07 | Keep `created_at` on update and add `updated_at` (**needs decision**, changes the data model) | `created_at` currently records the last update, so the creation time is lost | P3 | S
-B-59 | Scope the lock ID to its `{tenant, name}` (**needs decision**, changes the data model) | The client's lock ID is the document `_id`, so a reused ID collides across states and answers `409` with the caller's own lock ([L12](code-review.md#l12-a-lock-id-is-unique-across-every-tenant-and-state)) | P3 | S
 
 ## Tests
 

@@ -106,14 +106,6 @@ Changing it changes the data model (B-28).
 `tf_state_history` has no retention, deleting a state leaves its history behind (B-50), and locks never expire.
 A single-document write is atomic, so an interrupted run never leaves a half-written state: it leaves a lock nothing releases, which needs `terraform force-unlock` (B-18, B-21).
 
-### L12. A lock ID is unique across every tenant and state
-
-**Proven.**
-`tf_state_lock` uses the client's lock ID as `_id`, so the ID must be unique in the whole collection, not per `{tenant, name}`.
-A lock request reusing an ID held on another state fails the insert, finds no lock on its own state, and answers `409` with the caller's own lock as if it were the holder.
-Terraform and OpenTofu generate a fresh UUID for every lock, so this does not occur with a real client.
-Scoping the ID to its state changes the `tf_state_lock` document, which waits on the maintainer (B-59).
-
 ## Test coverage
 
 82 tests: 30 unit tests, and 52 integration tests against a real MongoDB and, for the scenarios, the real `terraform` CLI.
@@ -176,3 +168,4 @@ L7 | `StateModel` and `StateValueModel` did not describe `tf_state`; both are de
 L8 | The `Lock` endpoint answered an empty `ID` with `423` and a message body, which Terraform cannot read as lock info; a conflicting lock always answers `409` with the holding lock | `StateControllerResourceTest`, OpenAPI snapshot
 L10 | A number beyond 34 significant digits was refused as out of range; the message names the precision | `JsonToBsonConverterTest`
 L11 | CI created indexes in a database the suite does not use | CI
+L12 | The lock ID was the `tf_state_lock` `_id`, so a reused ID collided across states and answered `409` with the caller's own lock; it is a `lock_id` field, unique per `{tenant, name}`, and `tfbeadm migrate-lock-id` moves existing locks | `StateControllerResourceTest`, `MigrateLockIdTest`

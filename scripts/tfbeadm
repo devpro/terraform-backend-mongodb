@@ -33,6 +33,12 @@ MONGODB_MIGRATION_COMMANDS=(
   'db.tf_state_history.updateMany({createdAt: {$exists: true}}, {$rename: {"createdAt": "created_at"}})'
 )
 
+# Copies the lock ID of a tf_state_lock document written when the ID was the document's _id into lock_id, the
+# field the application reads, so that a lock held across the upgrade can still be released.
+# The _id is left as it is, since the application ignores it, and a document that already has lock_id is not
+# matched, so this is safe to run more than once.
+MONGODB_LOCK_ID_MIGRATION_COMMAND='db.tf_state_lock.updateMany({lock_id: {$exists: false}}, [{$set: {lock_id: "$_id"}}])'
+
 log_info() {
   local message="$1"
   echo -e "$message"
@@ -63,6 +69,7 @@ usage() {
   echo -e "\033[1;34mCommands:\033[0m"
   echo "  create-indexes                             : Create indexes in database"
   echo "  migrate-created-at                         : Rename createdAt to created_at in tf_state and tf_state_history, safe to run more than once"
+  echo "  migrate-lock-id                            : Copy the lock ID of a tf_state_lock document into lock_id, safe to run more than once"
   echo "  create-user <username> <tenant>            : Create user in database, reading the password from a prompt or standard input"
   echo "  create-user <username> <password> <tenant> : Deprecated, the password is visible in the process list and the shell history"
   echo "  help                                       : Show this help message"
@@ -220,6 +227,16 @@ migrate_created_at() {
   return $status
 }
 
+migrate_lock_id() {
+  log_header "Copying lock IDs into lock_id in tf_state_lock"
+  if execute_mongosh "$MONGODB_LOCK_ID_MIGRATION_COMMAND"; then
+    log_success "Migration complete"
+  else
+    log_error "The copy failed"
+    return 1
+  fi
+}
+
 # Reads a password without echoing it and without it ever becoming an argument.
 # Prompts on a terminal, and otherwise takes one line from standard input so that the command composes with a
 # generator, for example `openssl rand -base64 24 | tfbeadm create-user admin dummy`.
@@ -288,6 +305,10 @@ if [ $# -gt 0 ]; then
       ;;
     "migrate-created-at")
       migrate_created_at
+      exit $?
+      ;;
+    "migrate-lock-id")
+      migrate_lock_id
       exit $?
       ;;
     "create-user")

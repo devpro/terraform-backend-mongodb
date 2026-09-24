@@ -56,6 +56,17 @@ The command is safe to run more than once, and safe to run before or after the a
 MONGODB_URI=mongodb://<myserver>:27017/<mydb> tfbeadm migrate-created-at
 ```
 
+### Upgrading from before the lock ID moved out of `_id`
+
+A lock is unique per tenant and state name, and its ID is stored in a `lock_id` field rather than as the document `_id`, so the same lock ID can be used on two states.
+A lock taken by an earlier version and still held at the upgrade, a stale one from a crashed run included, has no `lock_id` and cannot be released until it is migrated.
+Run `tfbeadm migrate-lock-id` once the application is upgraded, which copies the ID into `lock_id`.
+The command is safe to run more than once.
+
+```bash
+MONGODB_URI=mongodb://<myserver>:27017/<mydb> tfbeadm migrate-lock-id
+```
+
 ### Authentication and network settings
 
 Six settings, introduced alongside the brute-force and proxy hardening, override with the `Section__Key` environment variable convention documented in `AGENTS.md`.
