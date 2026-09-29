@@ -1,4 +1,4 @@
-﻿using System.Net;
+using System.Net;
 using System.Threading.Tasks;
 using Devpro.TerraformBackend.WebApi.IntegrationTests.Hosting;
 using VerifyXunit;

@@ -91,7 +91,7 @@ That is written for a virtual machine: a container has no `systemd`, usually no 
 
 Two ways round it, and the second is the better one:
 
-- Put Terraform in the runner image, and it is installed once rather than every run.
+- Use a runner image carrying Terraform, `ghcr.io/devpro/ubuntu-dotnet`, and it is installed once rather than every run.
 - Give MongoDB to the job as a service container rather than installing it, which is what a container pipeline does with a database.
   IstarCI already starts `services:` alongside a job on a network of their own, reachable by name, and waits on their health check.
   A `mongo:8` service reachable as `mongo` replaces the whole install and start block.
@@ -99,30 +99,20 @@ Two ways round it, and the second is the better one:
 ### The quality job also wants Java, for Sonar
 
 `actions/setup-java` is skipped, a setup action assuming a runner image with toolchains already in it.
-An image built from the .NET SDK with a JRE added covers it, and `SONAR_TOKEN` resolves to the placeholder `istarci-secret-SONAR_TOKEN`, so the Sonar steps fail where they use it unless Sonar is disabled locally through the `sonar-enabled` input the reusable workflow takes.
+`ghcr.io/devpro/ubuntu-dotnet` carries a JRE next to the .NET SDK, and `SONAR_TOKEN` resolves to the placeholder `istarci-secret-SONAR_TOKEN`, so the Sonar steps fail where they use it unless Sonar is disabled locally through the `sonar-enabled` input the reusable workflow takes.
 
 ### The image scan job wants a Docker socket and `${{ env.IMAGE_REF }}`
 
 Both are IstarCI gaps, items 1 and 3 of its backlog, and neither needs a change here.
 
-### `.markdownlint-cli2.yaml` starts with a byte order mark
-
-This one does block: markdownlint itself refuses to read such a file, which no care on the IstarCI side can help with.
-Eleven other files carry one too, including all five workflow files and `README.md`:
-
-```bash
-sed -i '1s/^\xEF\xBB\xBF//' .fossa.yml .markdownlint-cli2.yaml .yamllint.yaml CONTRIBUTING.md README.md Directory.Build.props .github/workflows/*.yaml .github/workflows/*.yml samples/docker-nginx/README.md
-```
-
 ## Suggested `.istarci.yml`
 
 ```yaml
 runner:
-  image: mcr.microsoft.com/dotnet/sdk:10.0
+  image: ghcr.io/devpro/ubuntu-dotnet:latest
   images:
-    "markup-lint*": ghcr.io/devpro/istarci-node-lint:latest      # Node and pipx
-    "code-quality*": ghcr.io/devpro/istarci-dotnet-terraform:latest # .NET SDK, Terraform, a JRE
-    "git-check*": alpine/git:latest
+    "markup-lint*": ghcr.io/devpro/debian-node:latest
+    "git-check*": ghcr.io/devpro/debian-node:latest
 
 workflow:
   exclude:

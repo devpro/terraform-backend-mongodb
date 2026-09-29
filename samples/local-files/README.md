@@ -1,4 +1,4 @@
-﻿# Sample with local files
+# Sample with local files
 
 ## Setup
 

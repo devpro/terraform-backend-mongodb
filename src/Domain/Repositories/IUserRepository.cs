@@ -1,4 +1,4 @@
-﻿using System.Threading.Tasks;
+using System.Threading.Tasks;
 using Devpro.TerraformBackend.Domain.Models;
 
 namespace Devpro.TerraformBackend.Domain.Repositories;

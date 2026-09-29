@@ -1,4 +1,4 @@
-﻿global using Devpro.TerraformBackend.WebApi;
+global using Devpro.TerraformBackend.WebApi;
 global using Devpro.TerraformBackend.WebApi.Authentication;
 global using Devpro.TerraformBackend.WebApi.DependencyInjection;
 global using Devpro.TerraformBackend.WebApi.HealthChecks;

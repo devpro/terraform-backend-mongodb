@@ -1,4 +1,4 @@
-﻿using System.Threading.Tasks;
+using System.Threading.Tasks;
 using Devpro.TerraformBackend.WebApi.IntegrationTests.Hosting;
 using Xunit;
 

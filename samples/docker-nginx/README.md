@@ -1,4 +1,4 @@
-﻿# Terraform Docker sample
+# Terraform Docker sample
 
 This sample creates and manages an nginx container in Docker, inspired by [Terraform Get Started](https://developer.hashicorp.com/terraform/tutorials/docker-get-started).
 
