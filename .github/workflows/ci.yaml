@@ -94,3 +94,4 @@ jobs:
       image-tag: "${{ needs.git-check.outputs.version_major_minor }}.${{ github.run_id }}"
       max-high-cves: 0
       max-medium-cves: 0
+      workflow-parts-version: 48f6e55c5e4ea9ab4db60e66bc385a8f8dc36f8a
