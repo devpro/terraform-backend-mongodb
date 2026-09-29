@@ -108,6 +108,14 @@ CI    | Continuous Integration   | `.github/workflows/ci.yaml`
 PKG   | Continuous Delivery      | `.github/workflows/pkg.yaml`
 Pages | Continuous Documentation | `.github/workflows/pages.yaml`
 
+The CI pipeline of the last commit runs locally in containers with [IstarCI](https://github.com/devpro/istarci), cloned in `~/repos/istarci` or in `ISTARCI_DIR`:
+
+```bash
+task ci
+```
+
+The image of each job is set in `.istarci.yml`.
+
 The workflows read these GitHub secrets and variables, set in **Settings > Secrets and variables > Actions**:
 
 - `DOCKERHUB_TOKEN`
