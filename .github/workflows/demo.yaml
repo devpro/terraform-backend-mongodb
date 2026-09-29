@@ -27,12 +27,12 @@ jobs:
             directory: docker-nginx
           - name: Local Files
             directory: local-files
-    uses: devpro/github-workflow-parts/.github/workflows/reusable-terraform-deployment.yml@48f6e55c5e4ea9ab4db60e66bc385a8f8dc36f8a
+    uses: devpro/github-workflow-parts/.github/workflows/reusable-terraform-deployment.yml@00907950b2c345e8ad6934b07268cef056d50d86
     with:
       environment: demo
       working-directory: samples/${{ matrix.directory }}
       tfbackend-project: "${{ matrix.directory }}-${{ needs.git-check.outputs.environment_slug }}"
-      workflow-parts-version: 48f6e55c5e4ea9ab4db60e66bc385a8f8dc36f8a
+      workflow-parts-version: 00907950b2c345e8ad6934b07268cef056d50d86
     secrets:
       atlas-groupid: ${{ secrets.ATLAS_GROUP_ID }}
       atlas-privatekey: ${{ secrets.ATLAS_PRIVATE_KEY }}
