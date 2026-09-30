@@ -68,7 +68,7 @@ jobs:
         "
       dotnet-test-args: "--report-xunit-trx --coverage --coverage-output-format cobertura"
       extra-vars: |
-        Features__IsHttpsRedirectionEnabled="false"
+        Features__IsHttpsRedirectionEnabled=false
       fossa-enabled: true
       sonar-enabled: true
       sonar-organization: ${{ vars.SONAR_ORG }}
