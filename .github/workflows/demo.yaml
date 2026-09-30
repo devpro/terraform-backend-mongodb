@@ -1,4 +1,4 @@
-﻿name: Demo
+name: Demo
 # yaml-language-server: $schema=https://json.schemastore.org/github-workflow.json
 # purpose: Demonstration pipeline
 
@@ -27,11 +27,12 @@ jobs:
             directory: docker-nginx
           - name: Local Files
             directory: local-files
-    uses: devpro/github-workflow-parts/.github/workflows/reusable-terraform-deployment.yml@e5a95462126fb83f70e177edbc3f0dfb35598028
+    uses: devpro/github-workflow-parts/.github/workflows/reusable-terraform-deployment.yml@35750e9d1a21724d3a7e028ee9bc6da02dcb5afb
     with:
       environment: demo
       working-directory: samples/${{ matrix.directory }}
       tfbackend-project: "${{ matrix.directory }}-${{ needs.git-check.outputs.environment_slug }}"
+      workflow-parts-version: 35750e9d1a21724d3a7e028ee9bc6da02dcb5afb
     secrets:
       atlas-groupid: ${{ secrets.ATLAS_GROUP_ID }}
       atlas-privatekey: ${{ secrets.ATLAS_PRIVATE_KEY }}

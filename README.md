@@ -1,4 +1,4 @@
-﻿# MongoDB HTTP backend for Terraform / OpenTofu
+# MongoDB HTTP backend for Terraform / OpenTofu
 
 [![CI](https://github.com/devpro/terraform-backend-mongodb/actions/workflows/ci.yaml/badge.svg?branch=main)](https://github.com/devpro/terraform-backend-mongodb/actions/workflows/ci.yaml)
 [![Pages](https://github.com/devpro/terraform-backend-mongodb/actions/workflows/pages.yaml/badge.svg?branch=main)](https://github.com/devpro/terraform-backend-mongodb/actions/workflows/pages.yaml)

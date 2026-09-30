@@ -1,4 +1,4 @@
-﻿using Microsoft.Extensions.DependencyInjection.Extensions;
+using Microsoft.Extensions.DependencyInjection.Extensions;
 using MongoDB.Bson;
 using MongoDB.Bson.Serialization.Conventions;
 using MongoDB.Driver;
@@ -28,6 +28,7 @@ internal static class InfrastructureServiceCollectionExtensions
         services.TryAddScoped<Domain.Repositories.IStateLockRepository, Infrastructure.MongoDb.Repositories.StateLockRepository>();
         services.TryAddScoped<Domain.Repositories.IStateRepository, Infrastructure.MongoDb.Repositories.StateRepository>();
         services.TryAddScoped<Domain.Repositories.IUserRepository, Infrastructure.MongoDb.Repositories.UserRepository>();
+        services.TryAddScoped<Domain.Repositories.ILockoutRepository, Infrastructure.MongoDb.Repositories.LockoutRepository>();
         services.TryAddScoped<Infrastructure.MongoDb.Repositories.StateHistoryRepository>();
     }
 }

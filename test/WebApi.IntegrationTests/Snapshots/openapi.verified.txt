@@ -1,9 +1,9 @@
-﻿{
+{
   openapi: 3.1.1,
   info: {
     title: Terraform MongoDB Backend API,
     description: REST API for managing Terraform state in MongoDB,
-    version: v1.2
+    version: v1.3
   },
   servers: [
     {
@@ -31,7 +31,6 @@
             in: path,
             required: true,
             schema: {
-              pattern: [a-zA-Z]+,
               type: string
             }
           }
@@ -72,7 +71,6 @@
             in: path,
             required: true,
             schema: {
-              pattern: [a-zA-Z]+,
               type: string
             }
           },
@@ -97,8 +95,48 @@
           200: {
             description: OK
           },
+          400: {
+            description: Bad Request,
+            content: {
+              text/plain: {
+                schema: {
+                  $ref: #/components/schemas/ProblemDetails
+                }
+              },
+              application/json: {
+                schema: {
+                  $ref: #/components/schemas/ProblemDetails
+                }
+              },
+              text/json: {
+                schema: {
+                  $ref: #/components/schemas/ProblemDetails
+                }
+              }
+            }
+          },
           409: {
             description: Conflict,
+            content: {
+              text/plain: {
+                schema: {
+                  $ref: #/components/schemas/ProblemDetails
+                }
+              },
+              application/json: {
+                schema: {
+                  $ref: #/components/schemas/ProblemDetails
+                }
+              },
+              text/json: {
+                schema: {
+                  $ref: #/components/schemas/ProblemDetails
+                }
+              }
+            }
+          },
+          413: {
+            description: Payload Too Large,
             content: {
               text/plain: {
                 schema: {
@@ -158,7 +196,6 @@
             in: path,
             required: true,
             schema: {
-              pattern: [a-zA-Z]+,
               type: string
             }
           },
@@ -238,7 +275,6 @@
             in: path,
             required: true,
             schema: {
-              pattern: [a-zA-Z]+,
               type: string
             }
           }
@@ -277,16 +313,6 @@
                 }
               }
             }
-          },
-          423: {
-            description: Locked,
-            content: {
-              application/json: {
-                schema: {
-                  $ref: #/components/schemas/ProblemDetails
-                }
-              }
-            }
           }
         }
       },
@@ -309,7 +335,6 @@
             in: path,
             required: true,
             schema: {
-              pattern: [a-zA-Z]+,
               type: string
             }
           }

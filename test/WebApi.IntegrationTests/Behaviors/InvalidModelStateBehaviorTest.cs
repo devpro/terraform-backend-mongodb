@@ -1,7 +1,7 @@
-﻿using System;
+using System;
 using System.Net;
 using System.Threading.Tasks;
-using Microsoft.AspNetCore.Mvc.Testing;
+using Devpro.TerraformBackend.WebApi.IntegrationTests.Hosting;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using Moq;
@@ -10,7 +10,7 @@ using Xunit;
 namespace Devpro.TerraformBackend.WebApi.IntegrationTests.Behaviors;
 
 [Trait("Category", "IntegrationTests")]
-public class InvalidModelStateBehaviorTest(WebApplicationFactory<Program> factory)
+public class InvalidModelStateBehaviorTest(TestWebApplicationFactory factory)
     : IntegrationTestBase(factory)
 {
     [Fact]
@@ -43,7 +43,7 @@ public class InvalidModelStateBehaviorTest(WebApplicationFactory<Program> factor
             x => x.Log(
                 LogLevel.Warning,
                 It.IsAny<EventId>(),
-                It.Is<It.IsAnyType>((o, t) => o.ToString()!.Contains("Invalid model state for")),
+                It.Is<It.IsAnyType>((o, t) => o!.ToString()!.Contains("Invalid model state for")),
                 It.IsAny<Exception>(),
                 It.IsAny<Func<It.IsAnyType, Exception?, string>>()),
             Times.Once());

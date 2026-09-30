@@ -28,7 +28,7 @@ TODO: add other options
 [OpenTofu](https://opentofu.org/docs/intro/install/)
 -->
 
-1. Make sure the following tools are available from the commande line:
+1. Make sure the following tools are available from the command line:
 
     - [Docker](https://docs.docker.com/engine/install/)
     - [Terraform](https://developer.hashicorp.com/terraform/install)
@@ -50,7 +50,7 @@ TODO: add other options
 
         ```bash
         curl -O https://raw.githubusercontent.com/devpro/terraform-backend-mongodb/refs/heads/main/scripts/tfbeadm && chmod +x ./tfbeadm
-        MONGODB_CONTAINERNAME=tfbackmdb-mongodb-1 MONGODB_CONTAINERNETWORK=tfbackmdb_default ./tfbeadm create-user admin admin123 dummy
+        MONGODB_CONTAINERNAME=tfbackmdb-mongodb-1 MONGODB_CONTAINERNETWORK=tfbackmdb_default ./tfbeadm create-user admin dummy
         ```
 
 4. Write Terraform files from a pre-configured sample:
@@ -67,7 +67,7 @@ TODO: add other options
     terraform init
     ```
 
-6. Performs the operations indicated in Terraform project files:
+6. Perform the operations indicated in the Terraform project files:
 
     ```bash
     terraform apply
@@ -79,7 +79,7 @@ TODO: add other options
 
         ```bash
         docker run --rm --link "tfbackmdb-mongodb-1" --network "tfbackmdb_default" "mongo:8.2" \
-          bash -c "mongosh \"mongodb://mongodb:27017/tbackend_dev\" --eval 'db.tf_state.find().projection({tenant: 1, name: 1, createdAt: 1, \"value.version\": 1, \"value.resources.type\": 1, \"value.resources.name\": 1})'"
+          bash -c "mongosh \"mongodb://mongodb:27017/tbackend_dev\" --eval 'db.tf_state.find().projection({tenant: 1, name: 1, created_at: 1, \"value.version\": 1, \"value.resources.type\": 1, \"value.resources.name\": 1})'"
         ```
 
 8. Destroy the resources that were created with Terraform:

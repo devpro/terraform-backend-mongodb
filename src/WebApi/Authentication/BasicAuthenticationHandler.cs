@@ -1,7 +1,6 @@
-﻿using System.Security.Claims;
+using System.Security.Claims;
 using System.Text;
 using System.Text.Encodings.Web;
-using Devpro.TerraformBackend.Domain.Repositories;
 using Microsoft.Extensions.Options;
 
 namespace Devpro.TerraformBackend.WebApi.Authentication;
@@ -10,20 +9,11 @@ public class BasicAuthenticationHandler(
     IOptionsMonitor<AuthenticationSchemeOptions> options,
     ILoggerFactory logger,
     UrlEncoder encoder,
-    IUserRepository userRepository)
+    ICredentialAuthenticator credentialAuthenticator)
     : AuthenticationHandler<AuthenticationSchemeOptions>(options, logger, encoder)
 {
     protected override async Task<AuthenticateResult> HandleAuthenticateAsync()
     {
-        // workaround as it seems impossible to prevent (from Startup)
-        var path = Request.Path.Value?.ToLowerInvariant() ?? "";
-        if (path.StartsWith("/scalar/") ||
-            path.StartsWith("/openapi/"))
-        {
-            return AuthenticateResult.NoResult();
-        }
-
-        // checks authorization header
         if (!Request.Headers.ContainsKey("Authorization"))
         {
             return AuthenticateResult.Fail("Missing Authorization header");
@@ -31,15 +21,22 @@ public class BasicAuthenticationHandler(
 
         var authorizationHeader = Request.Headers.Authorization.ToString();
 
-        // checks authorization header starts with Basic
         if (!authorizationHeader.StartsWith("Basic ", StringComparison.OrdinalIgnoreCase))
         {
             return AuthenticateResult.Fail("Authorization header does not start with 'Basic'");
         }
 
-        // decrypts the authorization header and split out the client id/secret
-        var authBase64Decoded = Encoding.UTF8.GetString(Convert.FromBase64String(
-            authorizationHeader.Replace("Basic ", "", StringComparison.OrdinalIgnoreCase)));
+        string authBase64Decoded;
+        try
+        {
+            authBase64Decoded = Encoding.UTF8.GetString(Convert.FromBase64String(
+                authorizationHeader.Replace("Basic ", "", StringComparison.OrdinalIgnoreCase)));
+        }
+        catch (FormatException)
+        {
+            return AuthenticateResult.Fail("Authorization header is not valid Base64");
+        }
+
         var authSplit = authBase64Decoded.Split([':'], 2);
         if (authSplit.Length != 2)
         {
@@ -49,13 +46,19 @@ public class BasicAuthenticationHandler(
         var clientId = authSplit[0];
         var clientSecret = authSplit[1];
 
-        // credentials
-        var user = await userRepository.CheckAuthentication(clientId, clientSecret);
-        if (user == null)
+        var outcome = await credentialAuthenticator.AuthenticateAsync(clientId, clientSecret,
+            Context.Connection.RemoteIpAddress);
+        if (outcome.Status != AuthenticationStatus.Success || outcome.User is null)
         {
+            // the address is logged because it makes a brute force attributable;
+            // the username is not, because it is attacker-controlled text,
+            // and it holds the password verbatim the day somebody transposes the two fields
+            Logger.LogWarning("Authentication failed from {RemoteAddress} with status {Status}",
+                Context.Connection.RemoteIpAddress?.ToString() ?? "an unknown address", outcome.Status);
             return AuthenticateResult.Fail("Invalid username or password");
         }
 
+        var user = outcome.User;
         var client = new BasicAuthenticationClient
         {
             AuthenticationType = BasicAuthenticationClient.AuthenticationScheme,

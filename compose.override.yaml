@@ -16,7 +16,7 @@ services:
         apt-get update
         apt-get install -y apache2-utils
         ./scripts/tfbeadm create-indexes
-        ./scripts/tfbeadm create-user admin admin123 dummy
+        printf '%s' admin123 | ./scripts/tfbeadm create-user admin dummy
       "
     profiles: ["init"]
 

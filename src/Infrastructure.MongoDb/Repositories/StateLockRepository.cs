@@ -1,4 +1,5 @@
-﻿using System.Threading.Tasks;
+using System.Threading;
+using System.Threading.Tasks;
 using Devpro.TerraformBackend.Domain.Models;
 using Devpro.TerraformBackend.Domain.Repositories;
 using Microsoft.Extensions.Logging;
@@ -18,24 +19,32 @@ public class StateLockRepository : RepositoryBase, IStateLockRepository
 
     protected override string CollectionName => "tf_state_lock";
 
-    public async Task<StateLockModel?> FindOneAsync(string tenant, string name)
+    public async Task<StateLockModel?> FindOneAsync(string tenant, string name, CancellationToken cancellationToken = default)
     {
         return await _modelCollection.Find(x => x.Tenant == tenant && x.Name == name)
-            .FirstOrDefaultAsync();
+            .FirstOrDefaultAsync(cancellationToken);
     }
 
-    public async Task<StateLockModel> CreateAsync(StateLockModel input)
+    public async Task<StateLockModel?> CreateAsync(StateLockModel input, CancellationToken cancellationToken = default)
     {
-        await _modelCollection.InsertOneAsync(input);
-        return input;
+        try
+        {
+            await _modelCollection.InsertOneAsync(input, cancellationToken: cancellationToken);
+            return input;
+        }
+        catch (MongoWriteException exception) when (exception.WriteError.Category == ServerErrorCategory.DuplicateKey)
+        {
+            if (Logger.IsEnabled(LogLevel.Information)) Logger.LogInformation(exception, "Lock already exists for tenant {Tenant} and state {Name}", input.Tenant, input.Name);
+            return null;
+        }
     }
 
-    public async Task<bool> DeleteAsync(StateLockModel input)
+    public async Task<bool> DeleteAsync(StateLockModel input, CancellationToken cancellationToken = default)
     {
         var result = await _modelCollection.DeleteOneAsync(x =>
             x.Tenant == input.Tenant
             && x.Name == input.Name
-            && x.Id == input.Id);
+            && x.Id == input.Id, cancellationToken);
         return result.DeletedCount > 0;
     }
 }

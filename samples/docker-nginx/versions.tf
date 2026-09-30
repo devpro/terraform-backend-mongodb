@@ -1,4 +1,4 @@
-﻿terraform {
+terraform {
   required_version = ">= 1.5"
 
   # https://developer.hashicorp.com/terraform/language/settings/backends/http#configuration-variables

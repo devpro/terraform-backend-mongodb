@@ -1,4 +1,4 @@
-﻿name: CI
+name: CI
 # yaml-language-server: $schema=https://json.schemastore.org/github-workflow.json
 # purpose: Continuous Integration pipeline
 
@@ -36,13 +36,13 @@ jobs:
 
   markup-lint:
     name: Markup
-    uses: devpro/github-workflow-parts/.github/workflows/reusable-markup-lint.yml@e5a95462126fb83f70e177edbc3f0dfb35598028
+    uses: devpro/github-workflow-parts/.github/workflows/reusable-markup-lint.yml@35750e9d1a21724d3a7e028ee9bc6da02dcb5afb
 
   code-quality:
     name: Code
     needs: git-check
     if: needs.git-check.outputs.app_changed == 'true' || (github.event_name == 'workflow_dispatch' && inputs.run-code-quality)
-    uses: devpro/github-workflow-parts/.github/workflows/reusable-dotnet-quality.yml@e5a95462126fb83f70e177edbc3f0dfb35598028
+    uses: devpro/github-workflow-parts/.github/workflows/reusable-dotnet-quality.yml@35750e9d1a21724d3a7e028ee9bc6da02dcb5afb
     with:
       custom-commands: |
         echo "Install Terraform"
@@ -66,19 +66,15 @@ jobs:
             sleep 1
           done
         "
-        echo "Initialize database (indexes, tenants & users)"
-        export MONGODB_URI="mongodb://localhost:27017/tfbackend_dev"
-        ./scripts/tfbeadm create-indexes
-        ./scripts/tfbeadm create-user admin admin123 dummy
       dotnet-test-args: "--report-xunit-trx --coverage --coverage-output-format cobertura"
       extra-vars: |
-        Application__IsHttpsRedirectionEnabled="false"
+        Features__IsHttpsRedirectionEnabled=false
       fossa-enabled: true
       sonar-enabled: true
       sonar-organization: ${{ vars.SONAR_ORG }}
       sonar-project-key: ${{ vars.SONAR_PROJECT_KEY }}
       sonar-project-name: Terraform Backend MongoDB
-      workflow-parts-version: e5a95462126fb83f70e177edbc3f0dfb35598028
+      workflow-parts-version: 35750e9d1a21724d3a7e028ee9bc6da02dcb5afb
     secrets:
       fossa-api-key: ${{ secrets.FOSSA_API_KEY }}
       sonar-token: ${{ secrets.SONAR_TOKEN }}
@@ -90,7 +86,7 @@ jobs:
     name: Image
     needs: git-check
     if: needs.git-check.outputs.app_changed == 'true' || (github.event_name == 'workflow_dispatch' && inputs.run-image-scan)
-    uses: devpro/github-workflow-parts/.github/workflows/reusable-container-scan.yml@e5a95462126fb83f70e177edbc3f0dfb35598028
+    uses: devpro/github-workflow-parts/.github/workflows/reusable-container-scan.yml@35750e9d1a21724d3a7e028ee9bc6da02dcb5afb
     with:
       image-definition: "src/WebApi/Dockerfile"
       image-name: ${{ vars.CONTAINER_IMAGE_NAME }}
@@ -98,3 +94,4 @@ jobs:
       image-tag: "${{ needs.git-check.outputs.version_major_minor }}.${{ github.run_id }}"
       max-high-cves: 0
       max-medium-cves: 0
+      workflow-parts-version: 35750e9d1a21724d3a7e028ee9bc6da02dcb5afb

@@ -17,6 +17,9 @@ Once the database is available, grab the connection string for a user with admin
 
     Double check any network/security restrictions such as MongoDB IP access list as the application needs to access the MongoDB server
 
+The application does not set a connection pool size, so the driver default of 100 applies.
+That is fine at ordinary scale, and it does not need a code change to raise: `maxPoolSize` is a standard connection string option, for example `mongodb://<host>/<db>?maxPoolSize=200`.
+
 ### Database indexes
 
 Add indexes for optimal performances:
@@ -27,6 +30,8 @@ Add indexes for optimal performances:
     db.tf_state.createIndex({"tenant": 1, "name": 1})
     db.tf_state_lock.createIndex({"tenant": 1, "name": 1}, {unique: true})
     db.user.createIndex({"username": 1}, {unique: true})
+    db.auth_lockout.createIndex({"username": 1, "remote_address": 1}, {unique: true})
+    db.auth_lockout.createIndex({"expires_at": 1}, {expireAfterSeconds: 0})
     ```
 
 === "Script"
@@ -39,6 +44,46 @@ Add indexes for optimal performances:
     !!! warning
 
         `mongosh` or `Docker` must be available on the machine running the commands
+
+### Upgrading from before the `created_at` rename
+
+A deployment created before this change stores its state and history documents with a `createdAt` field.
+The application itself now writes `created_at`, and every document a `terraform apply` touches from now on is rewritten with the new name automatically, so an upgrade needs nothing to keep working.
+Run `tfbeadm migrate-created-at` to rename the field on every document immediately instead of waiting for it to be touched, for example before a read that lists states by `created_at`.
+The command is safe to run more than once, and safe to run before or after the application itself is upgraded.
+
+```bash
+MONGODB_URI=mongodb://<myserver>:27017/<mydb> tfbeadm migrate-created-at
+```
+
+### Upgrading from before the lock ID moved out of `_id`
+
+A lock is unique per tenant and state name, and its ID is stored in a `lock_id` field rather than as the document `_id`, so the same lock ID can be used on two states.
+A lock taken by an earlier version and still held at the upgrade, a stale one from a crashed run included, has no `lock_id` and cannot be released until it is migrated.
+Run `tfbeadm migrate-lock-id` once the application is upgraded, which copies the ID into `lock_id`.
+The command is safe to run more than once.
+
+```bash
+MONGODB_URI=mongodb://<myserver>:27017/<mydb> tfbeadm migrate-lock-id
+```
+
+### Authentication and network settings
+
+Six settings, introduced alongside the brute-force and proxy hardening, override with the `Section__Key` environment variable convention documented in `AGENTS.md`.
+
+Setting | Environment variable | Default | Purpose
+------- | --------------------- | ------- | -------
+`Authentication:CredentialCacheSeconds` | `Authentication__CredentialCacheSeconds` | `60` | How long a verified credential skips BCrypt.
+`Authentication:MaxFailedAttempts` | `Authentication__MaxFailedAttempts` | `10` | Consecutive failures, per username and source address, before that pair is refused.
+`Authentication:LockoutSeconds` | `Authentication__LockoutSeconds` | `300` | How long a pair stays refused once locked out.
+`Network:KnownProxies` | `Network__KnownProxies__0`, `__1`, ... | none | Reverse proxy addresses whose `X-Forwarded-For` header the application believes.
+`Network:KnownNetworks` | `Network__KnownNetworks__0`, `__1`, ... | none | Same, as CIDR ranges.
+`Network:TrustAllProxies` | `Network__TrustAllProxies` | `false` | Believes the forwarded headers of any caller, safe only where the application is reachable through the ingress alone.
+
+!!! warning
+
+    Behind a reverse proxy, at least one of `Network:KnownProxies`, `Network:KnownNetworks` or `Network:TrustAllProxies` must be set.
+    Left unset, the application sees the proxy's own address on every request: every caller then shares a single lockout bucket, and every authentication-failure log entry names the proxy instead of the attacker.
 
 ## Installation
 

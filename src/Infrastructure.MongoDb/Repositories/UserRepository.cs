@@ -1,4 +1,4 @@
-﻿using System.Threading.Tasks;
+using System.Threading.Tasks;
 using Devpro.TerraformBackend.Domain.Models;
 using Devpro.TerraformBackend.Domain.Repositories;
 using Microsoft.Extensions.Logging;
@@ -16,6 +16,26 @@ public class UserRepository : RepositoryBase, IUserRepository
         _modelCollection = GetCollection<UserModel>();
     }
 
+    /// <summary>
+    /// The work factor every stored password hash is written at, by <c>htpasswd</c> through <c>tfbeadm</c>.
+    /// <para>
+    /// Pinned rather than left to the library default of 11, because the dummy hash below must cost exactly
+    /// what a real one costs: a dummy at 11 takes twice as long, which inverts the enumeration oracle rather
+    /// than closing it.
+    /// Public so that anything creating a user writes at the same cost, and must stay in step with
+    /// <c>tfbeadm</c>, since an account at a different cost reopens the oracle for that account.
+    /// </para>
+    /// </summary>
+    public const int StoredHashWorkFactor = 10;
+
+    /// <summary>
+    /// A valid hash of a value nothing can supply, verified when the username lookup misses,
+    /// so that an unknown username costs the same BCrypt verify as a known one.
+    /// Without it the response time tells an attacker which usernames exist.
+    /// </summary>
+    private static readonly string DummyPasswordHash =
+        BCrypt.Net.BCrypt.HashPassword("this value is never a password", StoredHashWorkFactor);
+
     protected override string CollectionName => "user";
 
     public async Task<UserModel?> CheckAuthentication(string username, string password)
@@ -25,16 +45,10 @@ public class UserRepository : RepositoryBase, IUserRepository
         var user = await _modelCollection.Find(x => x.Username == username).FirstOrDefaultAsync();
         if (user == null)
         {
-            if (Logger.IsEnabled(LogLevel.Information)) Logger.LogInformation("Authentication failed. Username {Username} doesn't exist", username);
+            BCrypt.Net.BCrypt.Verify(password, DummyPasswordHash);
             return null;
         }
 
-        if (BCrypt.Net.BCrypt.Verify(password, user.PasswordHash))
-        {
-            return user;
-        }
-
-        if (Logger.IsEnabled(LogLevel.Information)) Logger.LogInformation("Authentication failed. Password for username {Username} is incorrect", username);
-        return null;
+        return BCrypt.Net.BCrypt.Verify(password, user.PasswordHash) ? user : null;
     }
 }

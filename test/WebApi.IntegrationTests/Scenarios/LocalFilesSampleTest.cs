@@ -1,10 +1,10 @@
-﻿using System.Threading.Tasks;
-using Withywoods.AspNetCore.Mvc.Testing;
+using System.Threading.Tasks;
+using Devpro.TerraformBackend.WebApi.IntegrationTests.Hosting;
 using Xunit;
 
 namespace Devpro.TerraformBackend.WebApi.IntegrationTests.Scenarios;
 
-public class LocalFilesSampleTest(KestrelWebAppFactory<Program> kestrelWebAppFactory, ITestOutputHelper testOutputHelper)
+public class LocalFilesSampleTest(TestKestrelWebAppFactory kestrelWebAppFactory, ITestOutputHelper testOutputHelper)
     : ScenarioBase(kestrelWebAppFactory, testOutputHelper)
 {
     protected override string ScenarioPath => "samples/local-files";

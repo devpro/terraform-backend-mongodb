@@ -1,16 +1,24 @@
-﻿using System.Text.Json.Serialization;
-using MongoDB.Bson;
+using System.Text.Json.Serialization;
 using MongoDB.Bson.Serialization.Attributes;
 
 namespace Devpro.TerraformBackend.Domain.Models;
 
+/// <summary>
+/// A Terraform state lock, one per tenant and state name.
+/// <para>
+/// The lock ID is a plain field and <c>_id</c> is left to MongoDB, because every request names its tenant and
+/// state: a lock ID used as <c>_id</c> would have to be unique across every tenant and state, and a reused one
+/// would fail to lock a state nothing else holds.
+/// </para>
+/// </summary>
+[BsonNoId]
+[BsonIgnoreExtraElements]
 public class StateLockModel
 {
     /// <summary>
     /// Terraform state lock ID.
     /// </summary>
-    [BsonId]
-    [BsonRepresentation(BsonType.String)]
+    [BsonElement("lock_id")]
     [JsonPropertyName("ID")]
     public string Id { get; set; } = null!;
 

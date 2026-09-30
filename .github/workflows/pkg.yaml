@@ -1,4 +1,4 @@
-﻿name: PKG
+name: PKG
 # yaml-language-server: $schema=https://json.schemastore.org/github-workflow.json
 # purpose: Continuous Delivery (aka Packaging & Shipping)
 
@@ -22,14 +22,14 @@ jobs:
     permissions:
       id-token: write
       contents: read
-    uses: devpro/github-workflow-parts/.github/workflows/reusable-container-publication.yml@e5a95462126fb83f70e177edbc3f0dfb35598028
+    uses: devpro/github-workflow-parts/.github/workflows/reusable-container-publication.yml@35750e9d1a21724d3a7e028ee9bc6da02dcb5afb
     with:
       create-latest: ${{ github.ref_name == 'main' }}
       image-definition: "src/WebApi/Dockerfile"
       image-name: ${{ vars.CONTAINER_IMAGE_NAME }}
       image-path: ${{ vars.CONTAINER_REGISTRY_PATH }}
       image-tag: "${{ needs.git-check.outputs.version_major_minor }}.${{ github.run_id }}"
-      workflow-parts-version: e5a95462126fb83f70e177edbc3f0dfb35598028
+      workflow-parts-version: 35750e9d1a21724d3a7e028ee9bc6da02dcb5afb
     secrets:
       container-registry-password: ${{ secrets.DOCKERHUB_TOKEN }}
       container-registry-username: ${{ secrets.DOCKERHUB_USERNAME }}

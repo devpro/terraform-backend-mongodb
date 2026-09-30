@@ -5,8 +5,8 @@ services:
     image: devprofr/terraform-backend-mongodb:latest
     environment:
       - ASPNETCORE_ENVIRONMENT=Development
-      - Application__IsHttpsRedirectionEnabled=false
-      - Application__IsScalarEnabled=true
+      - Features__IsHttpsRedirectionEnabled=false
+      - Features__IsScalarEnabled=true
       - DatabaseSettings__ConnectionString=mongodb://mongodb:27017/?readPreference=primary&appname=TerraformBackendMongoDbWebApi&directConnection=true&ssl=false
       - DatabaseSettings__DatabaseName=tfbackend_dev
       - Logging__LogLevel__Default=Debug
