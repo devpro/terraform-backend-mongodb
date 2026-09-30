@@ -50,7 +50,7 @@ public class StateRepository : RepositoryBase, IStateRepository
             var diffNode = GenerateJsonDiff(BsonToJsonConverter.Convert(existing["value"]), jsonInput);
             if (diffNode != null)
             {
-                await _stateHistoryRepository.CreateAsync(tenant, name, diffNode);
+                await _stateHistoryRepository.CreateAsync(tenant, name, diffNode, cancellationToken);
             }
         }
 
@@ -65,7 +65,7 @@ public class StateRepository : RepositoryBase, IStateRepository
 
         try
         {
-            await _bsonCollection.ReplaceOneAsync(filter, document, new ReplaceOptions { IsUpsert = true });
+            await _bsonCollection.ReplaceOneAsync(filter, document, new ReplaceOptions { IsUpsert = true }, cancellationToken);
         }
         catch (FormatException exception)
         {

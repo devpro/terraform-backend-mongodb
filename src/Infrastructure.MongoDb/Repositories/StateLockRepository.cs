@@ -34,7 +34,7 @@ public class StateLockRepository : RepositoryBase, IStateLockRepository
         }
         catch (MongoWriteException exception) when (exception.WriteError.Category == ServerErrorCategory.DuplicateKey)
         {
-            if (Logger.IsEnabled(LogLevel.Information)) Logger.LogInformation("Lock already exists for tenant {Tenant} and state {Name}", input.Tenant, input.Name);
+            if (Logger.IsEnabled(LogLevel.Information)) Logger.LogInformation(exception, "Lock already exists for tenant {Tenant} and state {Name}", input.Tenant, input.Name);
             return null;
         }
     }

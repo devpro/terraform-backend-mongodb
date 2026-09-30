@@ -1,5 +1,6 @@
 using System;
 using System.Text.Json.Nodes;
+using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.Extensions.Logging;
 using MongoDB.Bson;
@@ -19,7 +20,7 @@ public class StateHistoryRepository : RepositoryBase
 
     protected override string CollectionName => "tf_state_history";
 
-    public async Task CreateAsync(string tenant, string name, JsonNode patch)
+    public async Task CreateAsync(string tenant, string name, JsonNode patch, CancellationToken cancellationToken = default)
     {
         var document = new BsonDocument
         {
@@ -29,6 +30,6 @@ public class StateHistoryRepository : RepositoryBase
             ["created_at"] = new BsonDateTime(DateTime.UtcNow),
             ["upgrade"] = patch.ToJsonString()
         };
-        await _bsonCollection.InsertOneAsync(document);
+        await _bsonCollection.InsertOneAsync(document, cancellationToken: cancellationToken);
     }
 }
