@@ -1,7 +1,7 @@
 using System.Net;
 using System.Threading.Tasks;
-using Microsoft.AspNetCore.Hosting;
 using Devpro.TerraformBackend.WebApi.IntegrationTests.Hosting;
+using Microsoft.AspNetCore.Hosting;
 using Xunit;
 
 namespace Devpro.TerraformBackend.WebApi.IntegrationTests.Resources;

@@ -15,7 +15,8 @@ The three-project layering (`WebApi` > `Infrastructure.MongoDb` > `Domain`) hold
 The Terraform HTTP backend protocol is implemented faithfully: raw `text/plain` state responses, `423 Locked`, `409 Conflict` with the current lock as body, and upsert on POST.
 Tenant isolation is enforced by the tenant claim, by `TenantAuthorizationFilter`, and again by every repository query, and `TenantIsolationTest` covers both layers.
 
-The conversion between the request payload and the stored BSON document is guarded: out-of-range numbers are stored as `Decimal128`, the response is plain JSON rather than Extended JSON, and an oversized state answers `413` naming the limit.
+The conversion between the request payload and the stored BSON document is guarded:
+out-of-range numbers are stored as `Decimal128`, the response is plain JSON rather than Extended JSON, and an oversized state answers `413` naming the limit.
 The authentication path has a lockout shared across replicas, a credential cache, a constant-time miss, and failure logs carrying the caller's address.
 
 What remains open is small: two costs paid on every state write, the non-atomic history write, and questions that need a decision on the data model.
@@ -47,18 +48,18 @@ The controls this makes necessary are encryption at rest, a least-privilege read
 A control that needs only the connection, the request rate or the certificate belongs to the platform, which sees them before any application code runs and enforces them across every replica.
 A control that needs the identity inside the request belongs to the application, since only the application decodes the Basic credential.
 
-Control | Where | Status
-------- | ----- | ------
-Rate limit by source IP | Platform | Open, B-53
-TLS termination and HSTS | Platform | Open, B-42
-Mutual TLS | Platform | Open, B-46
-Encryption at rest, network isolation, database RBAC | Platform | Open, B-43
-Alerting on authentication-failure bursts | Platform | Open, B-53: the `compose.yaml` OpenTelemetry collector is already the pipeline
+Control                                                      | Where       | Status
+-------------------------------------------------------------|-------------|-------------------------------------------------------------------------------
+Rate limit by source IP                                      | Platform    | Open, B-53
+TLS termination and HSTS                                     | Platform    | Open, B-42
+Mutual TLS                                                   | Platform    | Open, B-46
+Encryption at rest, network isolation, database RBAC         | Platform    | Open, B-43
+Alerting on authentication-failure bursts                    | Platform    | Open, B-53: the `compose.yaml` OpenTelemetry collector is already the pipeline
 Lockout after consecutive failures, per username and address | Application | Done, shared through `auth_lockout`
-Short-lived credential cache | Application | Done, in process by design
-Constant-time username miss | Application | Done
-Authentication failures logged with the source address | Application | Done, relying on `UseForwardedHeaders`
-`tfbeadm` credential handling | Application | Done, except a minimum strength (B-44)
+Short-lived credential cache                                 | Application | Done, in process by design
+Constant-time username miss                                  | Application | Done
+Authentication failures logged with the source address       | Application | Done, relying on `UseForwardedHeaders`
+`tfbeadm` credential handling                                | Application | Done, except a minimum strength (B-44)
 
 Rate limiting at the edge does not make a weak password safe, it only slows the attempts: a generated credential is what sets the difficulty of the guess.
 
@@ -97,7 +98,8 @@ No action is recommended: 100 concurrent failed authentications on a 22-core mac
 ### L3. History entries are hard to consume
 
 **Proven.**
-`tf_state_history.upgrade` holds the JSON Patch as a string, the field name says neither "patch" nor "diff", and only the forward diff is kept, so rebuilding an older version means replaying patches with no API support.
+`tf_state_history.upgrade` holds the JSON Patch as a string, the field name says neither "patch" nor "diff", and only the forward diff is kept,
+so rebuilding an older version means replaying patches with no API support.
 Changing it changes the data model (B-28).
 
 ### L5. Unbounded growth and stale locks
@@ -140,32 +142,3 @@ Every package is on its latest release, with two deliberate exceptions.
 - Scenario tests that drive the real Terraform CLI end to end, and a suite that proves it left the database as it found it.
 - Central package management with transitive pinning, and a zero-CVE budget on image scans.
 - `StateLockRepository.CreateAsync` and `LockoutRepository.RecordFailureAsync`: atomicity from a unique index and from a single pipeline update, rather than from a read followed by a write.
-
-## Fixed findings
-
-ID | Finding | Covered by
--- | ------- | ----------
-H1 | A state larger than 16 MB answered 500; it now answers `413` naming the limit | `StateFidelityTest`
-H2 | Numbers outside the BSON range were rejected or read back as Extended JSON | `StateFidelityTest`, `JsonToBsonConverterTest`, `BsonToJsonConverterTest`
-S1 | Unlimited authentication attempts, with no lockout and no record | `AuthenticationLockoutTest`
-S2 | BCrypt on every request was a CPU-exhaustion lever | `AuthenticationLockoutTest`
-S3 | Response time revealed which usernames exist | `AuthenticationTimingTest`
-S6 | `tfbeadm` leaked the password and allowed JavaScript injection through the username | `TfbeadmTest`
-S7 | Authentication thresholds had no startup validation | `AuthenticationServiceCollectionExtensionsTest`
-M7 | The lockout was scoped to one replica | `LockoutRepositoryTest`
-L9 | The MongoDB connection pool size was undocumented | [setup](setup.md#database-server)
-T1 | The suite failed confusingly against a drifted development database | `TestDatabaseFixture`, `TestDatabaseGuard`
-T2 | Nothing asserted what comes back out of storage | `StateFidelityTest`, `ComplexStateScenarioTest`
-T3 | Tests mutated process-wide environment variables | `TestHostConfiguration`
-S8 | An unparseable trusted proxy silently disabled forwarded headers; it now fails at startup | `AuthenticationServiceCollectionExtensionsTest`
-M1 | `RawRequestBodyFormatter` served no client, since Terraform and OpenTofu always send `application/json`; it is deleted, and a POST without `Content-Type` answers 415 rather than 400 | `StateControllerResourceTest`
-M6 | Cancellation tokens were not propagated; state and lock operations take the request's token, the authentication path deliberately does not, so a disconnect after a wrong guess is still counted | Compiler
-L1 | The route name constraint was unanchored; it is removed, since it validated nothing | `StateControllerResourceTest`, OpenAPI snapshot
-L2 | The authentication handler duplicated `AllowAnonymous` with a path check | `ScalarResourceTest`, `OpenApiResourceTest`
-L4 | The OpenAPI version was kept in step with `VersionPrefix` by hand; it is derived from the assembly | OpenAPI snapshot
-L6 | The health check had no timeout; it is bounded at 30 seconds, which a cold Atlas cluster can need | `HealthCheckResourceTest`
-L7 | `StateModel` and `StateValueModel` did not describe `tf_state`; both are deleted, and tests build a minimal state | Compiler
-L8 | The `Lock` endpoint answered an empty `ID` with `423` and a message body, which Terraform cannot read as lock info; a conflicting lock always answers `409` with the holding lock | `StateControllerResourceTest`, OpenAPI snapshot
-L10 | A number beyond 34 significant digits was refused as out of range; the message names the precision | `JsonToBsonConverterTest`
-L11 | CI created indexes in a database the suite does not use | CI
-L12 | The lock ID was the `tf_state_lock` `_id`, so a reused ID collided across states and answered `409` with the caller's own lock; it is a `lock_id` field, unique per `{tenant, name}`, and `tfbeadm migrate-lock-id` moves existing locks | `StateControllerResourceTest`, `MigrateLockIdTest`

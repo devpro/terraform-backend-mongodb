@@ -2,25 +2,27 @@
 
 ## Codebase
 
-Project name               | Technology  | Project type
----------------------------|-------------|---------------------------
-`Domain`                   | .NET 10     | Library (models and repository interfaces)
-`Infrastructure.MongoDb`   | .NET 10     | Library (MongoDB repository implementations)
-`WebApi`                   | ASP.NET 10  | Web application (REST API)
-`WebApi.UnitTests`         | .NET 10     | Test project (xunit v3)
-`WebApi.IntegrationTests`  | .NET 10     | Test project (xunit v3, real MongoDB and Terraform CLI)
+Project name              | Technology | Project type
+--------------------------|------------|--------------------------------------------------------
+`Domain`                  | .NET 10    | Library (models and repository interfaces)
+`Infrastructure.MongoDb`  | .NET 10    | Library (MongoDB repository implementations)
+`WebApi`                  | ASP.NET 10 | Web application (REST API)
+`WebApi.UnitTests`        | .NET 10    | Test project (xunit v3)
+`WebApi.IntegrationTests` | .NET 10    | Test project (xunit v3, real MongoDB and Terraform CLI)
 
 Main NuGet packages, with versions managed centrally in `Directory.Packages.props`:
 
 Name                           | Description
--------------------------------|-------------------------------------
+-------------------------------|------------------------------------
 `BCrypt.Net-Next`              | Password hashing
 `MongoDB.Driver`               | MongoDB .NET Driver (includes BSON)
 `Scalar.AspNetCore`            | OpenAPI web UI
 `SystemTextJson.JsonDiffPatch` | JSON diffs for state history
 `Withywoods.Configuration`     | Configuration helpers
 
-The architecture is described in [docs/architecture.md](docs/architecture.md), and follows the Terraform [HTTP backend](https://developer.hashicorp.com/terraform/language/backend/http) and [remote state backend](https://github.com/hashicorp/terraform/tree/main/internal/backend/remote-state) specifications.
+The architecture is described in [docs/architecture.md](docs/architecture.md),
+and follows the Terraform [HTTP backend](https://developer.hashicorp.com/terraform/language/backend/http)
+and [remote state backend](https://github.com/hashicorp/terraform/tree/main/internal/backend/remote-state) specifications.
 
 ## Debug the application
 
@@ -86,7 +88,8 @@ dotnet test
 
 ## Preview the documentation website
 
-The documentation is a static website built with [Material for MkDocs](https://squidfunk.github.io/mkdocs-material/), served with live reload on [localhost:8000](http://localhost:8000/):
+The documentation is a static website built with [Material for MkDocs](https://squidfunk.github.io/mkdocs-material/),
+served with live reload on [localhost:8000](http://localhost:8000/):
 
 ```bash
 docker run --rm -it -p 8000:8000 -v "${PWD}:/docs" squidfunk/mkdocs-material serve --dev-addr=0.0.0.0:8000 --livereload --dirtyreload --watch docs --watch mkdocs.yml
@@ -108,7 +111,8 @@ CI    | Continuous Integration   | `.github/workflows/ci.yaml`
 PKG   | Continuous Delivery      | `.github/workflows/pkg.yaml`
 Pages | Continuous Documentation | `.github/workflows/pages.yaml`
 
-[IstarCI](https://github.com/devpro/istarci) is recommended but optional: the CI is the GitHub Actions pipeline, and IstarCI runs it locally on every commit, in containers, and blocks `git push` when it failed.
+[IstarCI](https://github.com/devpro/istarci) is recommended but optional:
+the CI is the GitHub Actions pipeline, and IstarCI runs it locally on every commit, in containers, and blocks `git push` when it failed.
 It is installed once per machine from GitHub Packages, with a `~/.npmrc` token that reads `@devpro` packages:
 
 ```bash

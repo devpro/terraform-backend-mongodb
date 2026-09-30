@@ -75,7 +75,8 @@ docker run --name mongodb -d -p 27017:27017 mongo:8.2
 ```
 
 Nothing is seeded by hand.
-The suite owns its database, `tfbackend_integrationtests`, and `TestDatabaseFixture` creates the indexes and the `admin`/`dummy` account it authenticates as, then removes the account at the end of the run.
+The suite owns its database, `tfbackend_integrationtests`, and `TestDatabaseFixture` creates the indexes and the `admin`/`dummy` account it authenticates as,
+then removes the account at the end of the run.
 The `Scenarios/` tests additionally run the real `terraform` CLI (must be on PATH) against a Kestrel-hosted instance, applying the samples under `samples/`.
 
 Full stack via containers: `docker compose up` (API on :9001), then `docker compose run --rm dbinit` to seed a user for manual use.
@@ -105,9 +106,12 @@ Three projects with one-way dependencies: `WebApi` > `Infrastructure.MongoDb` > 
 - **`src/Domain`**: repository interfaces (`IStateRepository`, `IStateLockRepository`, `IUserRepository`, `ILockoutRepository`) and models.
   No logic, no infrastructure references.
 - **`src/Infrastructure.MongoDb`**: repository implementations.
-  Collections: `tf_state` (current state, stored as a raw `BsonDocument` with no C# model, since its shape is whatever Terraform wrote), `tf_state_lock` (one per `{tenant, name}`, the lock ID in `lock_id` rather than `_id`), `user` (BCrypt password hashes), `auth_lockout` (failed-attempt counters, TTL-expired).
+  Collections:
+  `tf_state` (current state, stored as a raw `BsonDocument` with no C# model, since its shape is whatever Terraform wrote),
+  `tf_state_lock` (one per `{tenant, name}`, the lock ID in `lock_id` rather than `_id`), `user` (BCrypt password hashes), `auth_lockout` (failed-attempt counters, TTL-expired).
   `tf_state_history` holds JSON-diff patches computed with `SystemTextJson.JsonDiffPatch` on every state update.
-- **`src/WebApi`**: `StateController` (all protocol logic including lock checking), Basic authentication against the `user` collection, `TenantAuthorizationFilter` matching the route `{tenant}` against the user's tenant claim, and `ThrottledCredentialAuthenticator` enforcing the failed-attempt lockout through `auth_lockout`.
+- **`src/WebApi`**: `StateController` (all protocol logic including lock checking), Basic authentication against the `user` collection,
+  `TenantAuthorizationFilter` matching the route `{tenant}` against the user's tenant claim, and `ThrottledCredentialAuthenticator` enforcing the failed-attempt lockout through `auth_lockout`.
   DI wiring lives in `WebApi/DependencyInjection/`.
 
 ### Protocol constraints
@@ -164,7 +168,8 @@ Use `>` for UI navigation, for example **Project Settings > Quality Gate**, and 
 
 - NuGet versions are managed centrally in `Directory.Packages.props`: `PackageReference` entries in csproj files have no `Version` attribute.
 - Release version is `VersionPrefix` in `Directory.Build.props`.
-- MongoDB field names are camelCase via a global `ConventionPack` (registered in `InfrastructureServiceCollectionExtensions`), except multi-word fields, which `[BsonElement]` or the raw `BsonDocument` writes in snake_case: `created_at`, `lock_id`, `password_hash`, `remote_address`, `expires_at`.
+- MongoDB field names are camelCase via a global `ConventionPack` (registered in `InfrastructureServiceCollectionExtensions`),
+  except multi-word fields, which `[BsonElement]` or the raw `BsonDocument` writes in snake_case: `created_at`, `lock_id`, `password_hash`, `remote_address`, `expires_at`.
 - Markdown and YAML are linted in CI (`.markdownlint-cli2.yaml`, `.yamllint.yaml`); C# style is enforced by `.editorconfig`.
 - Linters are never run by an agent, and never imitated either: no `markdownlint`, no `yamllint`, no formatter in write mode, and no reshaping text to fit a lint configuration.
   The maintainer runs them and decides about every finding, and an agent that notices text a linter might flag says so in its report.

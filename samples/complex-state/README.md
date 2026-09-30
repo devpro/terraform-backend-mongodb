@@ -3,10 +3,12 @@
 ## Purpose
 
 This sample exists for `ComplexStateScenarioTest` in the integration suite.
-It exercises the part of the storage contract that the other samples do not: a resource attribute whose shape is not fixed by any provider schema, and therefore not modeled by any class in this repository.
+It exercises the part of the storage contract that the other samples do not:
+a resource attribute whose shape is not fixed by any provider schema, and therefore not modeled by any class in this repository.
 
 `terraform_data` ships with Terraform itself, so this needs no provider credentials.
-Its `input` attribute is typed `any`, so the nested object assigned to it in `main.tf`, maps, lists of objects, booleans, a null, and an integer beyond `Int64`, lands in the state exactly as written, and nowhere else in this repository is that shape declared.
+Its `input` attribute is typed `any`, so the nested object assigned to it in `main.tf`, maps, lists of objects, booleans, a null,
+and an integer beyond `Int64`, lands in the state exactly as written, and nowhere else in this repository is that shape declared.
 
 ## Setup
 

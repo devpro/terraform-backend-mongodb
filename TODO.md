@@ -44,7 +44,6 @@ The repository sits on `/mnt/c`, which IstarCI polls rather than watches, with n
 
 - [ ] Replace the MongoDB install in the `custom-commands` of the quality job, `sudo apt` then `systemctl start mongod`, with a `mongo:8` service declaring `ports: [27017:27017]`.
   A container has no `systemd`, and the service works the same on GitHub and in IstarCI, on `localhost:27017`.
-- [ ] Fix the markdownlint findings `markup-lint` fails on, in `docs/backlog.md`, `docs/code-review.md` and `samples/complex-state/README.md`.
 - [ ] Run `code-quality` and `image-scan` through the installed package on a commit changing the application, and record here what passes.
   The Sonar steps fail locally on the `istarci-secret-SONAR_TOKEN` placeholder, a local run holding no credentials.
 

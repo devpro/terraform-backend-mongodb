@@ -34,14 +34,14 @@ public class StateLockRepositoryTest(TestWebApplicationFactory factory)
         var repository = scope.ServiceProvider.GetRequiredService<IStateLockRepository>();
 
         // Act & Assert
-        var created = await repository.CreateAsync(firstLock);
+        var created = await repository.CreateAsync(firstLock, TestContext.Current.CancellationToken);
         created.Should().NotBeNull();
 
         // simulates a concurrent run winning the race between the controller's lock check and the insert
-        var conflicting = await repository.CreateAsync(secondLock);
+        var conflicting = await repository.CreateAsync(secondLock, TestContext.Current.CancellationToken);
         conflicting.Should().BeNull();
 
-        var deleted = await repository.DeleteAsync(firstLock);
+        var deleted = await repository.DeleteAsync(firstLock, TestContext.Current.CancellationToken);
         deleted.Should().BeTrue();
     }
 
@@ -81,11 +81,11 @@ public class StateLockRepositoryTest(TestWebApplicationFactory factory)
         results.Count(result => result != null).Should().Be(1, "exactly one concurrent run must win the lock");
         var winner = results.Single(result => result != null)!;
 
-        var stored = await repository.FindOneAsync(Tenant, name);
+        var stored = await repository.FindOneAsync(Tenant, name, TestContext.Current.CancellationToken);
         stored.Should().NotBeNull();
         stored!.Id.Should().Be(winner.Id);
 
-        var deleted = await repository.DeleteAsync(winner);
+        var deleted = await repository.DeleteAsync(winner, TestContext.Current.CancellationToken);
         deleted.Should().BeTrue();
     }
 }
