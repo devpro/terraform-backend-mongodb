@@ -1,0 +1,797 @@
+
+<!doctype html>
+<html lang="en" class="no-js">
+  <head>
+    
+      <meta charset="utf-8">
+      <meta name="viewport" content="width=device-width,initial-scale=1">
+      
+      
+      
+      
+      
+      
+        
+      
+      
+      <link rel="icon" href="../assets/images/favicon.png">
+      <meta name="generator" content="mkdocs-1.6.1, mkdocs-material-9.7.6">
+    
+    
+      
+        <title>Feasibility study: capturing caller run context - Terraform Backend MongoDB</title>
+      
+    
+    
+      <link rel="stylesheet" href="../assets/stylesheets/main.484c7ddc.min.css">
+      
+        
+        <link rel="stylesheet" href="../assets/stylesheets/palette.ab4e12ef.min.css">
+      
+      
+
+
+    
+    
+      
+    
+    
+      
+        
+        
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+        <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Roboto:300,300i,400,400i,700,700i%7CRoboto+Mono:400,400i,700,700i&display=fallback">
+        <style>:root{--md-text-font:"Roboto";--md-code-font:"Roboto Mono"}</style>
+      
+    
+    
+    <script>__md_scope=new URL("..",location),__md_hash=e=>[...e].reduce(((e,_)=>(e<<5)-e+_.charCodeAt(0)),0),__md_get=(e,_=localStorage,t=__md_scope)=>JSON.parse(_.getItem(t.pathname+"."+e)),__md_set=(e,_,t=localStorage,a=__md_scope)=>{try{t.setItem(a.pathname+"."+e,JSON.stringify(_))}catch(e){}}</script>
+    
+      
+
+    
+    
+  </head>
+  
+  
+    
+    
+      
+    
+    
+    
+    
+    <body dir="ltr" data-md-color-scheme="slate" data-md-color-primary="indigo" data-md-color-accent="indigo">
+  
+    
+    <input class="md-toggle" data-md-toggle="drawer" type="checkbox" id="__drawer" autocomplete="off">
+    <input class="md-toggle" data-md-toggle="search" type="checkbox" id="__search" autocomplete="off">
+    <label class="md-overlay" for="__drawer"></label>
+    <div data-md-component="skip">
+      
+        
+        <a href="#feasibility-study-capturing-caller-run-context" class="md-skip">
+          Skip to content
+        </a>
+      
+    </div>
+    <div data-md-component="announce">
+      
+    </div>
+    
+    
+      
+
+<header class="md-header" data-md-component="header">
+  <nav class="md-header__inner md-grid" aria-label="Header">
+    <a href=".." title="Terraform Backend MongoDB" class="md-header__button md-logo" aria-label="Terraform Backend MongoDB" data-md-component="logo">
+      
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3 3 3 0 0 0 3 3m0 3.54C9.64 9.35 6.5 8 3 8v11c3.5 0 6.64 1.35 9 3.54 2.36-2.19 5.5-3.54 9-3.54V8c-3.5 0-6.64 1.35-9 3.54"/></svg>
+
+    </a>
+    <label class="md-header__button md-icon" for="__drawer">
+      
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M3 6h18v2H3zm0 5h18v2H3zm0 5h18v2H3z"/></svg>
+    </label>
+    <div class="md-header__title" data-md-component="header-title">
+      <div class="md-header__ellipsis">
+        <div class="md-header__topic">
+          <span class="md-ellipsis">
+            Terraform Backend MongoDB
+          </span>
+        </div>
+        <div class="md-header__topic" data-md-component="header-topic">
+          <span class="md-ellipsis">
+            
+              Feasibility study: capturing caller run context
+            
+          </span>
+        </div>
+      </div>
+    </div>
+    
+      
+        <form class="md-header__option" data-md-component="palette">
+  
+    
+    
+    
+    <input class="md-option" data-md-color-media="(prefers-color-scheme: dark)" data-md-color-scheme="slate" data-md-color-primary="indigo" data-md-color-accent="indigo"  aria-label="Switch to light mode"  type="radio" name="__palette" id="__palette_0">
+    
+      <label class="md-header__button md-icon" title="Switch to light mode" for="__palette_1" hidden>
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 18c-.89 0-1.74-.2-2.5-.55C11.56 16.5 13 14.42 13 12s-1.44-4.5-3.5-5.45C10.26 6.2 11.11 6 12 6a6 6 0 0 1 6 6 6 6 0 0 1-6 6m8-9.31V4h-4.69L12 .69 8.69 4H4v4.69L.69 12 4 15.31V20h4.69L12 23.31 15.31 20H20v-4.69L23.31 12z"/></svg>
+      </label>
+    
+  
+    
+    
+    
+    <input class="md-option" data-md-color-media="(prefers-color-scheme: light)" data-md-color-scheme="default" data-md-color-primary="indigo" data-md-color-accent="indigo"  aria-label="Switch to dark mode"  type="radio" name="__palette" id="__palette_1">
+    
+      <label class="md-header__button md-icon" title="Switch to dark mode" for="__palette_0" hidden>
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a4 4 0 0 0-4 4 4 4 0 0 0 4 4 4 4 0 0 0 4-4 4 4 0 0 0-4-4m0 10a6 6 0 0 1-6-6 6 6 0 0 1 6-6 6 6 0 0 1 6 6 6 6 0 0 1-6 6m8-9.31V4h-4.69L12 .69 8.69 4H4v4.69L.69 12 4 15.31V20h4.69L12 23.31 15.31 20H20v-4.69L23.31 12z"/></svg>
+      </label>
+    
+  
+</form>
+      
+    
+    
+      <script>var palette=__md_get("__palette");if(palette&&palette.color){if("(prefers-color-scheme)"===palette.color.media){var media=matchMedia("(prefers-color-scheme: light)"),input=document.querySelector(media.matches?"[data-md-color-media='(prefers-color-scheme: light)']":"[data-md-color-media='(prefers-color-scheme: dark)']");palette.color.media=input.getAttribute("data-md-color-media"),palette.color.scheme=input.getAttribute("data-md-color-scheme"),palette.color.primary=input.getAttribute("data-md-color-primary"),palette.color.accent=input.getAttribute("data-md-color-accent")}for(var[key,value]of Object.entries(palette.color))document.body.setAttribute("data-md-color-"+key,value)}</script>
+    
+    
+    
+      
+      
+        <label class="md-header__button md-icon" for="__search">
+          
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.52 6.52 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5"/></svg>
+        </label>
+        <div class="md-search" data-md-component="search" role="dialog">
+  <label class="md-search__overlay" for="__search"></label>
+  <div class="md-search__inner" role="search">
+    <form class="md-search__form" name="search">
+      <input type="text" class="md-search__input" name="query" aria-label="Search" placeholder="Search" autocapitalize="off" autocorrect="off" autocomplete="off" spellcheck="false" data-md-component="search-query" required>
+      <label class="md-search__icon md-icon" for="__search">
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.52 6.52 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5"/></svg>
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20 11v2H8l5.5 5.5-1.42 1.42L4.16 12l7.92-7.92L13.5 5.5 8 11z"/></svg>
+      </label>
+      <nav class="md-search__options" aria-label="Search">
+        
+        <button type="reset" class="md-search__icon md-icon" title="Clear" aria-label="Clear" tabindex="-1">
+          
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M19 6.41 17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"/></svg>
+        </button>
+      </nav>
+      
+    </form>
+    <div class="md-search__output">
+      <div class="md-search__scrollwrap" tabindex="0" data-md-scrollfix>
+        <div class="md-search-result" data-md-component="search-result">
+          <div class="md-search-result__meta">
+            Initializing search
+          </div>
+          <ol class="md-search-result__list" role="presentation"></ol>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+      
+    
+    
+      <div class="md-header__source">
+        <a href="https://github.com/devpro/terraform-backend-mongodb" title="Go to repository" class="md-source" data-md-component="source">
+  <div class="md-source__icon md-icon">
+    
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512"><!--! Font Awesome Free 7.1.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2025 Fonticons, Inc.--><path d="M439.6 236.1 244 40.5c-5.4-5.5-12.8-8.5-20.4-8.5s-15 3-20.4 8.4L162.5 81l51.5 51.5c27.1-9.1 52.7 16.8 43.4 43.7l49.7 49.7c34.2-11.8 61.2 31 35.5 56.7-26.5 26.5-70.2-2.9-56-37.3L240.3 199v121.9c25.3 12.5 22.3 41.8 9.1 55-6.4 6.4-15.2 10.1-24.3 10.1s-17.8-3.6-24.3-10.1c-17.6-17.6-11.1-46.9 11.2-56v-123c-20.8-8.5-24.6-30.7-18.6-45L142.6 101 8.5 235.1C3 240.6 0 247.9 0 255.5s3 15 8.5 20.4l195.6 195.7c5.4 5.4 12.7 8.4 20.4 8.4s15-3 20.4-8.4l194.7-194.7c5.4-5.4 8.4-12.8 8.4-20.4s-3-15-8.4-20.4"/></svg>
+  </div>
+  <div class="md-source__repository">
+    GitHub
+  </div>
+</a>
+      </div>
+    
+  </nav>
+  
+</header>
+    
+    <div class="md-container" data-md-component="container">
+      
+      
+        
+          
+            
+<nav class="md-tabs" aria-label="Tabs" data-md-component="tabs">
+  <div class="md-grid">
+    <ul class="md-tabs__list">
+      
+        
+  
+  
+  
+  
+    <li class="md-tabs__item">
+      <a href=".." class="md-tabs__link">
+        
+  
+  
+    
+  
+  Welcome
+
+      </a>
+    </li>
+  
+
+      
+        
+  
+  
+  
+  
+    <li class="md-tabs__item">
+      <a href="../architecture/" class="md-tabs__link">
+        
+  
+  
+    
+  
+  Architecture
+
+      </a>
+    </li>
+  
+
+      
+        
+  
+  
+  
+  
+    <li class="md-tabs__item">
+      <a href="../quickstart/" class="md-tabs__link">
+        
+  
+  
+    
+  
+  Quickstart
+
+      </a>
+    </li>
+  
+
+      
+        
+  
+  
+  
+  
+    <li class="md-tabs__item">
+      <a href="../setup/" class="md-tabs__link">
+        
+  
+  
+    
+  
+  Setup
+
+      </a>
+    </li>
+  
+
+      
+        
+  
+  
+  
+  
+    <li class="md-tabs__item">
+      <a href="../usage/" class="md-tabs__link">
+        
+  
+  
+    
+  
+  Usage
+
+      </a>
+    </li>
+  
+
+      
+        
+  
+  
+  
+  
+    <li class="md-tabs__item">
+      <a href="../project/" class="md-tabs__link">
+        
+  
+  
+    
+  
+  Project
+
+      </a>
+    </li>
+  
+
+      
+    </ul>
+  </div>
+</nav>
+          
+        
+      
+      <main class="md-main" data-md-component="main">
+        <div class="md-main__inner md-grid">
+          
+            
+              
+              <div class="md-sidebar md-sidebar--primary" data-md-component="sidebar" data-md-type="navigation" >
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+
+  
+
+
+  
+
+<nav class="md-nav md-nav--primary md-nav--lifted md-nav--integrated" aria-label="Navigation" data-md-level="0">
+  <label class="md-nav__title" for="__drawer">
+    <a href=".." title="Terraform Backend MongoDB" class="md-nav__button md-logo" aria-label="Terraform Backend MongoDB" data-md-component="logo">
+      
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3 3 3 0 0 0 3 3m0 3.54C9.64 9.35 6.5 8 3 8v11c3.5 0 6.64 1.35 9 3.54 2.36-2.19 5.5-3.54 9-3.54V8c-3.5 0-6.64 1.35-9 3.54"/></svg>
+
+    </a>
+    Terraform Backend MongoDB
+  </label>
+  
+    <div class="md-nav__source">
+      <a href="https://github.com/devpro/terraform-backend-mongodb" title="Go to repository" class="md-source" data-md-component="source">
+  <div class="md-source__icon md-icon">
+    
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512"><!--! Font Awesome Free 7.1.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2025 Fonticons, Inc.--><path d="M439.6 236.1 244 40.5c-5.4-5.5-12.8-8.5-20.4-8.5s-15 3-20.4 8.4L162.5 81l51.5 51.5c27.1-9.1 52.7 16.8 43.4 43.7l49.7 49.7c34.2-11.8 61.2 31 35.5 56.7-26.5 26.5-70.2-2.9-56-37.3L240.3 199v121.9c25.3 12.5 22.3 41.8 9.1 55-6.4 6.4-15.2 10.1-24.3 10.1s-17.8-3.6-24.3-10.1c-17.6-17.6-11.1-46.9 11.2-56v-123c-20.8-8.5-24.6-30.7-18.6-45L142.6 101 8.5 235.1C3 240.6 0 247.9 0 255.5s3 15 8.5 20.4l195.6 195.7c5.4 5.4 12.7 8.4 20.4 8.4s15-3 20.4-8.4l194.7-194.7c5.4-5.4 8.4-12.8 8.4-20.4s-3-15-8.4-20.4"/></svg>
+  </div>
+  <div class="md-source__repository">
+    GitHub
+  </div>
+</a>
+    </div>
+  
+  <ul class="md-nav__list" data-md-scrollfix>
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href=".." class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Welcome
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../architecture/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Architecture
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../quickstart/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Quickstart
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../setup/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Setup
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../usage/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Usage
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../project/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Project
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+  </ul>
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+            
+          
+          
+            <div class="md-content" data-md-component="content">
+              
+                
+
+
+
+  
+
+
+              
+              <article class="md-content__inner md-typeset">
+                
+                  
+
+
+  
+  
+
+
+<h1 id="feasibility-study-capturing-caller-run-context">Feasibility study: capturing caller run context</h1>
+<p>Study date: 2026-07-10.
+Related backlog item: B-14 in the <a href="../backlog/">backlog</a>.</p>
+<h2 id="goal">Goal</h2>
+<p>When Terraform or OpenTofu calls the backend, record <em>where the run came from</em>:</p>
+<ul>
+<li>Git repository remote URL, branch, commit SHA, and whether the working tree was dirty or clean.</li>
+<li>Execution environment: local workstation vs pipeline, and if a pipeline, which CI system and which run (URL, run ID).</li>
+<li>Terraform metadata: version, operation (<code>plan</code>/<code>apply</code>/<code>destroy</code>), user/host.</li>
+</ul>
+<p>The data lands in the same MongoDB database already consumed by the <em>liveship</em> project, which can then correlate infrastructure state changes with the code and pipeline that produced them.</p>
+<h2 id="the-core-constraint">The core constraint</h2>
+<p>The <a href="https://developer.hashicorp.com/terraform/language/backend/http">Terraform HTTP backend protocol</a> is fixed: the CLI sends only the state payload, the lock payload, Basic auth credentials, and the <code>ID</code> query parameter.
+There is no protocol extension point for custom metadata, so any solution combines what the server can already infer with something the client (or a wrapper around it) volunteers.</p>
+<h3 id="what-the-backend-already-receives-for-free">What the backend already receives for free</h3>
+<p>The lock payload (<code>StateLockModel</code>) carries <code>Who</code> (user@host), <code>Version</code> (Terraform version), <code>Operation</code>, <code>Created</code>, and <code>Path</code>, which Terraform fills in on every <code>lock</code> call.
+Basic auth identifies the tenant and user, and the connection provides a source IP.
+None of this includes git information, but it is enough to attribute <em>who</em> changed <em>what</em> and <em>when</em> without any client cooperation.</p>
+<h2 id="transport-options-for-client-provided-context">Transport options for client-provided context</h2>
+<h3 id="option-a-custom-headers-opentofu-only">Option A: custom headers (OpenTofu only)</h3>
+<p>OpenTofu's HTTP backend supports an optional <a href="https://opentofu.org/docs/language/settings/backends/http/"><code>headers</code> map</a> in the backend block, so a pipeline can inject e.g. <code>X-TF-Context: &lt;base64 JSON&gt;</code> generated before <code>tofu init</code>.
+HashiCorp Terraform's HTTP backend has <strong>no custom header support</strong> (a long-standing feature request), so this option alone excludes Terraform users.</p>
+<ul>
+<li>Pros: clean, invisible in URLs and access logs, natural fit for structured data.</li>
+<li>Cons: OpenTofu-only; headers must be baked into the backend block or partial backend config at <code>init</code> time.</li>
+</ul>
+<h3 id="option-b-query-parameters-on-the-backend-address">Option B: query parameters on the backend address</h3>
+<p><code>TF_HTTP_ADDRESS</code>, <code>TF_HTTP_LOCK_ADDRESS</code>, and <code>TF_HTTP_UNLOCK_ADDRESS</code> accept any URL, including a query string, e.g.:</p>
+<div class="highlight"><pre><span></span><code><span class="nb">export</span><span class="w"> </span><span class="nv">TF_HTTP_ADDRESS</span><span class="o">=</span><span class="s2">&quot;https://backend.example.com/acme/state/app?runId=</span><span class="si">${</span><span class="nv">RUN_ID</span><span class="si">}</span><span class="s2">&amp;branch=</span><span class="si">${</span><span class="nv">BRANCH</span><span class="si">}</span><span class="s2">&amp;dirty=false&amp;env=github&quot;</span>
+</code></pre></div>
+<p>The HTTP backend client copies the configured URL and <em>adds</em> the <code>ID</code> lock parameter to the existing query, so caller-supplied parameters are preserved on every GET/POST/DELETE.
+This behavior is an implementation detail rather than a documented guarantee, so it must be locked in with a scenario test.
+The existing <code>Scenarios/</code> infrastructure makes this cheap: pass a decorated <code>TF_HTTP_ADDRESS</code> and assert the context was stored.</p>
+<ul>
+<li>Pros: works with both Terraform and OpenTofu today, zero protocol changes, trivial server-side parsing.</li>
+<li>Cons: limited payload size, values appear in access logs and proxies (fine for git metadata, never for secrets), relies on tested-but-undocumented client behavior.</li>
+</ul>
+<h3 id="option-c-dedicated-context-endpoint">Option C: dedicated context endpoint</h3>
+<p>Add an authenticated endpoint, e.g. <code>POST /{tenant}/state/{name}/context</code>, that a wrapper calls once before running Terraform with a client-generated <code>runId</code> and a rich JSON body.
+Combined with Option B carrying only <code>runId=...</code>, every subsequent state/lock request correlates to the full context document.</p>
+<ul>
+<li>Pros: unlimited structured payload, explicit contract owned by this project, versionable schema.</li>
+<li>Cons: requires the wrapper to make an extra HTTP call; context and state writes are correlated, not transactional.</li>
+</ul>
+<h3 id="option-d-server-side-correlation-only-no-client-changes">Option D: server-side correlation only (no client changes)</h3>
+<p>On every state POST/DELETE that carries <code>?ID=&lt;lockId&gt;</code>, the backend already looks up the lock; it can persist the lock's <code>Who</code>, <code>Version</code>, <code>Operation</code>, and <code>Path</code> into the <code>tf_state_history</code> entry (and into a run record).
+This ships value immediately with zero adoption effort, but can never provide git or CI information.</p>
+<h2 id="recommended-architecture">Recommended architecture</h2>
+<p>Combine the options in phases; each phase is independently useful.</p>
+<table>
+<thead>
+<tr>
+<th>Phase</th>
+<th>Scope</th>
+<th>Effort</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>0</td>
+<td>Option D: enrich <code>tf_state_history</code> and a new <code>tf_run_context</code> collection with lock metadata (who/version/operation)</td>
+<td>S</td>
+</tr>
+<tr>
+<td>1</td>
+<td>Options B + A: parse an allowlisted set of query parameters and the <code>X-TF-Context</code> header; scenario test for query preservation</td>
+<td>M</td>
+</tr>
+<tr>
+<td>2</td>
+<td>Publish a <code>tfrun</code> wrapper script plus CI snippets (GitHub Actions, GitLab, Jenkins, Azure DevOps) in <code>scripts/</code> and docs</td>
+<td>S/M</td>
+</tr>
+<tr>
+<td>3</td>
+<td>Option C: dedicated context endpoint for rich payloads, if the query-string budget becomes limiting</td>
+<td>M (optional)</td>
+</tr>
+</tbody>
+</table>
+<h3 id="client-side-gathering-the-context">Client side: gathering the context</h3>
+<p>A thin wrapper (bash/PowerShell, or a pipeline step) computes the values and decorates the environment before invoking <code>terraform</code>:</p>
+<div class="highlight"><pre><span></span><code><span class="nv">remote</span><span class="o">=</span><span class="k">$(</span>git<span class="w"> </span>config<span class="w"> </span>--get<span class="w"> </span>remote.origin.url<span class="k">)</span>
+<span class="nv">branch</span><span class="o">=</span><span class="k">$(</span>git<span class="w"> </span>rev-parse<span class="w"> </span>--abbrev-ref<span class="w"> </span>HEAD<span class="k">)</span>
+<span class="nv">commit</span><span class="o">=</span><span class="k">$(</span>git<span class="w"> </span>rev-parse<span class="w"> </span>HEAD<span class="k">)</span>
+<span class="nv">dirty</span><span class="o">=</span><span class="k">$(</span><span class="o">[</span><span class="w"> </span>-n<span class="w"> </span><span class="s2">&quot;</span><span class="k">$(</span>git<span class="w"> </span>status<span class="w"> </span>--porcelain<span class="k">)</span><span class="s2">&quot;</span><span class="w"> </span><span class="o">]</span><span class="w"> </span><span class="o">&amp;&amp;</span><span class="w"> </span><span class="nb">echo</span><span class="w"> </span><span class="nb">true</span><span class="w"> </span><span class="o">||</span><span class="w"> </span><span class="nb">echo</span><span class="w"> </span><span class="nb">false</span><span class="k">)</span>
+</code></pre></div>
+<p>Environment detection uses well-known CI variables, falling back to <code>local</code>:</p>
+<table>
+<thead>
+<tr>
+<th>Signal</th>
+<th>Environment</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>GITHUB_ACTIONS=true</code></td>
+<td><code>github</code> (run URL from <code>GITHUB_SERVER_URL/GITHUB_REPOSITORY/actions/runs/GITHUB_RUN_ID</code>)</td>
+</tr>
+<tr>
+<td><code>GITLAB_CI=true</code></td>
+<td><code>gitlab</code> (<code>CI_PIPELINE_URL</code>)</td>
+</tr>
+<tr>
+<td><code>JENKINS_URL</code> set</td>
+<td><code>jenkins</code> (<code>BUILD_URL</code>)</td>
+</tr>
+<tr>
+<td><code>TF_BUILD=True</code></td>
+<td><code>azure-devops</code></td>
+</tr>
+<tr>
+<td><code>CI=true</code> (anything else)</td>
+<td><code>ci-unknown</code></td>
+</tr>
+<tr>
+<td>none of the above</td>
+<td><code>local</code></td>
+</tr>
+</tbody>
+</table>
+<h3 id="server-side-storage-and-processing">Server side: storage and processing</h3>
+<ul>
+<li>A small action filter or middleware on the state/lock endpoints extracts the header (if present) or the allowlisted query parameters (<code>runId</code>, <code>repo</code>, <code>branch</code>, <code>commit</code>, <code>dirty</code>, <code>env</code>, <code>runUrl</code>).</li>
+<li>Context writes go through a bounded channel and a hosted background service so they never add latency or failure modes to state operations.</li>
+<li>New collection <code>tf_run_context</code> (camelCase fields per the global convention), indexed on <code>tenant + name + createdAt</code>, with an optional TTL for retention:</li>
+</ul>
+<div class="highlight"><pre><span></span><code><span class="p">{</span>
+<span class="w">  </span><span class="nt">&quot;tenant&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;acme&quot;</span><span class="p">,</span>
+<span class="w">  </span><span class="nt">&quot;name&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;app&quot;</span><span class="p">,</span>
+<span class="w">  </span><span class="nt">&quot;runId&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;b7e6…&quot;</span><span class="p">,</span>
+<span class="w">  </span><span class="nt">&quot;lockId&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;3f2a…&quot;</span><span class="p">,</span>
+<span class="w">  </span><span class="nt">&quot;createdAt&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;2026-07-10T14:03:00Z&quot;</span><span class="p">,</span>
+<span class="w">  </span><span class="nt">&quot;git&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">{</span><span class="w"> </span><span class="nt">&quot;remoteUrl&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;https://github.com/acme/infra&quot;</span><span class="p">,</span><span class="w"> </span><span class="nt">&quot;branch&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;main&quot;</span><span class="p">,</span><span class="w"> </span><span class="nt">&quot;commit&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;9c1d…&quot;</span><span class="p">,</span><span class="w"> </span><span class="nt">&quot;isDirty&quot;</span><span class="p">:</span><span class="w"> </span><span class="kc">false</span><span class="w"> </span><span class="p">},</span>
+<span class="w">  </span><span class="nt">&quot;environment&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">{</span><span class="w"> </span><span class="nt">&quot;type&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;github&quot;</span><span class="p">,</span><span class="w"> </span><span class="nt">&quot;runUrl&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;https://github.com/acme/infra/actions/runs/123&quot;</span><span class="w"> </span><span class="p">},</span>
+<span class="w">  </span><span class="nt">&quot;terraform&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">{</span><span class="w"> </span><span class="nt">&quot;version&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;1.13.2&quot;</span><span class="p">,</span><span class="w"> </span><span class="nt">&quot;operation&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;apply&quot;</span><span class="p">,</span><span class="w"> </span><span class="nt">&quot;who&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;runner@ci-01&quot;</span><span class="w"> </span><span class="p">},</span>
+<span class="w">  </span><span class="nt">&quot;schemaVersion&quot;</span><span class="p">:</span><span class="w"> </span><span class="mi">1</span>
+<span class="p">}</span>
+</code></pre></div>
+<h3 id="integration-with-liveship">Integration with liveship</h3>
+<p>Liveship reads the same database, so the contract is the <code>tf_run_context</code> collection schema.
+Keep it stable by treating <code>schemaVersion</code> as mandatory, only adding optional fields within a version, and documenting the schema in this repository (the producer owns the contract).
+State history entries should carry the <code>runId</code> so liveship can join "what changed" (<code>tf_state_history</code>) with "where it came from" (<code>tf_run_context</code>).</p>
+<h2 id="risks-and-mitigations">Risks and mitigations</h2>
+<table>
+<thead>
+<tr>
+<th>Risk</th>
+<th>Mitigation</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Query-parameter preservation is undocumented client behavior</td>
+<td>Pin it with a <code>Scenarios/</code> test running the real CLI; it fails loudly if a future CLI release changes behavior</td>
+</tr>
+<tr>
+<td>Context is client-asserted and spoofable within a tenant</td>
+<td>Acceptable: callers are already authenticated per tenant; treat context as informational, not authorization input</td>
+</tr>
+<tr>
+<td>Wrapper adoption is optional, so coverage will be partial</td>
+<td>Phase 0 guarantees a baseline (who/version/operation) for every run regardless of adoption</td>
+</tr>
+<tr>
+<td>Query strings leak into access logs and proxies</td>
+<td>Only allow non-sensitive metadata; enforce an allowlist and a size cap (e.g. 2 KB) server-side</td>
+</tr>
+<tr>
+<td>HashiCorp Terraform never gets header support</td>
+<td>Option B works for both CLIs; headers are a progressive enhancement for OpenTofu</td>
+</tr>
+</tbody>
+</table>
+<h2 id="verdict">Verdict</h2>
+<p>Feasible with low risk and no changes to the Terraform protocol or CLI.
+Phase 0 requires only server-side work and delivers attribution immediately.
+The full git/CI context requires a one-line convention in pipelines (decorated <code>TF_HTTP_ADDRESS</code>) or the <code>tfrun</code> wrapper, both of which degrade gracefully when absent.</p>
+
+
+
+
+
+
+
+
+
+
+
+
+                
+              </article>
+            </div>
+          
+          
+  <script>var tabs=__md_get("__tabs");if(Array.isArray(tabs))e:for(var set of document.querySelectorAll(".tabbed-set")){var labels=set.querySelector(".tabbed-labels");for(var tab of tabs)for(var label of labels.getElementsByTagName("label"))if(label.innerText.trim()===tab){var input=document.getElementById(label.htmlFor);input.checked=!0;continue e}}</script>
+
+<script>var target=document.getElementById(location.hash.slice(1));target&&target.name&&(target.checked=target.name.startsWith("__tabbed_"))</script>
+        </div>
+        
+      </main>
+      
+        <footer class="md-footer">
+  
+    
+  
+  <div class="md-footer-meta md-typeset">
+    <div class="md-footer-meta__inner md-grid">
+      <div class="md-copyright">
+  
+  
+</div>
+      
+    </div>
+  </div>
+</footer>
+      
+    </div>
+    <div class="md-dialog" data-md-component="dialog">
+      <div class="md-dialog__inner md-typeset"></div>
+    </div>
+    
+    
+    
+      
+      
+      <script id="__config" type="application/json">{"annotate": null, "base": "..", "features": ["navigation.footer", "content.tabs.link", "navigation.tabs", "navigation.path", "toc.integrate", "content.code.copy"], "search": "../assets/javascripts/workers/search.2c215733.min.js", "tags": null, "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}, "version": null}</script>
+    
+    
+      <script src="../assets/javascripts/bundle.79ae519e.min.js"></script>
+      
+    
+  </body>
+</html>
