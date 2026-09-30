@@ -41,6 +41,10 @@ Whatever changes there, the bytes that land in MongoDB keep the same shape.
 No background task, no fork, no subagent, whatever the task, including research or a read-only investigation.
 A server needed for a manual check is started, exercised and stopped within one foreground command, so nothing outlives the command that started it.
 
+**IstarCI is recommended but optional, and runs from its package.**
+The CI is the GitHub Actions pipeline, which IstarCI only runs locally first.
+`task ci:setup`, `task ci` and `task ci:logs` use the installed `@devpro/istarci` package, and a clone of IstarCI is for developing IstarCI only (`task ci:from-clone`).
+
 **The machine is left as it was found, apart from the intended changes.**
 Anything created for a check, a database, a git worktree, a process, a scratch file, is removed as part of the work, without asking, and the cleanup is verified rather than assumed.
 
