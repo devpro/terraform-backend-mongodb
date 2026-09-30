@@ -37,8 +37,8 @@ Whatever changes there, the bytes that land in MongoDB keep the same shape.
 
 ## Working rules
 
-**Everything runs in the foreground.**
-No background task, no fork, no subagent, whatever the task, including research or a read-only investigation.
+**Every command runs in the foreground, and the agent waits for it.**
+No background task, no fork, no subagent, no parallel task, whatever the task, even a long command, research or a read-only investigation.
 A server needed for a manual check is started, exercised and stopped within one foreground command, so nothing outlives the command that started it.
 
 **IstarCI is recommended but optional, and runs from its package.**
@@ -47,6 +47,11 @@ The CI is the GitHub Actions pipeline, which IstarCI only runs locally first.
 
 **The machine is left as it was found, apart from the intended changes.**
 Anything created for a check, a database, a git worktree, a process, a scratch file, is removed as part of the work, without asking, and the cleanup is verified rather than assumed.
+
+**Commit only when asked, and never push.**
+
+**Documentation is as short as possible, and headers stay.**
+Short documentation still has sections.
 
 ## Common commands
 

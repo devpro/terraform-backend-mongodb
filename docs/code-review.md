@@ -1,7 +1,7 @@
 # Code review
 
 Assessment of version 1.3.0 as of 2026-09-24, covering source code, tests, CI/CD, container packaging and `tfbeadm`.
-Identifiers are stable: the [backlog](backlog.md) refers to them, and a fixed finding keeps its identifier in the [fixed findings](#fixed-findings) table.
+Identifiers are stable: the [backlog](backlog.md) refers to them.
 
 ## Method
 
