@@ -58,7 +58,7 @@ Short documentation still has sections.
 ```bash
 dotnet build                      # build the solution (TerraformBackend.slnx)
 dotnet run --project src/WebApi   # run the API (http://localhost:5293, Scalar UI at /scalar)
-dotnet test                       # run all tests (requires MongoDB + seeded user, see below)
+dotnet test                       # run all tests (requires MongoDB, see below)
 ```
 
 Tests use xunit v3 on the Microsoft Testing Platform (`UseMicrosoftTestingPlatformRunner=true`), so runner options go after `--`:
@@ -72,8 +72,8 @@ dotnet test test/WebApi.IntegrationTests -- --filter-trait "Mode=Readonly"
 
 ### Test prerequisites
 
-All tests are integration tests hitting a real MongoDB on `localhost:27017`.
-A running server is the only prerequisite:
+The unit tests need nothing.
+The integration tests need a MongoDB server on `localhost:27017`:
 
 ```bash
 docker run --name mongodb -d -p 27017:27017 mongo:8.2
@@ -88,7 +88,7 @@ Full stack via containers: `docker compose up` (API on :9001), then `docker comp
 
 ### Test database rules
 
-The suite runs against a real, long-lived MongoDB rather than a throwaway one per test, so three rules hold, and each replaced something that failed in practice.
+The suite runs against a real, long-lived MongoDB rather than a throwaway one per test, so three rules hold.
 
 - **The suite never writes to `tfbackend_dev`.**
   `IntegrationTestDatabase.Name` resolves `DatabaseSettings__DatabaseName`, defaulting to `tfbackend_integrationtests`, and `TestHostConfiguration` pushes it into the host through `UseSetting`.
@@ -131,7 +131,7 @@ Do not change the following without checking the spec:
 
 ### Configuration
 
-`ApplicationConfiguration` wraps `IConfiguration`: `DatabaseSettings:ConnectionString`, `DatabaseSettings:DatabaseName`, `Features:IsScalarEnabled`, `Features:IsHttpsRedirectionEnabled`.
+`ApplicationConfiguration` wraps `IConfiguration`, and every setting with its default is listed in [docs/setup.md](docs/setup.md#configuration).
 Override via env vars with `__` separators, for example `DatabaseSettings__ConnectionString`.
 
 ## Writing style
@@ -198,6 +198,10 @@ The root `README.md` stays as short as possible.
 Shared content lives in `docs/` and is linked, never copied.
 Contributor-facing material lives in `CONTRIBUTING.md` at the repository root.
 Each sample README is self-sufficient for that sample and links out for anything generic.
+
+The pages in the `mkdocs.yml` nav are the public website, written by the maintainer.
+A change there fixes what is wrong or does what was asked, keeps the existing wording and structure, and anything else is proposed instead.
+No Markdown file references `AGENTS.md`: a doc that needs one of its facts states it, or links to the doc that owns it.
 
 The current assessment of the code is in [docs/code-review.md](docs/code-review.md), and what remains to be done is in [docs/backlog.md](docs/backlog.md).
 Both are kept up to date rather than re-derived.

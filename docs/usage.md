@@ -8,15 +8,15 @@ User passwords are hashed with BCrypt.
 `tfbeadm` script is the easiest way to create the users correctly:
 
 ```bash
-curl -O https://raw.githubusercontent.com/devpro/terraform-backend-mongodb/refs/heads/main/scripts/tfbeadm
-MONGODB_URI=mongodb://<myserver>:27017/<mydb> tfbeadm create-user <myusername> <mytenant>
+curl -O https://raw.githubusercontent.com/devpro/terraform-backend-mongodb/refs/heads/main/scripts/tfbeadm && chmod +x ./tfbeadm
+MONGODB_URI=mongodb://<myserver>:27017/<mydb> ./tfbeadm create-user <myusername> <mytenant>
 ```
 
 The password is read from a prompt, so it is never written to the shell history and never appears in the process list.
 To create the account without a prompt, pipe the password in:
 
 ```bash
-openssl rand -base64 24 | MONGODB_URI=mongodb://<myserver>:27017/<mydb> tfbeadm create-user <myusername> <mytenant>
+openssl rand -base64 24 | MONGODB_URI=mongodb://<myserver>:27017/<mydb> ./tfbeadm create-user <myusername> <mytenant>
 ```
 
 A generated credential is strongly preferred over a chosen one.
@@ -41,5 +41,3 @@ terraform {
   }
 }
 ```
-
-You're now ready!

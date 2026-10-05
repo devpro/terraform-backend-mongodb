@@ -32,12 +32,16 @@ Start MongoDB in a container:
 docker run --name mongodb -d -p 27017:27017 mongo:8.2
 ```
 
-Create the indexes and a user, whose password is prompted for:
+Create the indexes and a user `admin` in the tenant `dummy`, whose password is prompted for:
 
 ```bash
-MONGODB_CONTAINERNETWORK=bridge MONGODB_CONTAINERNAME=mongodb ./scripts/tfbeadm create-indexes
-MONGODB_CONTAINERNETWORK=bridge MONGODB_CONTAINERNAME=mongodb ./scripts/tfbeadm create-user admin dummy
+export MONGODB_URI=mongodb://localhost:27017/tfbackend_dev
+./scripts/tfbeadm create-indexes
+./scripts/tfbeadm create-user admin dummy
 ```
+
+`tfbeadm` needs `htpasswd` and `mongosh`.
+Without `mongosh`, it runs one in a container, reached with `MONGODB_CONTAINERNAME=mongodb MONGODB_CONTAINERNETWORK=bridge` and the default `MONGODB_URI`.
 
 Run the web API with the [.NET 10 SDK](https://dotnet.microsoft.com/download), or debug it from an IDE:
 
@@ -66,10 +70,10 @@ docker compose run --rm dbinit
 
 Scalar is then served on [localhost:9001/scalar](http://localhost:9001/scalar).
 
-Remove the containers:
+Remove the containers and the data:
 
 ```bash
-docker compose rm --force
+docker compose down --volumes
 ```
 
 Build the container image alone:
@@ -129,8 +133,9 @@ task ci        # the runs of the recent commits
 task ci:logs   # the output of the last run
 ```
 
-The image of each job is set in `.istarci.yml`.
+The image of each job, and the workflows left out because they publish or deploy, are set in `.istarci.yml`.
 When working on IstarCI itself, `task ci:from-clone` runs the pipeline once from a clone in `~/repos/istarci` or `ISTARCI_DIR`, without the package.
+A workflow IstarCI reads wrongly is reported in [devpro/istarci](https://github.com/devpro/istarci), with the workflow file and the job concerned.
 
 The workflows read these GitHub secrets and variables, set in **Settings > Secrets and variables > Actions**:
 

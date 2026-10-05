@@ -118,7 +118,7 @@ The least covered files are `StateController.cs` (89%) and `BasicAuthenticationH
 
 ## Code comments
 
-Comments follow the [writing style](../AGENTS.md#writing-style): a comment says why, and reads as if the code had always been so.
+Comments follow the repository's writing style: a comment says why, and reads as if the code had always been so.
 The test suite still names review identifiers in a few comments and summaries, which is intended: a regression test names the finding it guards.
 
 ## Dependencies
@@ -138,7 +138,7 @@ Every package is on its latest release, with two deliberate exceptions.
 
 ## Strengths worth preserving
 
-- Strict protocol fidelity in `StateController`, with the constraints written down in `AGENTS.md`.
+- Strict protocol fidelity in `StateController`.
 - Scenario tests that drive the real Terraform CLI end to end, and a suite that proves it left the database as it found it.
 - Central package management with transitive pinning, and a zero-CVE budget on image scans.
 - `StateLockRepository.CreateAsync` and `LockoutRepository.RecordFailureAsync`: atomicity from a unique index and from a single pipeline update, rather than from a read followed by a write.

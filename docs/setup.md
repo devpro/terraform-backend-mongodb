@@ -11,7 +11,7 @@ The application needs a MongoDB database that can be hosted in a:
 - MongoDB Replica Set running in containers from MongoDB container image (available on DockerHub)
 - Kubernetes cluster using MongoDB Community or Enterprise Kubernetes Operator
 
-Once the database is available, grab the connection string for a user with admin permissions.
+Once the database is available, grab the connection string for a user with the `readWrite` role on the application database.
 
 !!! tip
 
@@ -22,12 +22,13 @@ That is fine at ordinary scale, and it does not need a code change to raise: `ma
 
 ### Database indexes
 
-Add indexes for optimal performances:
+Add the indexes, the unique ones on `tf_state` and `tf_state_lock` being what makes a state write and a lock atomic:
 
 === "Commands"
 
     ```js
-    db.tf_state.createIndex({"tenant": 1, "name": 1})
+    db.tf_state.createIndex({"tenant": 1, "name": 1}, {unique: true})
+    db.tf_state_history.createIndex({"tenant": 1, "name": 1})
     db.tf_state_lock.createIndex({"tenant": 1, "name": 1}, {unique: true})
     db.user.createIndex({"username": 1}, {unique: true})
     db.auth_lockout.createIndex({"username": 1, "remote_address": 1}, {unique: true})
@@ -37,42 +38,39 @@ Add indexes for optimal performances:
 === "Script"
 
     ```bash
-    curl -O https://raw.githubusercontent.com/devpro/terraform-backend-mongodb/refs/heads/main/scripts/tfbeadm
-    MONGODB_URI=mongodb://<myserver>:27017/<mydb> tfbeadm create-indexes
+    curl -O https://raw.githubusercontent.com/devpro/terraform-backend-mongodb/refs/heads/main/scripts/tfbeadm && chmod +x ./tfbeadm
+    MONGODB_URI=mongodb://<myserver>:27017/<mydb> ./tfbeadm create-indexes
     ```
 
     !!! warning
 
         `mongosh` or `Docker` must be available on the machine running the commands
 
-### Upgrading from before the `created_at` rename
+### Upgrading from a version before 1.3.0
 
-A deployment created before this change stores its state and history documents with a `createdAt` field.
-The application itself now writes `created_at`, and every document a `terraform apply` touches from now on is rewritten with the new name automatically, so an upgrade needs nothing to keep working.
-Run `tfbeadm migrate-created-at` to rename the field on every document immediately instead of waiting for it to be touched, for example before a read that lists states by `created_at`.
-The command is safe to run more than once, and safe to run before or after the application itself is upgraded.
+Version 1.3.0 renamed two fields, and `tfbeadm` migrates existing documents.
+Both commands are safe to run more than once.
 
-```bash
-MONGODB_URI=mongodb://<myserver>:27017/<mydb> tfbeadm migrate-created-at
-```
-
-### Upgrading from before the lock ID moved out of `_id`
-
-A lock is unique per tenant and state name, and its ID is stored in a `lock_id` field rather than as the document `_id`, so the same lock ID can be used on two states.
-A lock taken by an earlier version and still held at the upgrade, a stale one from a crashed run included, has no `lock_id` and cannot be released until it is migrated.
-Run `tfbeadm migrate-lock-id` once the application is upgraded, which copies the ID into `lock_id`.
-The command is safe to run more than once.
+- A lock stores its ID in `lock_id` rather than in the document `_id`, so the same lock ID can be used on two states.
+  A lock still held at the upgrade, a stale one from a crashed run included, cannot be released until `migrate-lock-id` copies its ID, so run it once the application is upgraded.
+- State and history documents store `created_at` rather than `createdAt`.
+  The application renames the field on every document it writes, and `migrate-created-at` renames it everywhere at once, for example before a query on `created_at`.
 
 ```bash
-MONGODB_URI=mongodb://<myserver>:27017/<mydb> tfbeadm migrate-lock-id
+MONGODB_URI=mongodb://<myserver>:27017/<mydb> ./tfbeadm migrate-lock-id
+MONGODB_URI=mongodb://<myserver>:27017/<mydb> ./tfbeadm migrate-created-at
 ```
 
-### Authentication and network settings
+## Configuration
 
-Six settings, introduced alongside the brute-force and proxy hardening, override with the `Section__Key` environment variable convention documented in `AGENTS.md`.
+Settings are read from `appsettings.json` and overridden by environment variables, with `__` as the section separator.
 
 Setting | Environment variable | Default | Purpose
 ------- | --------------------- | ------- | -------
+`DatabaseSettings:ConnectionString` | `DatabaseSettings__ConnectionString` | none | MongoDB connection string.
+`DatabaseSettings:DatabaseName` | `DatabaseSettings__DatabaseName` | `tfbackend` | MongoDB database name.
+`Features:IsHttpsRedirectionEnabled` | `Features__IsHttpsRedirectionEnabled` | `true` | Redirects HTTP requests to HTTPS, to disable when TLS terminates at an ingress.
+`Features:IsScalarEnabled` | `Features__IsScalarEnabled` | `false` | Serves the OpenAPI definition and the Scalar web page on `/scalar`.
 `Authentication:CredentialCacheSeconds` | `Authentication__CredentialCacheSeconds` | `60` | How long a verified credential skips BCrypt.
 `Authentication:MaxFailedAttempts` | `Authentication__MaxFailedAttempts` | `10` | Consecutive failures, per username and source address, before that pair is refused.
 `Authentication:LockoutSeconds` | `Authentication__LockoutSeconds` | `300` | How long a pair stays refused once locked out.
@@ -85,6 +83,13 @@ Setting | Environment variable | Default | Purpose
     Behind a reverse proxy, at least one of `Network:KnownProxies`, `Network:KnownNetworks` or `Network:TrustAllProxies` must be set.
     Left unset, the application sees the proxy's own address on every request: every caller then shares a single lockout bucket, and every authentication-failure log entry names the proxy instead of the attacker.
 
+The health check is served on `/health`.
+
+!!! warning
+
+    The application serves plain HTTP, and Terraform sends the password on every request, so TLS must terminate in front of it, at an ingress or a reverse proxy.
+    `skip_cert_verification` in a backend block turns that protection off, and is for local tests only.
+
 ## Installation
 
 ### Kubernetes
@@ -96,7 +101,7 @@ helm repo add devpro https://devpro.github.io/helm-charts
 helm repo update
 ```
 
-Create a values.yaml file with your configuration by looking at examples:
+Create a values.yaml file with the configuration, starting from the examples:
 
 === "Traefik Ingress with Let's Encrypt cert-manager issuer"
 
@@ -116,7 +121,8 @@ Create a values.yaml file with your configuration by looking at examples:
     dotnet:
       environment: Development
       enableScalar: true
-      enableOpenTelemetry: false
+      openTelemetry:
+        enabled: false
     ```
 
 === "Embedded MongoDB chart"
@@ -132,9 +138,9 @@ Create a values.yaml file with your configuration by looking at examples:
         databaseName: tfbackend_beta
     ```
 
-Install and manage the application with Helm:
+Install and manage the application with Helm, `<tag>` being one of the [published image tags](https://hub.docker.com/r/devprofr/terraform-backend-mongodb/tags), since the chart's default tag is not published:
 
 ```bash
-helm upgrade --install tfbackend devpro/terraform-backend-mongodb -f values.yaml \
+helm upgrade --install tfbackend devpro/terraform-backend-mongodb -f values.yaml --set webapi.tag=<tag> \
   --create-namespace --namespace tfbackend
 ```

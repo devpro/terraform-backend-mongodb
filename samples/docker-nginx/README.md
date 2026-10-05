@@ -10,6 +10,8 @@ The following tools must be available from the command line:
 - [Terraform](https://developer.hashicorp.com/terraform/install) or [OpenTofu](https://opentofu.org/docs/intro/install/), used interchangeably below
 - Docker
 
+MongoDB must be running with the indexes and a user `admin` in the tenant `dummy`, as described in [Debug the application](../../CONTRIBUTING.md#debug-the-application).
+
 ## Workflow
 
 Run the application, or start it from an IDE:
