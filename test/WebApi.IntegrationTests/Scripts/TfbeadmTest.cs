@@ -14,13 +14,10 @@ using Xunit;
 namespace Devpro.TerraformBackend.WebApi.IntegrationTests.Scripts;
 
 /// <summary>
-/// The account creation path in <c>scripts/tfbeadm</c>, checked end to end: a user the script creates must be
-/// able to authenticate against the API.
+/// The account creation path in <c>scripts/tfbeadm</c>, checked end to end: a user the script creates must be able to authenticate against the API.
 /// <para>
-/// This covers the parts of the script that were only ever verified by hand. The password used here contains
-/// a single quote, a dollar sign, a backslash and a space, because the script interpolates its values into a
-/// JavaScript string that is passed through two shells, and every one of those characters breaks a different
-/// hop. The username case covers the same interpolation used as an injection.
+/// The password used here contains a single quote, a dollar sign, a backslash and a space, since each of them breaks a different hop of a value interpolated into a JavaScript string passed through two shells, which the script must never do.
+/// The username case covers the same interpolation used as an injection.
 /// </para>
 /// </summary>
 [Trait("Category", "IntegrationTests")]
@@ -62,33 +59,29 @@ public class TfbeadmTest(TestWebApplicationFactory factory)
         var result = await TfbeadmRunner.RunAsync(["create-user", username, TestCredentials.Tenant], AwkwardPassword,
             TestContext.Current.CancellationToken);
 
-        // Assert: the script echoes the MongoDB command it runs, which used to carry the credential material
+        // Assert: the script echoes the MongoDB command it runs, which must not carry the credential material
         (result.StandardOutput + result.StandardError).Should().NotContain(AwkwardPassword);
     }
 
     [Fact]
     public async Task Tfbeadm_WithJavaScriptInTheUsername_DoesNotRunIt()
     {
-        // Arrange: a username that closes the insertOne call and opens a second one, leaving the fields that
-        // follow it to complete the injected document.
-        // The shape matters. Appending a field proves nothing, since a duplicate key in a JavaScript object
-        // literal is won by the later one and the real values come after the username, and terminating with a
-        // comment only produces a syntax error that aborts the whole command. This payload was confirmed
-        // against the previous script: it created a second account under a username and tenant of the
-        // caller's choosing.
+        // Arrange: a username that closes the insertOne call and opens a second one, leaving the fields that follow it to complete the injected document.
+        // The shape matters.
+        // Appending a field proves nothing, since a duplicate key in a JavaScript object literal is won by the later one and the real values come after the username, and terminating with a comment only produces a syntax error that aborts the whole command.
+        // Against a script that interpolates the username, this payload creates a second account under a username and tenant of the caller's choosing.
         var marker = $"inject{Guid.NewGuid():N}";
         var username = $"x'}}); db.user.insertOne({{username: '{marker}', password_hash: '";
         TrackUser(username);
         TrackUser(marker);
         TrackUser("x");
 
-        // Act: through the deprecated three-argument form, which is the one that existed when this was
-        // exploitable and which the script still accepts
+        // Act: through the deprecated three-argument form, which the script still accepts
         await TfbeadmRunner.RunAsync(["create-user", username, AwkwardPassword, TestCredentials.Tenant], password: null,
             TestContext.Current.CancellationToken);
 
-        // Assert: whether the script refuses the value or stores it verbatim, what it must never do is execute
-        // it. An account an attacker can create is an account whose password they already know.
+        // Assert: whether the script refuses the value or stores it verbatim, what it must never do is execute it.
+        // An account an attacker can create is an account whose password they already know.
         var collection = Factory.Services.GetRequiredService<IMongoDatabase>().GetCollection<BsonDocument>("user");
         var injected = await collection.Find(Builders<BsonDocument>.Filter.Eq("username", marker))
             .FirstOrDefaultAsync(TestContext.Current.CancellationToken);

@@ -10,12 +10,9 @@ using Xunit;
 namespace Devpro.TerraformBackend.WebApi.IntegrationTests.Scripts;
 
 /// <summary>
-/// <c>tfbeadm migrate-created-at</c>, which renames the pre-existing camelCase <c>createdAt</c> to
-/// <c>created_at</c> in <c>tf_state</c> and <c>tf_state_history</c>.
+/// <c>tfbeadm migrate-created-at</c>, which renames the pre-existing camelCase <c>createdAt</c> to <c>created_at</c> in <c>tf_state</c> and <c>tf_state_history</c>.
 /// <para>
-/// Every document these tests seed is written the way a deployment predating this change would already hold
-/// it, with <c>createdAt</c> and no <c>created_at</c>, rather than through the application, which now writes
-/// <c>created_at</c> from the start and would never exercise the rename.
+/// Every document these tests seed is written the way a deployment from before 1.3.0 holds it, with <c>createdAt</c> and no <c>created_at</c>, rather than through the application, which writes <c>created_at</c> and would never exercise the rename.
 /// </para>
 /// </summary>
 [Trait("Category", "IntegrationTests")]
@@ -64,9 +61,7 @@ public class MigrateCreatedAtTest(TestWebApplicationFactory factory)
     }
 
     /// <summary>
-    /// Proves the command is safe to re-run: neither an operator running it twice out of caution, nor running
-    /// it against a database where some documents were already migrated and others were not, must disturb a
-    /// document that is already correct.
+    /// Proves the command is safe to re-run: neither an operator running it twice out of caution, nor running it against a database where some documents were already migrated and others were not, must disturb a document that is already correct.
     /// </summary>
     [Fact]
     public async Task MigrateCreatedAt_RunTwice_LeavesAnAlreadyMigratedDocumentUnchanged()

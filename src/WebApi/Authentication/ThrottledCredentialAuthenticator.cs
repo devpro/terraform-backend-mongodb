@@ -10,18 +10,15 @@ namespace Devpro.TerraformBackend.WebApi.Authentication;
 /// <summary>
 /// Verifies credentials with a short-lived cache in front of BCrypt and a lockout behind it.
 /// <para>
-/// The Terraform <c>http</c> backend sends a Basic credential on every request and supports no token,
-/// so without the cache every operation pays a BCrypt verify, about 139 ms of CPU at work factor 10.
-/// The cache removes that cost for a credential already verified, and the lockout caps the attempts of one
-/// that is not.
+/// The Terraform <c>http</c> backend sends a Basic credential on every request and supports no token, so without the cache every operation pays a BCrypt verify, about 139 ms of CPU at work factor 10.
+/// The cache removes that cost for a credential already verified, and the lockout caps the attempts of one that is not.
 /// </para>
 /// <para>
 /// The lockout lives in MongoDB so that it holds across every replica.
 /// The cache stays in process: a miss on another replica costs one more verify and weakens nothing.
 /// </para>
 /// <para>
-/// Nothing here takes the request's cancellation token, so a caller that disconnects after a wrong guess is
-/// still counted.
+/// Nothing here takes the request's cancellation token, so a caller that disconnects after a wrong guess is still counted.
 /// </para>
 /// </summary>
 public sealed class ThrottledCredentialAuthenticator(
@@ -51,8 +48,7 @@ public sealed class ThrottledCredentialAuthenticator(
             return AuthenticationOutcome.LockedOut;
         }
 
-        // only successful verifications are cached, so a wrong password always pays the BCrypt cost and always
-        // reaches the counter below: the cache must never become a way to skip the lockout
+        // only successful verifications are cached, so a wrong password always pays the BCrypt cost and always reaches the counter below: the cache must never become a way to skip the lockout
         var credentialKey = CredentialKey(username, password);
         if (cache.TryGetValue<UserModel>(credentialKey, out var cachedUser) && cachedUser is not null)
         {
@@ -89,10 +85,8 @@ public sealed class ThrottledCredentialAuthenticator(
     /// <summary>
     /// Records one failure against the username and the caller's address together.
     /// <para>
-    /// A lockout on the username alone is a denial of service anybody can trigger:
-    /// guessing at <c>admin</c> from anywhere would lock the real operator out.
-    /// An attacker spread across many addresses gets the same allowance per address,
-    /// and that volume is for the ingress rate limit to stop.
+    /// A lockout on the username alone is a denial of service anybody can trigger: guessing at <c>admin</c> from anywhere would lock the real operator out.
+    /// An attacker spread across many addresses gets the same allowance per address, and that volume is for the ingress rate limit to stop.
     /// </para>
     /// </summary>
     private async Task RecordFailureAsync(string username, string addressKey)

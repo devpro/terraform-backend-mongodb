@@ -10,9 +10,7 @@ namespace Devpro.TerraformBackend.Infrastructure.MongoDb.Serialization;
 /// <summary>
 /// Renders a stored state as the plain JSON a Terraform client expects.
 /// <para>
-/// <c>BsonValue.ToJson</c> is not used because it emits MongoDB Extended JSON,
-/// where a non-finite <c>Double</c> and a <c>Decimal128</c> come out as <c>$</c>-prefixed objects in every
-/// output mode, so a scalar would reach Terraform as an object.
+/// <c>BsonValue.ToJson</c> is not used because it emits MongoDB Extended JSON, where a non-finite <c>Double</c> and a <c>Decimal128</c> come out as <c>$</c>-prefixed objects in every output mode, so a scalar would reach Terraform as an object.
 /// Only the output changes: the document in <c>tf_state</c> stays queryable field by field.
 /// </para>
 /// </summary>
@@ -20,8 +18,7 @@ public static class BsonToJsonConverter
 {
     /// <summary>
     /// A magnitude no double can reach, written in place of an infinity, which JSON cannot express.
-    /// <see cref="JsonToBsonConverter"/> never stores one, but a document written by another client can hold it,
-    /// and a number is closer to what was sent than an object or a null.
+    /// <see cref="JsonToBsonConverter"/> never stores one, but a document written by another client can hold it, and a number is closer to what was sent than an object or a null.
     /// </summary>
     private const string PositiveOverflowLiteral = "1e999";
 
@@ -100,8 +97,7 @@ public static class BsonToJsonConverter
     }
 
     /// <summary>
-    /// Writes the shortest representation that reads back as the same double,
-    /// so that <c>0.1</c> is returned as <c>0.1</c> rather than the driver's <c>0.10000000000000001</c>.
+    /// Writes the shortest representation that reads back as the same double, so that <c>0.1</c> is returned as <c>0.1</c> rather than the driver's <c>0.10000000000000001</c>.
     /// </summary>
     private static void WriteDouble(StringBuilder builder, double value)
     {

@@ -12,11 +12,9 @@ using Xunit;
 namespace Devpro.TerraformBackend.WebApi.IntegrationTests.Scripts;
 
 /// <summary>
-/// <c>tfbeadm migrate-lock-id</c>, which copies the lock ID of a <c>tf_state_lock</c> document written with the
-/// ID as its <c>_id</c> into <c>lock_id</c>.
+/// <c>tfbeadm migrate-lock-id</c>, which copies the lock ID of a <c>tf_state_lock</c> document written with the ID as its <c>_id</c> into <c>lock_id</c>.
 /// <para>
-/// Every lock these tests seed is written the way a deployment predating the change holds it, with the ID as
-/// <c>_id</c> and no <c>lock_id</c>, rather than through the application, which never writes that shape.
+/// Every lock these tests seed is written the way a deployment from before 1.3.0 holds it, with the ID as <c>_id</c> and no <c>lock_id</c>, rather than through the application, which never writes that shape.
 /// </para>
 /// </summary>
 [Trait("Category", "IntegrationTests")]

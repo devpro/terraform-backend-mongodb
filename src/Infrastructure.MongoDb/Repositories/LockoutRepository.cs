@@ -30,13 +30,10 @@ public class LockoutRepository : RepositoryBase, ILockoutRepository
     }
 
     /// <summary>
-    /// Increments or starts the counter in a single aggregation-pipeline update, evaluated server-side against
-    /// one document under MongoDB's own document-level atomicity.
+    /// Increments or starts the counter in a single aggregation-pipeline update, evaluated server-side against one document under MongoDB's own document-level atomicity.
     /// <para>
-    /// A read-then-write, or even a conditional update followed by a separate upsert, has a window between the
-    /// two steps: under real concurrency, several callers can each observe "no open window" and each start
-    /// their own, so all but one increment is lost. A brute force is exactly the concurrent case where that
-    /// undercounts, which is why this is one round trip rather than two.
+    /// A read-then-write, or even a conditional update followed by a separate upsert, has a window between the two steps: under real concurrency, several callers can each observe "no open window" and each start their own, so all but one increment is lost.
+    /// A brute force is exactly the concurrent case where that undercounts, which is why this is one round trip rather than two.
     /// </para>
     /// </summary>
     public async Task<int> RecordFailureAsync(string username, string remoteAddress, TimeSpan lockoutDuration)
@@ -44,8 +41,7 @@ public class LockoutRepository : RepositoryBase, ILockoutRepository
         var now = DateTime.UtcNow;
         var expiry = now + lockoutDuration;
 
-        // this pipeline stage is raw BSON rather than a typed builder expression, so it references the actual
-        // stored field names directly: remote_address and expires_at, not the BsonElement-mapped properties
+        // this pipeline stage is raw BSON rather than a typed builder expression, so it references the actual stored field names directly: remote_address and expires_at, not the BsonElement-mapped properties
         var stillOpen = new BsonDocument("$cond", new BsonDocument
         {
             ["if"] = new BsonDocument("$gt", new BsonArray { "$expires_at", now }),

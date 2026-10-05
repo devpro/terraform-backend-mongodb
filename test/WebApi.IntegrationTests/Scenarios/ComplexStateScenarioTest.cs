@@ -37,8 +37,7 @@ public class ComplexStateScenarioTest(TestKestrelWebAppFactory kestrelWebAppFact
         await ExecuteTerraformAsync("apply -auto-approve",
             expectedOutput: "Apply complete! Resources: 4 added, 0 changed, 0 destroyed.");
 
-        // Assert: the nested payload is queryable by resource type and name, the way a consuming application
-        // reads tf_state rather than through this API
+        // Assert: the nested payload is queryable by resource type and name, the way a consuming application reads tf_state rather than through this API
         var created = await FindComplexStateAttributesAsync();
         created.Should().NotBeNull("terraform_data.complex_state must be findable by an attribute query");
         created!["metadata"]["region"].AsString.Should().Be("eu-west-3");
@@ -106,8 +105,8 @@ public class ComplexStateScenarioTest(TestKestrelWebAppFactory kestrelWebAppFact
                 ["value.resources.name"] = "complex_state"
             }),
             new("$unwind", "$value.resources.instances"),
-            // terraform_data.input and .output are typed "any", so the JSON state wraps them as {value, type}
-            // rather than storing the payload directly; "value" is the plain nested object that was assigned
+            // terraform_data.input and .output are typed "any", so the JSON state wraps them as {value, type} rather than storing the payload directly;
+            // "value" is the plain nested object that was assigned
             new("$replaceRoot", new BsonDocument("newRoot", "$value.resources.instances.attributes.output.value"))
         };
 

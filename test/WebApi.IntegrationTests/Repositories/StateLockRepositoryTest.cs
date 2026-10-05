@@ -26,8 +26,7 @@ public class StateLockRepositoryTest(TestWebApplicationFactory factory)
         var secondLock = StateLockFaker.Generate();
         secondLock.Tenant = Tenant;
         secondLock.Name = name;
-        // the lock is deleted by the assertions below, but a failure before that must not leave it holding
-        // the unique index against the next run
+        // the lock is deleted by the assertions below, but a failure before that must not leave it holding the unique index against the next run
         TrackState(Tenant, name);
 
         using var scope = Factory.Services.CreateScope();
@@ -67,8 +66,7 @@ public class StateLockRepositoryTest(TestWebApplicationFactory factory)
                 return stateLock;
             })
             .ToList();
-        // a failure part-way through the race must not leave a lock holding the unique index against the
-        // next run
+        // a failure part-way through the race must not leave a lock holding the unique index against the next run
         TrackState(Tenant, name);
 
         using var scope = Factory.Services.CreateScope();

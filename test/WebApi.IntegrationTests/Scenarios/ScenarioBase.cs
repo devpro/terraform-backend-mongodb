@@ -70,13 +70,11 @@ public abstract class ScenarioBase(TestKestrelWebAppFactory factory, ITestOutput
     /// <summary>
     /// Removes everything the scenario wrote to the database.
     /// <para>
-    /// A completed run ends on <c>terraform destroy</c>, which destroys the infrastructure but still leaves
-    /// the state document behind, holding an empty state, plus one <c>tf_state_history</c> entry per apply.
+    /// A completed run ends on <c>terraform destroy</c>, which destroys the infrastructure but still leaves the state document behind, holding an empty state, plus one <c>tf_state_history</c> entry per apply.
     /// Nothing in the protocol deletes them, so the scenario has to.
     /// </para>
     /// <para>
-    /// This runs under <see cref="CancellationToken.None"/> rather than the test's token, which is cancelled
-    /// exactly when a run times out, and that is when leftovers are most likely.
+    /// This runs under <see cref="CancellationToken.None"/> rather than the test's token, which is cancelled exactly when a run times out, and that is when leftovers are most likely.
     /// </para>
     /// </summary>
     private async Task RemoveScenarioStateAsync()

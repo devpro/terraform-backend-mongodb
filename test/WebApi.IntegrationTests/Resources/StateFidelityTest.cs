@@ -12,17 +12,14 @@ namespace Devpro.TerraformBackend.WebApi.IntegrationTests.Resources;
 /// <summary>
 /// What comes back out of storage must be what went in.
 /// <para>
-/// The suite exercised the storage layer before this, including a real <c>terraform apply</c>, but nothing
-/// ever compared the state that was read against the state that was written, and the sample only ever
-/// produced strings and small integers. The values that break could not appear, which is how a 500 on one
-/// class of number and a silent reshaping of another went unnoticed.
+/// A real <c>terraform apply</c> on the samples only produces strings and small integers, so the values that break the conversion never appear there.
+/// This test writes them explicitly and compares the state read back against the state written, since a write can succeed while the value is reshaped.
 /// </para>
 /// <para>
-/// Equality is asserted semantically rather than byte for byte. The state is stored as a queryable BSON
-/// document, which is the point of the project, so <c>1e3</c> legitimately reads back as <c>1000.0</c> and
-/// <c>-0.0</c> as <c>0.0</c>. Terraform re-parses the JSON it receives, so those are equal for every purpose
-/// that matters. What must never happen is a scalar changing into an object, a value being lost, or the write
-/// failing outright.
+/// Equality is asserted semantically rather than byte for byte.
+/// The state is stored as a queryable BSON document, which is the point of the project, so <c>1e3</c> legitimately reads back as <c>1000.0</c> and <c>-0.0</c> as <c>0.0</c>.
+/// Terraform re-parses the JSON it receives, so those are equal for every purpose that matters.
+/// What must never happen is a scalar changing into an object, a value being lost, or the write failing outright.
 /// </para>
 /// </summary>
 [Trait("Category", "IntegrationTests")]
@@ -38,9 +35,9 @@ public class StateFidelityTest(TestWebApplicationFactory factory)
     // ordinary numbers across the boundaries between BSON numeric types
     [InlineData("""{"a":0,"b":-1,"c":2147483647,"d":2147483648,"e":9223372036854775807}""")]
     [InlineData("""{"a":1.5,"b":-2.25,"c":0.1}""")]
-    // an integer beyond Int64, which used to fail the write with a 500
+    // an integer beyond Int64, which BsonDocument.Parse refuses
     [InlineData("""{"v":123456789012345678901234567890}""")]
-    // a magnitude beyond Double, which used to be stored as Infinity and read back as an object
+    // a magnitude beyond Double, which a double stores as Infinity and Extended JSON renders as an object
     [InlineData("""{"v":1e400}""")]
     [InlineData("""{"v":-1e400}""")]
     // the remaining JSON value classes
@@ -70,8 +67,7 @@ public class StateFidelityTest(TestWebApplicationFactory factory)
     [Fact]
     public async Task State_AboveTheDocumentLimit_IsRefusedWithPayloadTooLarge()
     {
-        // Arrange: a state comfortably beyond the 16 MB BSON document limit, which is a permanent property of
-        // storing the state as a queryable document and therefore has to be reported rather than escaped
+        // Arrange: a state comfortably beyond the 16 MB BSON document limit, which is a permanent property of storing the state as a queryable document and therefore has to be reported rather than escaped
         var name = UniqueStateName();
         TrackState(TestCredentials.Tenant, name);
         var client = CreateClient(true);
@@ -88,8 +84,7 @@ public class StateFidelityTest(TestWebApplicationFactory factory)
             new StringContent(oversized, System.Text.Encoding.UTF8, "application/json"),
             TestContext.Current.CancellationToken);
 
-        // Assert: the failure lands in the middle of a terraform apply, after the lock is taken and after the
-        // real infrastructure has changed, so it has to say what happened rather than surface as a 500
+        // Assert: the failure lands in the middle of a terraform apply, after the lock is taken and after the real infrastructure has changed, so it has to say what happened rather than surface as a 500
         response.StatusCode.Should().Be(HttpStatusCode.RequestEntityTooLarge);
         var body = await response.Content.ReadAsStringAsync(TestContext.Current.CancellationToken);
         body.Should().Contain("16", "the message must name the limit that was exceeded");

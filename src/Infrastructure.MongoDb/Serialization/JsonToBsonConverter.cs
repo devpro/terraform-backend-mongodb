@@ -9,15 +9,14 @@ namespace Devpro.TerraformBackend.Infrastructure.MongoDb.Serialization;
 /// Turns the JSON a Terraform client sends into the BSON document that is stored.
 /// <para>
 /// <c>BsonDocument.Parse</c> is not used because it throws on any integer beyond <see cref="long"/>.
-/// The mapping matches <c>BsonDocument.Parse</c> for every value in range, since the stored shape is a
-/// contract other applications read, and differs only where <c>BsonDocument.Parse</c> would fail.
+/// The mapping matches <c>BsonDocument.Parse</c> for every value in range, since the stored shape is a contract other applications read, and differs only where <c>BsonDocument.Parse</c> would fail.
 /// </para>
 /// </summary>
 public static class JsonToBsonConverter
 {
     /// <summary>
-    /// Converts a JSON object. Throws <see cref="JsonException"/> on malformed input, which is what keeps a
-    /// bad request distinguishable from a state that is merely too large.
+    /// Converts a JSON object.
+    /// Throws <see cref="JsonException"/> on malformed input, which is what keeps a bad request distinguishable from a state that is merely too large.
     /// </summary>
     public static BsonDocument Convert(string json)
     {
@@ -68,10 +67,8 @@ public static class JsonToBsonConverter
     /// <summary>
     /// Chooses the BSON numeric type from the literal as it was written, not from its value.
     /// <para>
-    /// An integer literal becomes <c>Int32</c>, then <c>Int64</c>, then <c>Decimal128</c>:
-    /// a thirty-digit integer is a number Terraform is entitled to send, and BSON can hold it.
-    /// A literal with a fraction or an exponent becomes <c>Double</c>, or <c>Decimal128</c> beyond the range
-    /// of a double, which would otherwise be stored as an infinity rather than the value written.
+    /// An integer literal becomes <c>Int32</c>, then <c>Int64</c>, then <c>Decimal128</c>: a thirty-digit integer is a number Terraform is entitled to send, and BSON can hold it.
+    /// A literal with a fraction or an exponent becomes <c>Double</c>, or <c>Decimal128</c> beyond the range of a double, which would otherwise be stored as an infinity rather than the value written.
     /// </para>
     /// </summary>
     private static BsonValue ConvertNumber(JsonElement element)

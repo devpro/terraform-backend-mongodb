@@ -110,7 +110,7 @@ A single-document write is atomic, so an interrupted run never leaves a half-wri
 
 ## Test coverage
 
-82 tests: 30 unit tests, and 52 integration tests against a real MongoDB and, for the scenarios, the real `terraform` CLI.
+85 tests: 30 unit tests, and 55 integration tests against a real MongoDB and, for the scenarios, the real `terraform` CLI.
 Line coverage of the handwritten code under `src/` is 96.9% (631 of 651 lines), measured with the collector CI uses and excluding the OpenAPI source generator's output.
 The least covered files are `StateController.cs` (89%) and `BasicAuthenticationHandler.cs` (91%).
 

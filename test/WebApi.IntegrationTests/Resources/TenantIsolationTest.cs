@@ -11,13 +11,11 @@ using Xunit;
 namespace Devpro.TerraformBackend.WebApi.IntegrationTests.Resources;
 
 /// <summary>
-/// Tenant isolation, which is the part of the security model that already works and had nothing proving it
-/// stays that way.
+/// Tenant isolation: a caller reaches the states of its own tenant only.
 /// <para>
-/// Every check here needs a second real account on a second tenant. Asserting isolation with one account only
-/// proves that a request naming a tenant the caller has no claim for is refused, which is the easy half. What
-/// matters is that a caller who is perfectly well authenticated still cannot reach another tenant's state,
-/// and that a refused request changes nothing.
+/// Every check here needs a second real account on a second tenant.
+/// Asserting isolation with one account only proves that a request naming a tenant the caller has no claim for is refused, which is the easy half.
+/// What matters is that a caller who is perfectly well authenticated still cannot reach another tenant's state, and that a refused request changes nothing.
 /// </para>
 /// </summary>
 [Trait("Category", "IntegrationTests")]
@@ -27,8 +25,7 @@ public class TenantIsolationTest(TestWebApplicationFactory factory)
     [Fact]
     public async Task State_WithTheSameNameInTwoTenants_IsIsolated()
     {
-        // Arrange: the unique index is on {tenant, name}, so the same name in two tenants is legitimate and is
-        // exactly the case where a missing tenant filter would surface
+        // Arrange: the unique index is on {tenant, name}, so the same name in two tenants is legitimate and is exactly the case where a missing tenant filter would surface
         var name = UniqueStateName();
         TrackState(TestCredentials.Tenant, name);
         TrackState(TestCredentials.OtherTenant, name);
@@ -128,8 +125,7 @@ public class TenantIsolationTest(TestWebApplicationFactory factory)
         var response = await otherClient.PostAsync($"/{TestCredentials.Tenant}/state/{name}/lock",
             Serialize(StateLockFaker.Generate()), TestContext.Current.CancellationToken);
 
-        // Assert: a lock that slipped through would block the owning tenant's next apply, so the check is that
-        // the owner can still take the lock afterwards
+        // Assert: a lock that slipped through would block the owning tenant's next apply, so the check is that the owner can still take the lock afterwards
         response.StatusCode.Should().Be(HttpStatusCode.Unauthorized);
 
         var ownLock = StateLockFaker.Generate();

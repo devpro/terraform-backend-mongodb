@@ -5,8 +5,7 @@ namespace Devpro.TerraformBackend.WebApi.DependencyInjection;
 public static class OpenApiServiceCollectionExtensions
 {
     /// <summary>
-    /// Major and minor of <c>VersionPrefix</c>, so the document follows the release without a second number to
-    /// keep in step, and without the per-build suffix a snapshot could not match.
+    /// Major and minor of <c>VersionPrefix</c>, so the document follows the release without a second number to keep in step, and without the per-build suffix a snapshot could not match.
     /// </summary>
     private static string DocumentVersion
     {

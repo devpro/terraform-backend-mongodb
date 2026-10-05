@@ -92,8 +92,7 @@ public class StateControllerResourceTest(TestWebApplicationFactory factory)
         var name = UniqueStateName();
         var state = NewState();
         var stateLock = StateLockFaker.Generate();
-        // this test posts the state twice, so it also writes a tf_state_history entry, and it never deletes
-        // the state itself
+        // this test posts the state twice, so it also writes a tf_state_history entry, and it never deletes the state itself
         TrackState(Tenant, name);
 
         // Act & Assert

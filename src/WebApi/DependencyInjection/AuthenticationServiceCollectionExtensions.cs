@@ -7,9 +7,7 @@ namespace Devpro.TerraformBackend.WebApi.DependencyInjection;
 public static class AuthenticationServiceCollectionExtensions
 {
     /// <summary>
-    /// Registers the credential cache that sits in front of the BCrypt verify, and validates the failed-attempt
-    /// lockout thresholds that <see cref="Authentication.ThrottledCredentialAuthenticator"/> enforces against
-    /// <c>auth_lockout</c> in MongoDB.
+    /// Registers the credential cache that sits in front of the BCrypt verify, and validates the failed-attempt lockout thresholds that <see cref="Authentication.ThrottledCredentialAuthenticator"/> enforces against <c>auth_lockout</c> in MongoDB.
     /// <para>
     /// Validated before registering anything, so a value that would defeat the lockout fails at startup.
     /// </para>
@@ -30,8 +28,7 @@ public static class AuthenticationServiceCollectionExtensions
                 $"Authentication:LockoutSeconds must be greater than zero, but is {configuration.LockoutDuration.TotalSeconds}.");
         }
 
-        // only a successful verification is ever cached, so an attacker cannot grow the cache,
-        // and the bound is a cap on legitimate traffic
+        // only a successful verification is ever cached, so an attacker cannot grow the cache, and the bound is a cap on legitimate traffic
         services.AddMemoryCache(options => options.SizeLimit = 10_000);
 
         // scoped, since the repositories it calls are scoped and its only lasting state is the singleton cache
@@ -41,10 +38,8 @@ public static class AuthenticationServiceCollectionExtensions
     /// <summary>
     /// Configures which reverse proxies the application believes when it reads the caller's address.
     /// <para>
-    /// Behind an unconfigured ingress, every request carries the proxy's address,
-    /// so every caller shares one lockout bucket and every failure is logged against the proxy.
-    /// The configured values replace the loopback-only default rather than extend it,
-    /// which is why an entry that does not parse fails at startup: skipping it would leave nothing trusted.
+    /// Behind an unconfigured ingress, every request carries the proxy's address, so every caller shares one lockout bucket and every failure is logged against the proxy.
+    /// The configured values replace the loopback-only default rather than extend it, which is why an entry that does not parse fails at startup: skipping it would leave nothing trusted.
     /// </para>
     /// </summary>
     public static void AddTrustedProxies(this IServiceCollection services, ApplicationConfiguration configuration)
@@ -64,8 +59,7 @@ public static class AuthenticationServiceCollectionExtensions
 
             if (configuration.TrustAllProxies)
             {
-                // an empty allow list makes ASP.NET Core accept forwarded headers from any caller, which is
-                // only safe where the application is reachable through the ingress alone
+                // an empty allow list makes ASP.NET Core accept forwarded headers from any caller, which is only safe where the application is reachable through the ingress alone
                 options.KnownIPNetworks.Clear();
                 options.KnownProxies.Clear();
                 return;

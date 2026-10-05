@@ -13,9 +13,7 @@ namespace Devpro.TerraformBackend.WebApi.UnitTests.DependencyInjection;
 /// <summary>
 /// A threshold that cannot lock anything out should fail at startup rather than as a runtime surprise.
 /// <para>
-/// <c>Authentication:MaxFailedAttempts</c> below 1 refuses a pair on its first attempt, and
-/// <c>Authentication:LockoutSeconds</c> at or below zero expires a lockout before it withholds anything: both
-/// silently defeat the brute-force protection this method exists to configure.
+/// <c>Authentication:MaxFailedAttempts</c> below 1 refuses a pair on its first attempt, and <c>Authentication:LockoutSeconds</c> at or below zero expires a lockout before it withholds anything: both silently defeat the brute-force protection this method exists to configure.
 /// </para>
 /// </summary>
 [Trait("Category", "UnitTests")]
@@ -55,8 +53,7 @@ public class AuthenticationServiceCollectionExtensionsTest
     [Fact]
     public void AddCredentialAuthentication_WithDefaultConfiguration_RegistersTheAuthenticator()
     {
-        // Arrange: no overrides, so ApplicationConfiguration falls back to its documented defaults, which must
-        // pass validation on their own
+        // Arrange: no overrides, so ApplicationConfiguration falls back to its documented defaults, which must pass validation on their own
         var configuration = BuildConfiguration([]);
         var services = new ServiceCollection();
 

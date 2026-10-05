@@ -42,8 +42,7 @@ public abstract class IntegrationTestBase(TestWebApplicationFactory factory)
     /// <summary>
     /// Builds a client against the suite's host.
     /// <para>
-    /// The Scalar feature flag is applied by <see cref="TestHostConfiguration"/> through <c>UseSetting</c>,
-    /// which is scoped to one factory, never through an environment variable, which would leak across tests.
+    /// The Scalar feature flag is applied by <see cref="TestHostConfiguration"/> through <c>UseSetting</c>, which is scoped to one factory, never through an environment variable, which would leak across tests.
     /// </para>
     /// </summary>
     protected HttpClient CreateClient(bool isAuthorizationNeeded = false, Action<IWebHostBuilder>? builderConfiguration = null)
@@ -101,10 +100,9 @@ public abstract class IntegrationTestBase(TestWebApplicationFactory factory)
     /// <summary>
     /// A state name no other test or earlier run can be holding.
     /// <para>
-    /// <c>tf_state</c> is uniquely indexed on <c>{tenant, name}</c>, and tests used to name states with
-    /// <c>Faker.Random.Word()</c>, which repeats. A collision either fails the write or, worse, makes a test
-    /// that expects a 404 find somebody else's state. The <c>test</c> prefix also guarantees the letter the
-    /// route constraint requires, since a bare GUID may be all digits at the start.
+    /// <c>tf_state</c> is uniquely indexed on <c>{tenant, name}</c>, so a name drawn from a word list, such as <c>Faker.Random.Word()</c>, repeats across tests.
+    /// A collision either fails the write or, worse, makes a test that expects a 404 find somebody else's state.
+    /// The <c>test</c> prefix also guarantees the letter the route constraint requires, since a bare GUID may be all digits at the start.
     /// </para>
     /// </summary>
     protected static string UniqueStateName() => $"test{Guid.NewGuid():N}";

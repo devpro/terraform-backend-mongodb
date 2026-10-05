@@ -21,7 +21,7 @@ workflow:
     - pages.yaml
     - demo.yaml
 
-# Repository variables the pipeline reads, which a local run otherwise gets as placeholders, and an image tag refuses the uppercase in one.
+# Repository variables the pipeline reads: a local run otherwise gets them as placeholders, whose uppercase an image tag refuses.
 vars:
   CONTAINER_REGISTRY_PATH: devprofr
   CONTAINER_IMAGE_NAME: terraform-backend-mongodb
