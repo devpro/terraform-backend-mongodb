@@ -5,7 +5,9 @@ namespace Devpro.TerraformBackend.WebApi.IntegrationTests.Hosting;
 /// <summary>
 /// The configuration every test host in this suite applies, whether it is served in-memory or over Kestrel.
 /// <para>
-/// Pushing the database name into the host is the load-bearing part: resolving a name and not supplying it leaves the host free to fall back to <c>appsettings.Development.json</c>, which is the exact failure <see cref="TestDatabaseGuard"/> exists to prevent.
+/// Pushing the database name into the host is the load-bearing part:
+/// resolving a name and not supplying it leaves the host free to fall back to <c>appsettings.Development.json</c>,
+/// which is the exact failure <see cref="TestDatabaseGuard"/> exists to prevent.
 /// The guard runs here, against the name that is about to be pushed, so it always vouches for the name the run will really use.
 /// </para>
 /// <para>

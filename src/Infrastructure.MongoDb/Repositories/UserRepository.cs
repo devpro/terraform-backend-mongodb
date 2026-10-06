@@ -19,8 +19,10 @@ public class UserRepository : RepositoryBase, IUserRepository
     /// <summary>
     /// The work factor every stored password hash is written at, by <c>htpasswd</c> through <c>tfbeadm</c>.
     /// <para>
-    /// Pinned rather than left to the library default of 11, because the dummy hash below must cost exactly what a real one costs: a dummy at 11 takes twice as long, which inverts the enumeration oracle rather than closing it.
-    /// Public so that anything creating a user writes at the same cost, and must stay in step with <c>tfbeadm</c>, since an account at a different cost reopens the oracle for that account.
+    /// Pinned rather than left to the library default of 11, because the dummy hash below must cost exactly what a real one costs:
+    /// a dummy at 11 takes twice as long, which inverts the enumeration oracle rather than closing it.
+    /// Public so that anything creating a user writes at the same cost, and must stay in step with <c>tfbeadm</c>,
+    /// since an account at a different cost reopens the oracle for that account.
     /// </para>
     /// </summary>
     public const int StoredHashWorkFactor = 10;

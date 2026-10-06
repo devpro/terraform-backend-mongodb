@@ -17,7 +17,8 @@ namespace Devpro.TerraformBackend.WebApi.IntegrationTests.Resources;
 /// The failed-attempt lockout.
 /// <para>
 /// This lives in its own class deliberately, and in <see cref="NonParallelCollection"/> deliberately.
-/// The lockout counter is stored in MongoDB, shared by every host in the run rather than reset per host, so a test here that locks out <see cref="TestCredentials.Username"/> would leak into every other test authenticating as the same account if it ran concurrently with one.
+/// The lockout counter is stored in MongoDB, shared by every host in the run rather than reset per host,
+/// so a test here that locks out <see cref="TestCredentials.Username"/> would leak into every other test authenticating as the same account if it ran concurrently with one.
 /// <see cref="AuthenticationTimingTest"/> is the other test that sends wrong passwords for that account, which is why it shares this collection.
 /// </para>
 /// </summary>
@@ -88,7 +89,8 @@ public class AuthenticationLockoutTest(TestWebApplicationFactory factory)
 
     /// <summary>
     /// A client on a host with a small allowance, so the test does not have to send the production default of ten failures per case.
-    /// The threshold is per-host configuration, but the failure count it compares against is shared MongoDB state, so this only bounds how many requests this test sends, not how many failures another concurrent test contributes.
+    /// The threshold is per-host configuration, but the failure count it compares against is shared MongoDB state,
+    /// so this only bounds how many requests this test sends, not how many failures another concurrent test contributes.
     /// </summary>
     private HttpClient CreateThrottledClient() => CreateClient(builderConfiguration: builder =>
     {
@@ -98,7 +100,8 @@ public class AuthenticationLockoutTest(TestWebApplicationFactory factory)
 
     /// <summary>
     /// Registers the <c>auth_lockout</c> document this test creates for removal.
-    /// The in-memory test server leaves the connection's remote address unset, so every request from this suite resolves to the same "unknown" address key; filtering on the username alone is what makes this robust to that without hardcoding the address representation.
+    /// The in-memory test server leaves the connection's remote address unset, so every request from this suite resolves to the same "unknown" address key;
+    /// filtering on the username alone is what makes this robust to that without hardcoding the address representation.
     /// </summary>
     private void TrackLockout(string username) =>
         TrackDocumentsWhere("auth_lockout", Builders<BsonDocument>.Filter.Eq("username", username));

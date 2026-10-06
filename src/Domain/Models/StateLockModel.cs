@@ -6,7 +6,8 @@ namespace Devpro.TerraformBackend.Domain.Models;
 /// <summary>
 /// A Terraform state lock, one per tenant and state name.
 /// <para>
-/// The lock ID is a plain field and <c>_id</c> is left to MongoDB, because every request names its tenant and state: a lock ID used as <c>_id</c> would have to be unique across every tenant and state, and a reused one would fail to lock a state nothing else holds.
+/// The lock ID is a plain field and <c>_id</c> is left to MongoDB, because every request names its tenant and state:
+/// a lock ID used as <c>_id</c> would have to be unique across every tenant and state, and a reused one would fail to lock a state nothing else holds.
 /// </para>
 /// </summary>
 [BsonNoId]

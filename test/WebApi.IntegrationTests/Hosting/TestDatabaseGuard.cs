@@ -6,8 +6,10 @@ namespace Devpro.TerraformBackend.WebApi.IntegrationTests.Hosting;
 /// Fail-fast check that a suite hosting the real <c>WebApi</c> in-process is pointed at a dedicated test database rather than at real data.
 /// <para>
 /// This exists because the failure it prevents is silent and destructive.
-/// The in-process host runs as <c>Development</c>, so when the database name is not pushed into its configuration the host falls straight back to <c>src/WebApi/appsettings.Development.json</c>, that is <c>tfbackend_dev</c>.
-/// Nothing errors: the suite simply creates, updates and deletes documents in the database the maintainer works in, and the <c>admin</c> account it authenticates as is shared with that real work.
+/// The in-process host runs as <c>Development</c>,
+/// so when the database name is not pushed into its configuration the host falls straight back to <c>src/WebApi/appsettings.Development.json</c>, that is <c>tfbackend_dev</c>.
+/// Nothing errors: the suite simply creates, updates and deletes documents in the database the maintainer works in,
+/// and the <c>admin</c> account it authenticates as is shared with that real work.
 /// When that account drifts to another tenant, every authenticating test fails with a bare <c>401</c>.
 /// </para>
 /// </summary>
@@ -15,7 +17,8 @@ public static class TestDatabaseGuard
 {
     /// <summary>
     /// Substrings that mark a database as a real, non-throwaway one.
-    /// Deliberately a denylist of "this is somebody's data" markers rather than an allowlist of blessed names: a new suite pointing at <c>tfbackend_something_new</c> should just work, while <c>tfbackend_dev</c> must never be the accidental default.
+    /// Deliberately a denylist of "this is somebody's data" markers rather than an allowlist of blessed names:
+    /// a new suite pointing at <c>tfbackend_something_new</c> should just work, while <c>tfbackend_dev</c> must never be the accidental default.
     /// </summary>
     private static readonly string[] ProtectedDatabaseMarkers = ["dev", "prod", "staging", "preprod"];
 

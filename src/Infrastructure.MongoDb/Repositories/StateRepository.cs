@@ -19,7 +19,8 @@ public class StateRepository : RepositoryBase, IStateRepository
 
     /// <summary>
     /// MongoDB's documented maximum BSON document size, used to name the limit in the error.
-    /// <c>BsonDefaults.MaxDocumentSize</c> is not used because it is <see cref="int.MaxValue"/> until a connection reports otherwise, which would name a limit no operator can act on.
+    /// <c>BsonDefaults.MaxDocumentSize</c> is not used because it is <see cref="int.MaxValue"/> until a connection reports otherwise,
+    /// which would name a limit no operator can act on.
     /// </summary>
     private const long MaxDocumentSizeInBytes = 16 * 1024 * 1024;
 
@@ -36,7 +37,8 @@ public class StateRepository : RepositoryBase, IStateRepository
 
     public async Task CreateAsync(string tenant, string name, string jsonInput, CancellationToken cancellationToken = default)
     {
-        // parsed before anything else, so that malformed JSON fails as a JsonException here rather than reaching the driver, which is what keeps a bad request distinguishable from an oversized one
+        // parsed before anything else, so that malformed JSON fails as a JsonException here rather than reaching the driver,
+        // which is what keeps a bad request distinguishable from an oversized one
         var value = JsonToBsonConverter.Convert(jsonInput);
 
         var filter = GetFilter(tenant, name);
@@ -67,7 +69,8 @@ public class StateRepository : RepositoryBase, IStateRepository
         }
         catch (FormatException exception)
         {
-            // the driver reports an oversized document by refusing to serialise it, and by this point the input has already parsed as JSON, so a format failure here can only be the size
+            // the driver reports an oversized document by refusing to serialise it,
+            // and by this point the input has already parsed as JSON, so a format failure here can only be the size
             throw new StateTooLargeException(MaxDocumentSizeInBytes, exception);
         }
     }

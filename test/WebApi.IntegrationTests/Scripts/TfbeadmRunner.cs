@@ -16,7 +16,8 @@ namespace Devpro.TerraformBackend.WebApi.IntegrationTests.Scripts;
 internal static class TfbeadmRunner
 {
     /// <summary>
-    /// Runs the script, with the password supplied on standard input rather than as an argument, since an argument is visible in <c>ps</c> to every user on the host and lands in the shell history.
+    /// Runs the script, with the password supplied on standard input rather than as an argument,
+    /// since an argument is visible in <c>ps</c> to every user on the host and lands in the shell history.
     /// </summary>
     public static async Task<BufferedCommandResult> RunAsync(string[] arguments, string? password,
         CancellationToken cancellationToken)

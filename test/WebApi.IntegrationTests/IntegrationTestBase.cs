@@ -42,7 +42,8 @@ public abstract class IntegrationTestBase(TestWebApplicationFactory factory)
     /// <summary>
     /// Builds a client against the suite's host.
     /// <para>
-    /// The Scalar feature flag is applied by <see cref="TestHostConfiguration"/> through <c>UseSetting</c>, which is scoped to one factory, never through an environment variable, which would leak across tests.
+    /// The Scalar feature flag is applied by <see cref="TestHostConfiguration"/> through <c>UseSetting</c>,
+    /// which is scoped to one factory, never through an environment variable, which would leak across tests.
     /// </para>
     /// </summary>
     protected HttpClient CreateClient(bool isAuthorizationNeeded = false, Action<IWebHostBuilder>? builderConfiguration = null)

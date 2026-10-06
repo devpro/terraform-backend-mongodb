@@ -13,10 +13,13 @@ namespace Devpro.TerraformBackend.WebApi.IntegrationTests.Scenarios;
 /// A real <c>terraform apply</c> against a state shape nothing in this repository models.
 /// <para>
 /// Every other scenario and resource test either drives a state made of strings and small integers, or posts a payload built by hand.
-/// This one drives <c>samples/complex-state</c>, whose <c>terraform_data.complex_state</c> resource carries a deeply nested object with maps, a list of objects, booleans, a null and an integer beyond <c>Int64</c>, through the real Terraform CLI.
+/// This one drives <c>samples/complex-state</c>, whose <c>terraform_data.complex_state</c> resource carries a deeply nested object with maps,
+/// a list of objects, booleans, a null and an integer beyond <c>Int64</c>, through the real Terraform CLI.
 /// </para>
 /// <para>
-/// It checks three things the other tests do not put together: the document lands in MongoDB with its nested fields queryable by an aggregation, exactly the kind of query <c>liveship</c> would run, the full lifecycle (create, update, no-op, destroy) works against that shape, and an update to it produces exactly one correctly-computed <c>tf_state_history</c> entry while a no-op produces none.
+/// It checks three things the other tests do not put together: the document lands in MongoDB with its nested fields queryable by an aggregation,
+/// exactly the kind of query <c>liveship</c> would run, the full lifecycle (create, update, no-op, destroy) works against that shape,
+/// and an update to it produces exactly one correctly-computed <c>tf_state_history</c> entry while a no-op produces none.
 /// </para>
 /// </summary>
 public class ComplexStateScenarioTest(TestKestrelWebAppFactory kestrelWebAppFactory, ITestOutputHelper testOutputHelper)
@@ -83,7 +86,8 @@ public class ComplexStateScenarioTest(TestKestrelWebAppFactory kestrelWebAppFact
     /// <summary>
     /// Finds <c>terraform_data.complex_state</c> by resource type and name, an aggregation over the array rather than a positional index.
     /// <para>
-    /// The state's <c>resources</c> array is not in declaration order, Terraform wrote it alphabetically by resource type in this run, so indexing into it would be as fragile as the query pattern the storage contract exists to avoid.
+    /// The state's <c>resources</c> array is not in declaration order, Terraform wrote it alphabetically by resource type in this run,
+    /// so indexing into it would be as fragile as the query pattern the storage contract exists to avoid.
     /// </para>
     /// </summary>
     private async Task<BsonDocument?> FindComplexStateAttributesAsync()

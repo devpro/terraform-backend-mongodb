@@ -12,7 +12,8 @@ variable "revision" {
 }
 
 # terraform_data ships with Terraform itself, so this needs no provider credentials.
-# Its "input" attribute is typed any, so whatever shape is assigned here lands in the state exactly as written, which is what a real provider attribute does and no C# class in this repository models.
+# Its "input" attribute is typed any, so whatever shape is assigned here lands in the state exactly as written,
+# which is what a real provider attribute does and no C# class in this repository models.
 locals {
   complex_payload = {
     metadata = {

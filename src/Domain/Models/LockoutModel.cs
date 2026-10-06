@@ -6,7 +6,8 @@ namespace Devpro.TerraformBackend.Domain.Models;
 
 /// <summary>
 /// A consecutive-failure counter for one username and source address pair.
-/// Stored in <c>auth_lockout</c> rather than in the process, so a lockout holds across every replica of the deployment rather than resetting on the pod an attacker happens to land on.
+/// Stored in <c>auth_lockout</c> rather than in the process,
+/// so a lockout holds across every replica of the deployment rather than resetting on the pod an attacker happens to land on.
 /// </summary>
 public class LockoutModel
 {

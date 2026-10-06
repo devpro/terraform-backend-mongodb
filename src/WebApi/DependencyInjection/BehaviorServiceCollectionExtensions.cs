@@ -5,7 +5,8 @@ namespace Devpro.TerraformBackend.WebApi.DependencyInjection;
 public static class BehaviorServiceCollectionExtensions
 {
     /// <summary>
-    /// Logs a warning with the request path and the validation errors whenever a request fails model validation, since the framework answers <c>400</c> before any controller code runs and would otherwise leave no trace.
+    /// Logs a warning with the request path and the validation errors whenever a request fails model validation,
+    /// since the framework answers <c>400</c> before any controller code runs and would otherwise leave no trace.
     /// </summary>
     public static void AddInvalidModelStateLog(this IServiceCollection services)
     {

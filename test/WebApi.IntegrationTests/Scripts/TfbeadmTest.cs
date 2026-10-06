@@ -16,7 +16,8 @@ namespace Devpro.TerraformBackend.WebApi.IntegrationTests.Scripts;
 /// <summary>
 /// The account creation path in <c>scripts/tfbeadm</c>, checked end to end: a user the script creates must be able to authenticate against the API.
 /// <para>
-/// The password used here contains a single quote, a dollar sign, a backslash and a space, since each of them breaks a different hop of a value interpolated into a JavaScript string passed through two shells, which the script must never do.
+/// The password used here contains a single quote, a dollar sign, a backslash and a space,
+/// since each of them breaks a different hop of a value interpolated into a JavaScript string passed through two shells, which the script must never do.
 /// The username case covers the same interpolation used as an injection.
 /// </para>
 /// </summary>
@@ -68,7 +69,8 @@ public class TfbeadmTest(TestWebApplicationFactory factory)
     {
         // Arrange: a username that closes the insertOne call and opens a second one, leaving the fields that follow it to complete the injected document.
         // The shape matters.
-        // Appending a field proves nothing, since a duplicate key in a JavaScript object literal is won by the later one and the real values come after the username, and terminating with a comment only produces a syntax error that aborts the whole command.
+        // Appending a field proves nothing, since a duplicate key in a JavaScript object literal is won by the later one and the real values come after the username,
+        // and terminating with a comment only produces a syntax error that aborts the whole command.
         // Against a script that interpolates the username, this payload creates a second account under a username and tenant of the caller's choosing.
         var marker = $"inject{Guid.NewGuid():N}";
         var username = $"x'}}); db.user.insertOne({{username: '{marker}', password_hash: '";

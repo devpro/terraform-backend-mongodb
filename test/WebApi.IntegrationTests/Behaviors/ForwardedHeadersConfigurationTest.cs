@@ -14,7 +14,8 @@ namespace Devpro.TerraformBackend.WebApi.IntegrationTests.Behaviors;
 /// The trusted proxy configuration, which the lockout and the authentication failure log both depend on.
 /// <para>
 /// This is asserted rather than assumed because the failure is silent and the consequence is not.
-/// A key that does not bind leaves the application trusting loopback only, so behind an ingress every caller arrives as the proxy, every one of them shares a single lockout bucket, and an attacker on the internet can lock the real operator out of the backend.
+/// A key that does not bind leaves the application trusting loopback only, so behind an ingress every caller arrives as the proxy,
+/// every one of them shares a single lockout bucket, and an attacker on the internet can lock the real operator out of the backend.
 /// Nothing in the running application would say so.
 /// </para>
 /// <para>
@@ -51,7 +52,8 @@ public class ForwardedHeadersConfigurationTest(TestWebApplicationFactory factory
     [Trait("Mode", "Readonly")]
     public Task ForwardedHeaders_WhenTrustingAllProxies_ClearsEveryRestriction()
     {
-        // Arrange & Act: an empty allow list is how ASP.NET Core is told to accept a forwarded header from any caller, which is what a cluster needs when the ingress address is not known in advance
+        // Arrange & Act: an empty allow list is how ASP.NET Core is told to accept a forwarded header from any caller,
+        // which is what a cluster needs when the ingress address is not known in advance
         var options = ResolveOptions(builder => builder.UseSetting("Network:TrustAllProxies", "true"));
 
         // Assert

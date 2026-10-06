@@ -67,7 +67,8 @@ public class StateFidelityTest(TestWebApplicationFactory factory)
     [Fact]
     public async Task State_AboveTheDocumentLimit_IsRefusedWithPayloadTooLarge()
     {
-        // Arrange: a state comfortably beyond the 16 MB BSON document limit, which is a permanent property of storing the state as a queryable document and therefore has to be reported rather than escaped
+        // Arrange: a state comfortably beyond the 16 MB BSON document limit,
+        // which is a permanent property of storing the state as a queryable document and therefore has to be reported rather than escaped
         var name = UniqueStateName();
         TrackState(TestCredentials.Tenant, name);
         var client = CreateClient(true);
@@ -84,7 +85,8 @@ public class StateFidelityTest(TestWebApplicationFactory factory)
             new StringContent(oversized, System.Text.Encoding.UTF8, "application/json"),
             TestContext.Current.CancellationToken);
 
-        // Assert: the failure lands in the middle of a terraform apply, after the lock is taken and after the real infrastructure has changed, so it has to say what happened rather than surface as a 500
+        // Assert: the failure lands in the middle of a terraform apply, after the lock is taken and after the real infrastructure has changed,
+        // so it has to say what happened rather than surface as a 500
         response.StatusCode.Should().Be(HttpStatusCode.RequestEntityTooLarge);
         var body = await response.Content.ReadAsStringAsync(TestContext.Current.CancellationToken);
         body.Should().Contain("16", "the message must name the limit that was exceeded");

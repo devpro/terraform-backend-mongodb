@@ -10,7 +10,8 @@ namespace Devpro.TerraformBackend.WebApi.Authentication;
 /// <summary>
 /// Verifies credentials with a short-lived cache in front of BCrypt and a lockout behind it.
 /// <para>
-/// The Terraform <c>http</c> backend sends a Basic credential on every request and supports no token, so without the cache every operation pays a BCrypt verify, about 139 ms of CPU at work factor 10.
+/// The Terraform <c>http</c> backend sends a Basic credential on every request and supports no token,
+/// so without the cache every operation pays a BCrypt verify, about 139 ms of CPU at work factor 10.
 /// The cache removes that cost for a credential already verified, and the lockout caps the attempts of one that is not.
 /// </para>
 /// <para>
@@ -48,7 +49,8 @@ public sealed class ThrottledCredentialAuthenticator(
             return AuthenticationOutcome.LockedOut;
         }
 
-        // only successful verifications are cached, so a wrong password always pays the BCrypt cost and always reaches the counter below: the cache must never become a way to skip the lockout
+        // only successful verifications are cached, so a wrong password always pays the BCrypt cost and always reaches the counter below:
+        // the cache must never become a way to skip the lockout
         var credentialKey = CredentialKey(username, password);
         if (cache.TryGetValue<UserModel>(credentialKey, out var cachedUser) && cachedUser is not null)
         {

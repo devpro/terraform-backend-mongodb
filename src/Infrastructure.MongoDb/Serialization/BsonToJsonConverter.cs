@@ -10,7 +10,8 @@ namespace Devpro.TerraformBackend.Infrastructure.MongoDb.Serialization;
 /// <summary>
 /// Renders a stored state as the plain JSON a Terraform client expects.
 /// <para>
-/// <c>BsonValue.ToJson</c> is not used because it emits MongoDB Extended JSON, where a non-finite <c>Double</c> and a <c>Decimal128</c> come out as <c>$</c>-prefixed objects in every output mode, so a scalar would reach Terraform as an object.
+/// <c>BsonValue.ToJson</c> is not used because it emits MongoDB Extended JSON,
+/// where a non-finite <c>Double</c> and a <c>Decimal128</c> come out as <c>$</c>-prefixed objects in every output mode, so a scalar would reach Terraform as an object.
 /// Only the output changes: the document in <c>tf_state</c> stays queryable field by field.
 /// </para>
 /// </summary>

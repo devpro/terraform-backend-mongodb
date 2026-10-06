@@ -7,7 +7,8 @@ namespace Devpro.TerraformBackend.WebApi.DependencyInjection;
 public static class AuthenticationServiceCollectionExtensions
 {
     /// <summary>
-    /// Registers the credential cache that sits in front of the BCrypt verify, and validates the failed-attempt lockout thresholds that <see cref="Authentication.ThrottledCredentialAuthenticator"/> enforces against <c>auth_lockout</c> in MongoDB.
+    /// Registers the credential cache that sits in front of the BCrypt verify,
+    /// and validates the failed-attempt lockout thresholds that <see cref="Authentication.ThrottledCredentialAuthenticator"/> enforces against <c>auth_lockout</c> in MongoDB.
     /// <para>
     /// Validated before registering anything, so a value that would defeat the lockout fails at startup.
     /// </para>
@@ -39,7 +40,8 @@ public static class AuthenticationServiceCollectionExtensions
     /// Configures which reverse proxies the application believes when it reads the caller's address.
     /// <para>
     /// Behind an unconfigured ingress, every request carries the proxy's address, so every caller shares one lockout bucket and every failure is logged against the proxy.
-    /// The configured values replace the loopback-only default rather than extend it, which is why an entry that does not parse fails at startup: skipping it would leave nothing trusted.
+    /// The configured values replace the loopback-only default rather than extend it,
+    /// which is why an entry that does not parse fails at startup: skipping it would leave nothing trusted.
     /// </para>
     /// </summary>
     public static void AddTrustedProxies(this IServiceCollection services, ApplicationConfiguration configuration)

@@ -4,11 +4,13 @@ MONGODB_URI="${MONGODB_URI:-mongodb://mongodb:27017/tfbackend_dev}"
 MONGODB_VERSION="${MONGODB_VERSION:-8.2}"
 
 # The BCrypt work factor every stored hash is written at.
-# It must stay in step with UserRepository.StoredHashWorkFactor: the application verifies a dummy hash at that cost when a username does not exist, so an account created at a different cost is measurably slower to reject and reopens the username enumeration oracle for that account alone.
+# It must stay in step with UserRepository.StoredHashWorkFactor: the application verifies a dummy hash at that cost when a username does not exist,
+# so an account created at a different cost is measurably slower to reject and reopens the username enumeration oracle for that account alone.
 BCRYPT_WORK_FACTOR=10
 
 # Names of the variables that carry a user's values into mongosh.
-# Values are passed through the environment and read in JavaScript as process.env, never interpolated into the command string, so nothing in a username, a password or a tenant can be read as JavaScript.
+# Values are passed through the environment and read in JavaScript as process.env,
+# never interpolated into the command string, so nothing in a username, a password or a tenant can be read as JavaScript.
 MONGOSH_ENV_NAMES=(TFBEADM_USERNAME TFBEADM_PASSWORD_HASH TFBEADM_TENANT)
 
 MONGODB_INDEX_COMMANDS=(
@@ -21,13 +23,15 @@ MONGODB_INDEX_COMMANDS=(
 )
 
 # Renames createdAt, the field name before 1.3.0, to created_at in tf_state and tf_state_history.
-# $rename only touches a document that still carries createdAt, so this is safe to run more than once, and safe to run before or after the application itself is upgraded: a document the application has written, or an earlier run of this command has renamed, is not matched.
+# $rename only touches a document that still carries createdAt, so this is safe to run more than once, and safe to run before or after the application itself is upgraded:
+# a document the application has written, or an earlier run of this command has renamed, is not matched.
 MONGODB_MIGRATION_COMMANDS=(
   'db.tf_state.updateMany({createdAt: {$exists: true}}, {$rename: {"createdAt": "created_at"}})'
   'db.tf_state_history.updateMany({createdAt: {$exists: true}}, {$rename: {"createdAt": "created_at"}})'
 )
 
-# Copies the lock ID of a tf_state_lock document written before 1.3.0, with the ID as the document's _id, into lock_id, the field the application reads, so that a lock held across the upgrade can still be released.
+# Copies the lock ID of a tf_state_lock document written before 1.3.0, with the ID as the document's _id,
+# into lock_id, the field the application reads, so that a lock held across the upgrade can still be released.
 # The _id is left as it is, since the application ignores it, and a document that already has lock_id is not matched, so this is safe to run more than once.
 MONGODB_LOCK_ID_MIGRATION_COMMAND='db.tf_state_lock.updateMany({lock_id: {$exists: false}}, [{$set: {lock_id: "$_id"}}])'
 
@@ -227,7 +231,8 @@ migrate_lock_id() {
 }
 
 # Reads a password without echoing it and without it ever becoming an argument.
-# Prompts on a terminal, and otherwise takes one line from standard input so that the command composes with a generator, for example `openssl rand -base64 24 | tfbeadm create-user admin dummy`.
+# Prompts on a terminal, and otherwise takes one line from standard input so that the command composes with a generator,
+# for example `openssl rand -base64 24 | tfbeadm create-user admin dummy`.
 read_password() {
   local prompt_target=$1
   local value
@@ -313,7 +318,8 @@ if [ $# -gt 0 ]; then
 
       # Two forms are accepted, told apart by how many arguments are left.
       # <username> <tenant> reads the password from a prompt or standard input, and is the one to use.
-      # <username> <password> <tenant> is kept so that existing scripts keep working, and warns, because an argument is visible in the process list to every user on the host and is written to the shell history file.
+      # <username> <password> <tenant> is kept so that existing scripts keep working, and warns,
+      # because an argument is visible in the process list to every user on the host and is written to the shell history file.
       if [ -n "$2" ]; then
         password="$1"
         tenant="$2"

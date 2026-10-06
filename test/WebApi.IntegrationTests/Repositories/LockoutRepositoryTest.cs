@@ -69,7 +69,8 @@ public class LockoutRepositoryTest(TestWebApplicationFactory factory)
     }
 
     /// <summary>
-    /// The sequential tests above prove the counter moves; this one proves it moves exactly once per failure under real concurrency, which a check-then-write implementation would not.
+    /// The sequential tests above prove the counter moves;
+    /// this one proves it moves exactly once per failure under real concurrency, which a check-then-write implementation would not.
     /// </summary>
     [Fact]
     [Trait("Mode", "Readonly")]
