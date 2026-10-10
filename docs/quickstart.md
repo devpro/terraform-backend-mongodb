@@ -10,7 +10,8 @@ This is a complete walkthrough to see Terraform Backend MongoDB in action.
 
 1. Make sure the following tools are available from the command line:
 
-    - [Docker](https://docs.docker.com/engine/install/), [Podman](https://podman.io/docs/installation) with a Compose provider, or [kubectl](https://kubernetes.io/docs/tasks/tools/) and [Helm](https://helm.sh/docs/intro/install/) with a Kubernetes cluster
+    - [Docker](https://docs.docker.com/engine/install/), [Podman](https://podman.io/docs/installation) with a Compose provider,
+      or [kubectl](https://kubernetes.io/docs/tasks/tools/) and [Helm](https://helm.sh/docs/intro/install/) with a Kubernetes cluster
     - [Terraform](https://developer.hashicorp.com/terraform/install) or [OpenTofu](https://opentofu.org/docs/intro/install/)
 
 2. Run the application and the database in containers:
