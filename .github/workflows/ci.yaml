@@ -45,25 +45,7 @@ jobs:
     uses: devpro/github-workflow-parts/.github/workflows/reusable-dotnet-quality.yml@35750e9d1a21724d3a7e028ee9bc6da02dcb5afb
     with:
       custom-commands: |
-        # The runner image has no sudo, so Terraform and MongoDB come from their archives into the temporary directory instead of apt packages.
-        echo "Install Terraform"
-        mkdir -p "${RUNNER_TEMP}/bin"
-        curl -fsSL -o "${RUNNER_TEMP}/terraform.zip" https://releases.hashicorp.com/terraform/1.16.5/terraform_1.16.5_linux_amd64.zip
-        pwsh -NoProfile -Command "Expand-Archive -Force -Path '${RUNNER_TEMP}/terraform.zip' -DestinationPath '${RUNNER_TEMP}/bin'"
-        chmod +x "${RUNNER_TEMP}/bin/terraform"
-        echo "${RUNNER_TEMP}/bin" >> "$GITHUB_PATH"
-        echo "Install and start MongoDB 8.2"
-        mkdir -p "${RUNNER_TEMP}/mongodb/bin" "${RUNNER_TEMP}/mongodb/data"
-        curl -fsSL https://fastdl.mongodb.org/linux/mongodb-linux-x86_64-ubuntu2404-8.2.1.tgz |
-          tar xz --strip-components=2 -C "${RUNNER_TEMP}/mongodb/bin" --wildcards "*/bin/mongod"
-        "${RUNNER_TEMP}/mongodb/bin/mongod" --dbpath "${RUNNER_TEMP}/mongodb/data" --bind_ip 127.0.0.1 \
-          --fork --logpath "${RUNNER_TEMP}/mongodb/mongod.log"
-        timeout 30 bash -c "
-          until (echo > /dev/tcp/127.0.0.1/27017) 2>/dev/null; do
-            echo 'MongoDB not ready yet, retrying in 1 second...'
-            sleep 1
-          done
-        "
+        ./scripts/install_ci_tools.sh
       dotnet-test-args: "--report-xunit-trx --coverage --coverage-output-format cobertura"
       extra-vars: |
         Features__IsHttpsRedirectionEnabled=false
