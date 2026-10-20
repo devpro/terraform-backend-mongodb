@@ -15,9 +15,9 @@ permissions:
 jobs:
   git-check:
     name: Git
-    uses: devpro/github-workflow-parts/.github/workflows/reusable-git-check.yml@c6d06a61a377a41dc192ce58f08a0b5100d9a2bc
+    uses: devpro/github-workflow-parts/.github/workflows/reusable-git-check.yml@86258d301cd7d6d374587a0663ee384b9ccc4515
     with:
-      workflow-parts-version: c6d06a61a377a41dc192ce58f08a0b5100d9a2bc
+      workflow-parts-version: 86258d301cd7d6d374587a0663ee384b9ccc4515
 
   deploy-samples:
     name: "Demo ${{ matrix.name }}"
@@ -29,12 +29,12 @@ jobs:
             directory: docker-nginx
           - name: Local Files
             directory: local-files
-    uses: devpro/github-workflow-parts/.github/workflows/reusable-terraform-deployment.yml@c6d06a61a377a41dc192ce58f08a0b5100d9a2bc
+    uses: devpro/github-workflow-parts/.github/workflows/reusable-terraform-deployment.yml@86258d301cd7d6d374587a0663ee384b9ccc4515
     with:
       environment: demo
       working-directory: samples/${{ matrix.directory }}
       tfbackend-project: "${{ matrix.directory }}-${{ needs.git-check.outputs.branch-slug }}"
-      workflow-parts-version: c6d06a61a377a41dc192ce58f08a0b5100d9a2bc
+      workflow-parts-version: 86258d301cd7d6d374587a0663ee384b9ccc4515
     secrets:
       atlas-groupid: ${{ secrets.ATLAS_GROUP_ID }}
       atlas-privatekey: ${{ secrets.ATLAS_PRIVATE_KEY }}
