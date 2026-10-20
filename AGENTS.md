@@ -65,9 +65,9 @@ Tests use xunit v3 on the Microsoft Testing Platform (`UseMicrosoftTestingPlatfo
 
 ```bash
 # single test method
-dotnet test test/WebApi.IntegrationTests -- --filter-method "*StateResource_CreateFindDelete_IsSuccess*"
+dotnet test --project test/WebApi.IntegrationTests -- --filter-method "*StateResource_CreateFindDelete_IsSuccess*"
 # only tests that don't write to the database
-dotnet test test/WebApi.IntegrationTests -- --filter-trait "Mode=Readonly"
+dotnet test --project test/WebApi.IntegrationTests -- --filter-trait "Mode=Readonly"
 ```
 
 ### Test prerequisites

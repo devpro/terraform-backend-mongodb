@@ -21,7 +21,6 @@
     <PackageVersion Include="Scalar.AspNetCore" Version="2.18.0" />
     <PackageVersion Include="SharpCompress" Version="0.50.4" />
     <PackageVersion Include="SystemTextJson.JsonDiffPatch" Version="2.0.0" />
-    <PackageVersion Include="Verify.XunitV3" Version="32.0.1" />
     <PackageVersion Include="Withywoods.AspNetCore.Mvc.Testing" Version="2.0.5" />
     <PackageVersion Include="Withywoods.Configuration" Version="2.0.5" />
     <PackageVersion Include="xunit.v3.mtp-v2" Version="4.0.2" />

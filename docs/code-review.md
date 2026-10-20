@@ -123,9 +123,8 @@ The test suite still names review identifiers in a few comments and summaries, w
 
 ## Dependencies
 
-Every package is on its latest release, with two deliberate exceptions.
+Every package is on its latest release, with one deliberate exception.
 
-- `Verify.XunitV3` stays on 32.x: from 33.0 its build fails until a sponsorship or licence-exemption property is declared, which is the maintainer's call to make.
 - `SharpCompress` is pinned transitively on 0.50.x, since `MongoDB.Driver` depends on the 0.x line and 1.0 is a breaking release.
 
 ## CI/CD and operations
