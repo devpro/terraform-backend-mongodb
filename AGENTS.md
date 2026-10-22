@@ -76,7 +76,7 @@ The unit tests need nothing.
 The integration tests need a MongoDB server on `localhost:27017`:
 
 ```bash
-docker run --name mongodb -d -p 27017:27017 mongo:8.2
+docker run --name mongodb -d -p 27017:27017 mongo:9.0
 ```
 
 Nothing is seeded by hand.

@@ -29,7 +29,7 @@ and [remote state backend](https://github.com/hashicorp/terraform/tree/main/inte
 Start MongoDB in a container:
 
 ```bash
-docker run --name mongodb -d -p 27017:27017 mongo:8.2
+docker run --name mongodb -d -p 27017:27017 mongo:9.0
 ```
 
 Create the indexes and a user `admin` in the tenant `dummy`, whose password is prompted for:

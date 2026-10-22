@@ -32,7 +32,7 @@ Platform items land in the Helm chart in `devpro/helm-charts`, with a matching n
 
 ## Correctness and performance
 
-- **B-30** (P2): run CI against a replica set, as `compose.yaml` does, through a `mongo:8` service declaring `ports: [27017:27017]`.
+- **B-30** (P2): run CI against a replica set, as `compose.yaml` does, through a `mongo:9.0` service declaring `ports: [27017:27017]`.
   It replaces the `sudo apt` and `systemctl start mongod` steps in the `custom-commands` of the quality job, which fail in a container without `systemd`, so the job runs the same on GitHub and in IstarCI.
   Without a replica set CI cannot run transactions, which blocks B-31.
 - **B-31** (P2): make the state write and the history write atomic.

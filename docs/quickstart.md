@@ -49,7 +49,7 @@ This is a complete walkthrough to see Terraform Backend MongoDB in action.
 
         ```bash
         curl -O https://raw.githubusercontent.com/devpro/terraform-backend-mongodb/refs/heads/main/scripts/tfbeadm
-        docker run --rm -it --network tfbackmdb_default -v "$PWD/tfbeadm:/tfbeadm:ro" mongo:8.2 bash -c \
+        docker run --rm -it --network tfbackmdb_default -v "$PWD/tfbeadm:/tfbeadm:ro" mongo:9.0 bash -c \
           "apt-get update -qq && apt-get install -qq -y apache2-utils > /dev/null && /tfbeadm create-indexes && /tfbeadm create-user admin dummy"
         ```
 
@@ -57,7 +57,7 @@ This is a complete walkthrough to see Terraform Backend MongoDB in action.
 
         ```bash
         curl -O https://raw.githubusercontent.com/devpro/terraform-backend-mongodb/refs/heads/main/scripts/tfbeadm
-        podman run --rm -it --network tfbackmdb_default -v "$PWD/tfbeadm:/tfbeadm:ro,Z" docker.io/library/mongo:8.2 bash -c \
+        podman run --rm -it --network tfbackmdb_default -v "$PWD/tfbeadm:/tfbeadm:ro,Z" docker.io/library/mongo:9.0 bash -c \
           "apt-get update -qq && apt-get install -qq -y apache2-utils > /dev/null && /tfbeadm create-indexes && /tfbeadm create-user admin dummy"
         ```
 
@@ -101,14 +101,14 @@ This is a complete walkthrough to see Terraform Backend MongoDB in action.
     === "Docker"
 
         ```bash
-        docker run --rm --network "tfbackmdb_default" "mongo:8.2" \
+        docker run --rm --network "tfbackmdb_default" "mongo:9.0" \
           bash -c "mongosh \"mongodb://mongodb:27017/tfbackend_dev\" --eval 'db.tf_state.find().projection({tenant: 1, name: 1, created_at: 1, \"value.version\": 1, \"value.resources.type\": 1, \"value.resources.name\": 1})'"
         ```
 
     === "Podman"
 
         ```bash
-        podman run --rm --network "tfbackmdb_default" "docker.io/library/mongo:8.2" \
+        podman run --rm --network "tfbackmdb_default" "docker.io/library/mongo:9.0" \
           bash -c "mongosh \"mongodb://mongodb:27017/tfbackend_dev\" --eval 'db.tf_state.find().projection({tenant: 1, name: 1, created_at: 1, \"value.version\": 1, \"value.resources.type\": 1, \"value.resources.name\": 1})'"
         ```
 
