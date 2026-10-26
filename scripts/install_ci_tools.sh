@@ -7,11 +7,17 @@ set -euo pipefail
 TOOLS_HOME="${RUNNER_TEMP:-$(mktemp -d)}"
 mkdir -p "${TOOLS_HOME}/bin"
 export PATH="${TOOLS_HOME}/bin:${PATH}"
-[ -n "${GITHUB_PATH:-}" ] && echo "${TOOLS_HOME}/bin" >> "$GITHUB_PATH"
+if [[ -n "${GITHUB_PATH:-}" ]]; then
+  echo "${TOOLS_HOME}/bin" >> "$GITHUB_PATH"
+fi
 
 if ! command -v terraform &> /dev/null; then
   echo "Install Terraform"
-  curl -fsSL -o "${TOOLS_HOME}/terraform.zip" https://releases.hashicorp.com/terraform/1.16.5/terraform_1.16.5_linux_amd64.zip
+  terraform_version="1.16.5"
+  # Pinned from the SHA256SUMS that HashiCorp signs, since a checksum fetched from the same server proves nothing the download does not.
+  terraform_sha256="2bc2fcfff033265c9e02ca0351f01794eb122f62a9b2a49a3294b9e49eaab5e4"
+  curl -fsSL --proto "=https" --tlsv1.2 -o "${TOOLS_HOME}/terraform.zip" "https://releases.hashicorp.com/terraform/${terraform_version}/terraform_${terraform_version}_linux_amd64.zip"
+  echo "${terraform_sha256}  ${TOOLS_HOME}/terraform.zip" | sha256sum --check --strict
   # The image has no unzip, and PowerShell is on both kinds of runner.
   pwsh -NoProfile -Command "Expand-Archive -Force -Path '${TOOLS_HOME}/terraform.zip' -DestinationPath '${TOOLS_HOME}/bin'"
   chmod +x "${TOOLS_HOME}/bin/terraform"

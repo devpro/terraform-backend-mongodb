@@ -25,6 +25,8 @@ MONGODB_INDEX_COMMANDS=(
 # Renames createdAt, the field name before 1.3.0, to created_at in tf_state and tf_state_history.
 # $rename only touches a document that still carries createdAt, so this is safe to run more than once, and safe to run before or after the application itself is upgraded:
 # a document the application has written, or an earlier run of this command has renamed, is not matched.
+# The $ of a MongoDB operator reaches mongosh as it is, which the single quotes are for.
+# shellcheck disable=SC2016
 MONGODB_MIGRATION_COMMANDS=(
   'db.tf_state.updateMany({createdAt: {$exists: true}}, {$rename: {"createdAt": "created_at"}})'
   'db.tf_state_history.updateMany({createdAt: {$exists: true}}, {$rename: {"createdAt": "created_at"}})'
@@ -33,6 +35,7 @@ MONGODB_MIGRATION_COMMANDS=(
 # Copies the lock ID of a tf_state_lock document written before 1.3.0, with the ID as the document's _id,
 # into lock_id, the field the application reads, so that a lock held across the upgrade can still be released.
 # The _id is left as it is, since the application ignores it, and a document that already has lock_id is not matched, so this is safe to run more than once.
+# shellcheck disable=SC2016
 MONGODB_LOCK_ID_MIGRATION_COMMAND='db.tf_state_lock.updateMany({lock_id: {$exists: false}}, [{$set: {lock_id: "$_id"}}])'
 
 log_info() {
@@ -113,11 +116,11 @@ mongosh_env_flags() {
 
 # Fills the named array with "NAME=value" assignments for `env`, used where the command cannot inherit the caller's environment.
 mongosh_env_assignments() {
-  local -n target=$1
+  local -n assignments=$1
   local name
   for name in "${MONGOSH_ENV_NAMES[@]}"; do
     if [[ -v $name ]]; then
-      target+=("$name=${!name}")
+      assignments+=("$name=${!name}")
     fi
   done
 }
