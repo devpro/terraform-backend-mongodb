@@ -13,23 +13,27 @@ permissions:
 jobs:
   git-check:
     name: Git
-    uses: ./.github/workflows/reusable-git-check.yml
+    uses: devpro/github-workflow-parts/.github/workflows/reusable-git-check.yml@52b861579bf9ebe7175d9fc82bfb298c98c4d10b
+    with:
+      version-file: Directory.Build.props
+      workflow-parts-version: 52b861579bf9ebe7175d9fc82bfb298c98c4d10b
 
   image-publication:
     name: Image
     needs: git-check
-    if: github.event_name == 'workflow_dispatch' || needs.git-check.outputs.app_changed == 'true'
+    if: github.event_name == 'workflow_dispatch' || needs.git-check.outputs.changed == 'true'
     permissions:
       id-token: write
       contents: read
-    uses: devpro/github-workflow-parts/.github/workflows/reusable-container-publication.yml@35750e9d1a21724d3a7e028ee9bc6da02dcb5afb
+    uses: devpro/github-workflow-parts/.github/workflows/reusable-container-publication.yml@52b861579bf9ebe7175d9fc82bfb298c98c4d10b
     with:
       create-latest: ${{ github.ref_name == 'main' }}
       image-definition: "src/WebApi/Dockerfile"
       image-name: ${{ vars.CONTAINER_IMAGE_NAME }}
       image-path: ${{ vars.CONTAINER_REGISTRY_PATH }}
-      image-tag: "${{ needs.git-check.outputs.version_major_minor }}.${{ github.run_id }}"
-      workflow-parts-version: 35750e9d1a21724d3a7e028ee9bc6da02dcb5afb
+      image-tag: "${{ needs.git-check.outputs.version-major-minor }}.${{ github.run_id }}"
+      image-platform: linux/amd64
+      workflow-parts-version: 52b861579bf9ebe7175d9fc82bfb298c98c4d10b
     secrets:
       container-registry-password: ${{ secrets.DOCKERHUB_TOKEN }}
       container-registry-username: ${{ secrets.DOCKERHUB_USERNAME }}

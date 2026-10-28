@@ -17,6 +17,6 @@ public class TenantAuthorizationFilter : IActionFilter
 
     public void OnActionExecuted(ActionExecutedContext context)
     {
-        // No action needed after execution
+        // the tenant is checked before the action runs, so nothing is left to check after it
     }
 }

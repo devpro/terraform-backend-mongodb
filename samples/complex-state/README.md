@@ -17,6 +17,8 @@ The following tools must be available from the command line:
 - [.NET](https://dotnet.microsoft.com/download), or an IDE such as Visual Studio or Rider
 - [Terraform](https://developer.hashicorp.com/terraform/install) or [OpenTofu](https://opentofu.org/docs/intro/install/), used interchangeably below
 
+MongoDB must be running with the indexes and a user `admin` in the tenant `dummy`, as described in [Debug the application](../../CONTRIBUTING.md#debug-the-application).
+
 ## Workflow
 
 Run the application, or start it from an IDE:

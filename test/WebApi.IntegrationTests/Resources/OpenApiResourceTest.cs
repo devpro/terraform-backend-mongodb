@@ -1,7 +1,6 @@
 using System.Net;
 using System.Threading.Tasks;
 using Devpro.TerraformBackend.WebApi.IntegrationTests.Hosting;
-using VerifyXunit;
 using Xunit;
 
 namespace Devpro.TerraformBackend.WebApi.IntegrationTests.Resources;
@@ -23,8 +22,6 @@ public class OpenApiResourceTest(TestWebApplicationFactory factory)
         // Assert
         var content = await CheckResponseAndGetContentAsync(response, HttpStatusCode.OK, "application/json; charset=utf-8",
             cancellationToken: TestContext.Current.CancellationToken);
-        await Verifier.VerifyJson(content)
-            .UseDirectory("../Snapshots")
-            .UseFileName("openapi");
+        JsonSnapshot.Match(content, "openapi");
     }
 }

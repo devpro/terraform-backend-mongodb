@@ -12,7 +12,8 @@ variable "revision" {
 }
 
 # terraform_data ships with Terraform itself, so this needs no provider credentials.
-# Its "input" attribute is typed any, so whatever shape is assigned here lands in the state exactly as written, which is what a real provider attribute does and no C# class in this repository models.
+# Its "input" attribute is typed any, so whatever shape is assigned here lands in the state exactly as written,
+# which is what a real provider attribute does and no C# class in this repository models.
 locals {
   complex_payload = {
     metadata = {
@@ -34,7 +35,7 @@ locals {
       min        = 1
       max        = 50
       target     = 12.5
-      # beyond Int64, the same shape as the H2 finding, produced by a real apply rather than a constructed payload
+      # beyond Int64, produced by a real apply rather than a constructed payload
       identifier = 123456789012345678901234567890
     }
   }

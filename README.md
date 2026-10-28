@@ -9,12 +9,13 @@
 [![FOSSA Status](https://app.fossa.com/api/projects/custom%2B60068%2Fgithub.com%2Fdevpro%2Fterraform-backend-mongodb.svg?type=shield&issueType=license)](https://app.fossa.com/projects/custom%2B60068%2Fgithub.com%2Fdevpro%2Fterraform-backend-mongodb?ref=badge_shield&issueType=license)
 [![FOSSA Status](https://app.fossa.com/api/projects/custom%2B60068%2Fgithub.com%2Fdevpro%2Fterraform-backend-mongodb.svg?type=shield&issueType=security)](https://app.fossa.com/projects/custom%2B60068%2Fgithub.com%2Fdevpro%2Fterraform-backend-mongodb?ref=badge_shield&issueType=security)
 
-A robust HTTP backend to store Terraform or OpenTofu state in MongoDB, using its built-in replication for reliable, distributed management.
+A robust HTTP backend to store Terraform or OpenTofu state in MongoDB, as queryable documents, using its built-in replication for reliable, distributed management.
 
-🚀 Get started at [tfbackend-mongodb.devpro.fr](http://tfbackend-mongodb.devpro.fr/).
+🚀 Get started at [tfbackend-mongodb.devpro.fr](https://tfbackend-mongodb.devpro.fr/).
 
 ## Quick overview
 
 ![High-level view](docs/assets/images/high-level.png)
 
-For development details, see [CONTRIBUTING.md](CONTRIBUTING.md) - contributions are more than welcome 🙂
+For development details, see [CONTRIBUTING.md](CONTRIBUTING.md).
+Contributions are more than welcome 🙂

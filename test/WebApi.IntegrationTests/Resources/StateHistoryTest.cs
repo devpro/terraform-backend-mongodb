@@ -63,9 +63,7 @@ public class StateHistoryTest(TestWebApplicationFactory factory)
             new StringContent("""{"version":4,"serial":2}""", Encoding.UTF8, "application/json"),
             TestContext.Current.CancellationToken);
 
-        // Assert: created_at, not the old camelCase createdAt, on the state itself and on the history entry
-        // the update wrote, so a regression back to the old name is caught here rather than by an operator
-        // reading a document by hand
+        // Assert: created_at, never createdAt, on the state itself and on the history entry the update wrote, since consuming applications query the documents by that name
         var state = await FindStateAsync(name);
         state.Should().NotBeNull();
         state!.Contains("created_at").Should().BeTrue();

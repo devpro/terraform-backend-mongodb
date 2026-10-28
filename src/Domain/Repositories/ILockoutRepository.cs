@@ -13,8 +13,7 @@ public interface ILockoutRepository
 
     /// <summary>
     /// Atomically records one failure and returns the count after it.
-    /// Extends the counter of a still-open window; starts a fresh window, expiring after
-    /// <paramref name="lockoutDuration"/>, if none was open.
+    /// Extends the counter of a still-open window; starts a fresh window, expiring after <paramref name="lockoutDuration"/>, if none was open.
     /// </summary>
     Task<int> RecordFailureAsync(string username, string remoteAddress, TimeSpan lockoutDuration);
 

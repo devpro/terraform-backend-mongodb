@@ -110,7 +110,7 @@ A single-document write is atomic, so an interrupted run never leaves a half-wri
 
 ## Test coverage
 
-82 tests: 30 unit tests, and 52 integration tests against a real MongoDB and, for the scenarios, the real `terraform` CLI.
+85 tests: 30 unit tests, and 55 integration tests against a real MongoDB and, for the scenarios, the real `terraform` CLI.
 Line coverage of the handwritten code under `src/` is 96.9% (631 of 651 lines), measured with the collector CI uses and excluding the OpenAPI source generator's output.
 The least covered files are `StateController.cs` (89%) and `BasicAuthenticationHandler.cs` (91%).
 
@@ -118,14 +118,13 @@ The least covered files are `StateController.cs` (89%) and `BasicAuthenticationH
 
 ## Code comments
 
-Comments follow the [writing style](../AGENTS.md#writing-style): a comment says why, and reads as if the code had always been so.
+Comments follow the repository's writing style: a comment says why, and reads as if the code had always been so.
 The test suite still names review identifiers in a few comments and summaries, which is intended: a regression test names the finding it guards.
 
 ## Dependencies
 
-Every package is on its latest release, with two deliberate exceptions.
+Every package is on its latest release, with one deliberate exception.
 
-- `Verify.XunitV3` stays on 32.x: from 33.0 its build fails until a sponsorship or licence-exemption property is declared, which is the maintainer's call to make.
 - `SharpCompress` is pinned transitively on 0.50.x, since `MongoDB.Driver` depends on the 0.x line and 1.0 is a breaking release.
 
 ## CI/CD and operations
@@ -138,7 +137,7 @@ Every package is on its latest release, with two deliberate exceptions.
 
 ## Strengths worth preserving
 
-- Strict protocol fidelity in `StateController`, with the constraints written down in `AGENTS.md`.
+- Strict protocol fidelity in `StateController`.
 - Scenario tests that drive the real Terraform CLI end to end, and a suite that proves it left the database as it found it.
 - Central package management with transitive pinning, and a zero-CVE budget on image scans.
 - `StateLockRepository.CreateAsync` and `LockoutRepository.RecordFailureAsync`: atomicity from a unique index and from a single pipeline update, rather than from a read followed by a write.

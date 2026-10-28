@@ -16,7 +16,7 @@ The solution follows a lightweight clean architecture with three projects and on
 
 Project                  | Role
 -------------------------|--------------------------------------------------------------
-`Domain`                 | Models and repository interfaces - no infrastructure reference
+`Domain`                 | Models and repository interfaces, with no infrastructure reference
 `Infrastructure.MongoDb` | Repository implementations using the MongoDB .NET driver
 `WebApi`                 | ASP.NET Core host: controller, authentication, configuration
 
@@ -35,5 +35,6 @@ Collection           | Content
 `tf_state_history`   | JSON-diff patch recorded on every state change, with timestamp
 `tf_state_lock`      | Active Terraform locks (unique index on tenant + name)
 `user`               | API users: username, BCrypt password hash, tenant
+`auth_lockout`       | Failed authentication attempts per username and source address, expiring
 
-Recommended indexes are listed in the [setup guide](setup.md#database-indexes).
+The required indexes are listed in the [setup guide](setup.md#database-indexes).

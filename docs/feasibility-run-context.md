@@ -3,6 +3,8 @@
 Study date: 2026-07-10.
 Related backlog item: B-14 in the [backlog](backlog.md).
 
+Every storage change proposed here, the `tf_run_context` collection and the fields added to `tf_state_history`, changes the data model, so none is started without an explicit decision from the maintainer.
+
 ## Goal
 
 When Terraform or OpenTofu calls the backend, record *where the run came from*:
@@ -99,27 +101,27 @@ none of the above         | `local`
 
 - A small action filter or middleware on the state/lock endpoints extracts the header (if present) or the allowlisted query parameters (`runId`, `repo`, `branch`, `commit`, `dirty`, `env`, `runUrl`).
 - Context writes go through a bounded channel and a hosted background service so they never add latency or failure modes to state operations.
-- New collection `tf_run_context` (camelCase fields per the global convention), indexed on `tenant + name + createdAt`, with an optional TTL for retention:
+- New collection `tf_run_context`, multi-word fields in snake_case as everywhere else, indexed on `tenant + name + created_at`, with an optional TTL for retention:
 
 ```json
 {
   "tenant": "acme",
   "name": "app",
-  "runId": "b7e6…",
-  "lockId": "3f2a…",
-  "createdAt": "2026-07-10T14:03:00Z",
-  "git": { "remoteUrl": "https://github.com/acme/infra", "branch": "main", "commit": "9c1d…", "isDirty": false },
-  "environment": { "type": "github", "runUrl": "https://github.com/acme/infra/actions/runs/123" },
+  "run_id": "b7e6…",
+  "lock_id": "3f2a…",
+  "created_at": "2026-07-10T14:03:00Z",
+  "git": { "remote_url": "https://github.com/acme/infra", "branch": "main", "commit": "9c1d…", "is_dirty": false },
+  "environment": { "type": "github", "run_url": "https://github.com/acme/infra/actions/runs/123" },
   "terraform": { "version": "1.13.2", "operation": "apply", "who": "runner@ci-01" },
-  "schemaVersion": 1
+  "schema_version": 1
 }
 ```
 
 ### Integration with liveship
 
 Liveship reads the same database, so the contract is the `tf_run_context` collection schema.
-Keep it stable by treating `schemaVersion` as mandatory, only adding optional fields within a version, and documenting the schema in this repository (the producer owns the contract).
-State history entries should carry the `runId` so liveship can join "what changed" (`tf_state_history`) with "where it came from" (`tf_run_context`).
+Keep it stable by treating `schema_version` as mandatory, only adding optional fields within a version, and documenting the schema in this repository (the producer owns the contract).
+State history entries should carry the `run_id` so liveship can join "what changed" (`tf_state_history`) with "where it came from" (`tf_run_context`).
 
 ## Risks and mitigations
 

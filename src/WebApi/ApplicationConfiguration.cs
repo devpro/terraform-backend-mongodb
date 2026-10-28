@@ -8,8 +8,7 @@ public class ApplicationConfiguration(IConfigurationRoot configurationRoot)
     public static string HealthCheckEndpoint => "/health";
 
     /// <summary>
-    /// Bounds the database ping, matching the driver's server selection timeout,
-    /// since a managed cluster such as Atlas can take that long to answer after a cold start.
+    /// Bounds the database ping, matching the driver's server selection timeout, since a managed cluster such as Atlas can take that long to answer after a cold start.
     /// </summary>
     public static TimeSpan HealthCheckTimeout => TimeSpan.FromSeconds(30);
 
@@ -52,8 +51,7 @@ public class ApplicationConfiguration(IConfigurationRoot configurationRoot)
 
     /// <summary>
     /// Believes the forwarded headers of any caller.
-    /// Needed in a cluster where the ingress address is not known in advance, and safe only where the
-    /// application cannot be reached except through that ingress.
+    /// Needed in a cluster where the ingress address is not known in advance, and safe only where the application cannot be reached except through that ingress.
     /// </summary>
     public bool TrustAllProxies => configurationRoot.GetValue("Network:TrustAllProxies", false);
 }

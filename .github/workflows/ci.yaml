@@ -30,51 +30,34 @@ permissions:
 jobs:
   git-check:
     name: Git
-    uses: ./.github/workflows/reusable-git-check.yml
+    uses: devpro/github-workflow-parts/.github/workflows/reusable-git-check.yml@52b861579bf9ebe7175d9fc82bfb298c98c4d10b
     with:
-      is-pull-request: ${{ github.event_name == 'pull_request' }}
+      version-file: Directory.Build.props
+      workflow-parts-version: 52b861579bf9ebe7175d9fc82bfb298c98c4d10b
 
   markup-lint:
     name: Markup
-    uses: devpro/github-workflow-parts/.github/workflows/reusable-markup-lint.yml@35750e9d1a21724d3a7e028ee9bc6da02dcb5afb
+    uses: devpro/github-workflow-parts/.github/workflows/reusable-markup-lint.yml@52b861579bf9ebe7175d9fc82bfb298c98c4d10b
 
   code-quality:
     name: Code
     needs: git-check
-    if: needs.git-check.outputs.app_changed == 'true' || (github.event_name == 'workflow_dispatch' && inputs.run-code-quality)
-    uses: devpro/github-workflow-parts/.github/workflows/reusable-dotnet-quality.yml@35750e9d1a21724d3a7e028ee9bc6da02dcb5afb
+    if: needs.git-check.outputs.changed == 'true' || (github.event_name == 'workflow_dispatch' && inputs.run-code-quality)
+    uses: devpro/github-workflow-parts/.github/workflows/reusable-dotnet-quality.yml@52b861579bf9ebe7175d9fc82bfb298c98c4d10b
     with:
       custom-commands: |
-        echo "Install Terraform"
-        wget -O - https://apt.releases.hashicorp.com/gpg | sudo gpg --dearmor -o /usr/share/keyrings/hashicorp-archive-keyring.gpg
-        codename=$(grep -oP '(?<=UBUNTU_CODENAME=).*' /etc/os-release || lsb_release -cs)
-        echo "deb [arch=$(dpkg --print-architecture) signed-by=/usr/share/keyrings/hashicorp-archive-keyring.gpg] https://apt.releases.hashicorp.com $codename main" | \
-          sudo tee /etc/apt/sources.list.d/hashicorp.list
-        sudo apt update && sudo apt install terraform
-        echo "Install and start MongoDB 8.2"
-        curl -fsSL https://www.mongodb.org/static/pgp/server-8.0.asc | \
-          sudo gpg -o /usr/share/keyrings/mongodb-server-8.0.gpg \
-          --dearmor
-        echo "deb [ arch=amd64,arm64 signed-by=/usr/share/keyrings/mongodb-server-8.0.gpg ] https://repo.mongodb.org/apt/ubuntu noble/mongodb-org/8.2 multiverse" |
-          sudo tee /etc/apt/sources.list.d/mongodb-org-8.2.list
-        sudo apt-get update
-        sudo apt-get install -y mongodb-org
-        sudo systemctl start mongod
-        timeout 30 bash -c "
-          until mongosh --host localhost:27017 --eval 'db.runCommand({ ping: 1 })' >/dev/null 2>&1; do
-            echo 'MongoDB not ready yet, retrying in 1 second...'
-            sleep 1
-          done
-        "
+        ./scripts/install_ci_tools.sh
       dotnet-test-args: "--report-xunit-trx --coverage --coverage-output-format cobertura"
       extra-vars: |
         Features__IsHttpsRedirectionEnabled=false
-      fossa-enabled: true
+      fossa-enabled: ${{ vars.FOSSA_ENABLED != 'false' }}
+      mongodb-enabled: true
       sonar-enabled: true
+      sonar-host-url: ${{ vars.SONAR_HOST_URL || 'https://sonarcloud.io' }}
       sonar-organization: ${{ vars.SONAR_ORG }}
       sonar-project-key: ${{ vars.SONAR_PROJECT_KEY }}
       sonar-project-name: Terraform Backend MongoDB
-      workflow-parts-version: 35750e9d1a21724d3a7e028ee9bc6da02dcb5afb
+      workflow-parts-version: 52b861579bf9ebe7175d9fc82bfb298c98c4d10b
     secrets:
       fossa-api-key: ${{ secrets.FOSSA_API_KEY }}
       sonar-token: ${{ secrets.SONAR_TOKEN }}
@@ -85,13 +68,11 @@ jobs:
   image-scan:
     name: Image
     needs: git-check
-    if: needs.git-check.outputs.app_changed == 'true' || (github.event_name == 'workflow_dispatch' && inputs.run-image-scan)
-    uses: devpro/github-workflow-parts/.github/workflows/reusable-container-scan.yml@35750e9d1a21724d3a7e028ee9bc6da02dcb5afb
+    if: needs.git-check.outputs.changed == 'true' || (github.event_name == 'workflow_dispatch' && inputs.run-image-scan)
+    uses: devpro/github-workflow-parts/.github/workflows/reusable-container-scan.yml@52b861579bf9ebe7175d9fc82bfb298c98c4d10b
     with:
       image-definition: "src/WebApi/Dockerfile"
       image-name: ${{ vars.CONTAINER_IMAGE_NAME }}
       image-path: ${{ vars.CONTAINER_REGISTRY_PATH }}
-      image-tag: "${{ needs.git-check.outputs.version_major_minor }}.${{ github.run_id }}"
-      max-high-cves: 0
-      max-medium-cves: 0
-      workflow-parts-version: 35750e9d1a21724d3a7e028ee9bc6da02dcb5afb
+      image-tag: "${{ needs.git-check.outputs.version-major-minor }}.${{ github.run_id }}"
+      workflow-parts-version: 52b861579bf9ebe7175d9fc82bfb298c98c4d10b

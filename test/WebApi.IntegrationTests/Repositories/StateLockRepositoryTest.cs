@@ -26,8 +26,7 @@ public class StateLockRepositoryTest(TestWebApplicationFactory factory)
         var secondLock = StateLockFaker.Generate();
         secondLock.Tenant = Tenant;
         secondLock.Name = name;
-        // the lock is deleted by the assertions below, but a failure before that must not leave it holding
-        // the unique index against the next run
+        // the lock is deleted by the assertions below, but a failure before that must not leave it holding the unique index against the next run
         TrackState(Tenant, name);
 
         using var scope = Factory.Services.CreateScope();
@@ -48,7 +47,8 @@ public class StateLockRepositoryTest(TestWebApplicationFactory factory)
     /// <summary>
     /// The sequential test above simulates the race by comment, this one actually runs it.
     /// <para>
-    /// The 2026-07-10 fix made <see cref="Devpro.TerraformBackend.Infrastructure.MongoDb.Repositories.StateLockRepository.CreateAsync"/> insert first and map the duplicate-key error, rather than checking for an existing lock and inserting as two separate steps.
+    /// The 2026-07-10 fix made <see cref="Devpro.TerraformBackend.Infrastructure.MongoDb.Repositories.StateLockRepository.CreateAsync"/> insert first
+    /// and map the duplicate-key error, rather than checking for an existing lock and inserting as two separate steps.
     /// That closes the race between the check and the insert, but nothing before this test ever ran two inserts at the same time to prove it.
     /// A check-then-insert bug only shows up under real concurrency, never when the calls happen one after another.
     /// </para>
@@ -67,8 +67,7 @@ public class StateLockRepositoryTest(TestWebApplicationFactory factory)
                 return stateLock;
             })
             .ToList();
-        // a failure part-way through the race must not leave a lock holding the unique index against the
-        // next run
+        // a failure part-way through the race must not leave a lock holding the unique index against the next run
         TrackState(Tenant, name);
 
         using var scope = Factory.Services.CreateScope();

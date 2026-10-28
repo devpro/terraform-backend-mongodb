@@ -8,7 +8,8 @@ namespace Devpro.TerraformBackend.WebApi.UnitTests.Serialization;
 /// <summary>
 /// The other pure half of H2: rendering a stored BSON value back as plain JSON.
 /// <para>
-/// This is what replaced <c>BsonValue.ToJson()</c>, which emitted MongoDB Extended JSON and turned a non-finite <c>Double</c> or a <c>Decimal128</c> into a <c>$</c>-prefixed object instead of a number.
+/// This is what replaced <c>BsonValue.ToJson()</c>,
+/// which emitted MongoDB Extended JSON and turned a non-finite <c>Double</c> or a <c>Decimal128</c> into a <c>$</c>-prefixed object instead of a number.
 /// These tests check the renderer directly, without a stored document or an HTTP response to read it back through.
 /// </para>
 /// </summary>
