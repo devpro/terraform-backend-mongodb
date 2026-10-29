@@ -30,20 +30,20 @@ permissions:
 jobs:
   git-check:
     name: Git
-    uses: devpro/github-workflow-parts/.github/workflows/reusable-git-check.yml@52b861579bf9ebe7175d9fc82bfb298c98c4d10b
+    uses: devpro/github-workflow-parts/.github/workflows/reusable-git-check.yml@bf95c99bf5b5a0bc2d2991c81975488a16f16142
     with:
       version-file: Directory.Build.props
-      workflow-parts-version: 52b861579bf9ebe7175d9fc82bfb298c98c4d10b
+      workflow-parts-version: bf95c99bf5b5a0bc2d2991c81975488a16f16142
 
   markup-lint:
     name: Markup
-    uses: devpro/github-workflow-parts/.github/workflows/reusable-markup-lint.yml@52b861579bf9ebe7175d9fc82bfb298c98c4d10b
+    uses: devpro/github-workflow-parts/.github/workflows/reusable-markup-lint.yml@bf95c99bf5b5a0bc2d2991c81975488a16f16142
 
   code-quality:
     name: Code
     needs: git-check
     if: needs.git-check.outputs.changed == 'true' || (github.event_name == 'workflow_dispatch' && inputs.run-code-quality)
-    uses: devpro/github-workflow-parts/.github/workflows/reusable-dotnet-quality.yml@52b861579bf9ebe7175d9fc82bfb298c98c4d10b
+    uses: devpro/github-workflow-parts/.github/workflows/reusable-dotnet-quality.yml@bf95c99bf5b5a0bc2d2991c81975488a16f16142
     with:
       custom-commands: |
         ./scripts/install_ci_tools.sh
@@ -57,7 +57,7 @@ jobs:
       sonar-organization: ${{ vars.SONAR_ORG }}
       sonar-project-key: ${{ vars.SONAR_PROJECT_KEY }}
       sonar-project-name: Terraform Backend MongoDB
-      workflow-parts-version: 52b861579bf9ebe7175d9fc82bfb298c98c4d10b
+      workflow-parts-version: bf95c99bf5b5a0bc2d2991c81975488a16f16142
     secrets:
       fossa-api-key: ${{ secrets.FOSSA_API_KEY }}
       sonar-token: ${{ secrets.SONAR_TOKEN }}
@@ -69,10 +69,10 @@ jobs:
     name: Image
     needs: git-check
     if: needs.git-check.outputs.changed == 'true' || (github.event_name == 'workflow_dispatch' && inputs.run-image-scan)
-    uses: devpro/github-workflow-parts/.github/workflows/reusable-container-scan.yml@52b861579bf9ebe7175d9fc82bfb298c98c4d10b
+    uses: devpro/github-workflow-parts/.github/workflows/reusable-container-scan.yml@bf95c99bf5b5a0bc2d2991c81975488a16f16142
     with:
       image-definition: "src/WebApi/Dockerfile"
       image-name: ${{ vars.CONTAINER_IMAGE_NAME }}
       image-path: ${{ vars.CONTAINER_REGISTRY_PATH }}
       image-tag: "${{ needs.git-check.outputs.version-major-minor }}.${{ github.run_id }}"
-      workflow-parts-version: 52b861579bf9ebe7175d9fc82bfb298c98c4d10b
+      workflow-parts-version: bf95c99bf5b5a0bc2d2991c81975488a16f16142
