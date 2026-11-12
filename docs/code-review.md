@@ -1,6 +1,6 @@
 # Code review
 
-Assessment of version 1.3.0 as of 2026-09-24, covering source code, tests, CI/CD, container packaging and `tfbeadm`.
+Assessment of version 1.3.1 as of 2026-11-12, covering source code, tests, CI/CD, container packaging and `tfbeadm`.
 Identifiers are stable: the [backlog](backlog.md) refers to them.
 
 ## Method
@@ -19,8 +19,9 @@ The conversion between the request payload and the stored BSON document is guard
 out-of-range numbers are stored as `Decimal128`, the response is plain JSON rather than Extended JSON, and an oversized state answers `413` naming the limit.
 The authentication path has a lockout shared across replicas, a credential cache, a constant-time miss, and failure logs carrying the caller's address.
 
-What remains open is small: two costs paid on every state write, the non-atomic history write, and questions that need a decision on the data model.
-The largest remaining exposure is outside the code, in the platform controls listed under [where each control belongs](#where-each-control-belongs).
+The largest exposure in the code is the cost of the history diff, which lets one small request exhaust the memory of the process (S6).
+The rest is small: a second cost paid on every state write, the non-atomic history write, hardening gaps (S7 to S12), and questions that need a decision on the data model.
+The platform controls are listed under [where each control belongs](#where-each-control-belongs).
 
 ## Security
 
@@ -43,6 +44,58 @@ A Terraform state holds provider credentials, generated passwords and private ke
 The blast radius of the database is therefore every secret of every managed workspace.
 The controls this makes necessary are encryption at rest, a least-privilege read-only user for consuming applications, network isolation, and treating a `tf_state` backup as a secret.
 
+### S6. A small state write can exhaust the memory of the process
+
+**Proven.**
+Every state write diffs the previous state against the new one, and the cost of the diff grows with the square of the length of an array that changes entirely.
+Replacing an array of 16,000 integers, a body of 112 KB, took 13.5 s and 2.8 GB of memory, against 0.7 s and 181 MB for 2,000.
+The diff is synchronous, so a client that disconnects does not stop it.
+Any credential holder of any tenant can therefore have the pod killed for every tenant, and a legitimate state with a large list that changes wholesale costs the same.
+The body limit does not help, since the request is small (B-61).
+
+```bash
+python3 -c "import json; n=16000; json.dump({'version':4,'a':list(range(n))}, open('a.json','w')); json.dump({'version':4,'a':list(range(n,2*n))}, open('b.json','w'))"
+curl -u <username>:<password> -H 'Content-Type: application/json' --data-binary @a.json http://localhost:5293/<tenant>/state/big
+curl -u <username>:<password> -H 'Content-Type: application/json' --data-binary @b.json http://localhost:5293/<tenant>/state/big
+```
+
+### S7. The tenant is checked after the body is read
+
+**Proven.**
+`TenantAuthorizationFilter` is an action filter, which runs after model binding.
+A user of one tenant posting to another has the body, up to the 30 MB limit, read and parsed before the `401`, and a malformed body answers `400` instead.
+No data crosses tenants (B-62).
+
+### S8. Parallel guesses overshoot the lockout
+
+**Proven.**
+The failure count is read before the BCrypt verify and incremented after it, so guesses sent together are all checked against the count they started with.
+Of 150 simultaneous wrong guesses, 40 were verified where `MaxFailedAttempts` allows 10.
+The overshoot is bounded by the CPU, since each verify holds a core (B-63).
+
+### S9. Two inputs answer `500`
+
+**Proven.**
+A state key holding a NUL character fails in the driver with an `ArgumentException`, and an account whose stored hash is malformed fails in BCrypt with a `SaltParseException`.
+Neither tells the client anything, and both should answer `400` and `401` (B-64).
+
+### S10. A state read carries no cache directive
+
+**Proven.**
+The response holds secrets and sends neither `Cache-Control: no-store` nor `X-Content-Type-Options`, and it names the server as `Kestrel` (B-65).
+
+### S11. A deleted state leaves its secrets in the history
+
+**Observed.**
+`StateRepository.DeleteAsync` removes the `tf_state` document only, so every diff of a deleted state, secrets included, stays in `tf_state_history` with no retention (B-50, B-21).
+
+### S12. The credential cache
+
+**Proven.**
+The cache key joins the username and the password with a space, so `carol` with `x y` and `carol x` with `y` share one key, and the second authenticates as the first.
+Using it needs the password, so nothing is gained, and a separator neither field can hold removes the ambiguity (B-66).
+A deleted user or a changed password stays valid until the entry expires, 60 seconds by default, on each replica that cached it.
+
 ### Where each control belongs
 
 A control that needs only the connection, the request rate or the certificate belongs to the platform, which sees them before any application code runs and enforces them across every replica.
@@ -58,7 +111,10 @@ Alerting on authentication-failure bursts                    | Platform    | Ope
 Lockout after consecutive failures, per username and address | Application | Done, shared through `auth_lockout`
 Short-lived credential cache                                 | Application | Done, in process by design
 Constant-time username miss                                  | Application | Done
-Authentication failures logged with the source address       | Application | Done, relying on `UseForwardedHeaders`
+Authentication failures logged with the source address       | Application | Done, `UseForwardedHeaders` running ahead of the authentication
+Bound on the cost of the history diff                        | Application | Open, B-61
+Tenant check ahead of the request body                       | Application | Open, B-62
+MongoDB tracing kept out of the telemetry                    | Platform    | Open, B-67
 `tfbeadm` credential handling                                | Application | Done, except a minimum strength (B-44)
 
 Rate limiting at the edge does not make a weak password safe, it only slows the attempts: a generated credential is what sets the difficulty of the guess.
@@ -110,7 +166,7 @@ A single-document write is atomic, so an interrupted run never leaves a half-wri
 
 ## Test coverage
 
-85 tests: 30 unit tests, and 55 integration tests against a real MongoDB and, for the scenarios, the real `terraform` CLI.
+86 tests: 30 unit tests, and 56 integration tests against a real MongoDB and, for the scenarios, the real `terraform` CLI.
 Line coverage of the handwritten code under `src/` is 96.9% (631 of 651 lines), measured with the collector CI uses and excluding the OpenAPI source generator's output.
 The least covered files are `StateController.cs` (89%) and `BasicAuthenticationHandler.cs` (91%).
 
