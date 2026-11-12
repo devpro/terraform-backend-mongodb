@@ -57,10 +57,27 @@ public sealed class ThrottledCredentialAuthenticator(
             return AuthenticationOutcome.Success(cachedUser);
         }
 
+        // the attempt is counted before it is verified, and the counter cleared on success, so that guesses sent together are each checked against a count that includes the others:
+        // counted after the verify, every guess in flight passes the check above with the same stale count, and a parallel burst gets far more than its allowance
+        var attempt = await lockoutRepository.RecordFailureAsync(username, addressKey, configuration.LockoutDuration);
+        if (attempt > configuration.MaxFailedAttempts)
+        {
+            logger.LogWarning(
+                "Authentication refused: too many consecutive failures from {RemoteAddress} for a known account",
+                addressKey);
+            return AuthenticationOutcome.LockedOut;
+        }
+
         var user = await userRepository.CheckAuthentication(username, password);
         if (user is null)
         {
-            await RecordFailureAsync(username, addressKey);
+            if (attempt == configuration.MaxFailedAttempts)
+            {
+                logger.LogWarning(
+                    "Authentication locked out for {LockoutDuration} after {MaxFailedAttempts} consecutive failures from {RemoteAddress}",
+                    configuration.LockoutDuration, configuration.MaxFailedAttempts, addressKey);
+            }
+
             return AuthenticationOutcome.InvalidCredentials;
         }
 
@@ -78,29 +95,22 @@ public sealed class ThrottledCredentialAuthenticator(
         return AuthenticationOutcome.Success(user);
     }
 
+    /// <summary>
+    /// Prefixes the username with its length, since any separator could also appear in either field,
+    /// and an ambiguous join lets two different credentials share one key.
+    /// </summary>
     private static string CredentialKey(string username, string password)
     {
-        var hash = HMACSHA256.HashData(CacheKeySalt, Encoding.UTF8.GetBytes($"{username} {password}"));
+        var hash = HMACSHA256.HashData(CacheKeySalt, Encoding.UTF8.GetBytes($"{username.Length}:{username}{password}"));
         return $"credential:{Convert.ToBase64String(hash)}";
     }
 
     /// <summary>
-    /// Records one failure against the username and the caller's address together.
+    /// Scopes the failure counter to the username and the caller's address together.
     /// <para>
     /// A lockout on the username alone is a denial of service anybody can trigger: guessing at <c>admin</c> from anywhere would lock the real operator out.
     /// An attacker spread across many addresses gets the same allowance per address, and that volume is for the ingress rate limit to stop.
     /// </para>
     /// </summary>
-    private async Task RecordFailureAsync(string username, string addressKey)
-    {
-        var failures = await lockoutRepository.RecordFailureAsync(username, addressKey, configuration.LockoutDuration);
-        if (failures == configuration.MaxFailedAttempts)
-        {
-            logger.LogWarning(
-                "Authentication locked out for {LockoutDuration} after {MaxFailedAttempts} consecutive failures from {RemoteAddress}",
-                configuration.LockoutDuration, configuration.MaxFailedAttempts, addressKey);
-        }
-    }
-
     private static string Describe(IPAddress? remoteAddress) => remoteAddress?.ToString() ?? "unknown";
 }

@@ -113,6 +113,21 @@ public class TenantIsolationTest(TestWebApplicationFactory factory)
     }
 
     [Fact]
+    [Trait("Mode", "Readonly")]
+    public async Task State_WrittenToAnotherTenantWithAMalformedBody_IsRefusedBeforeTheBodyIsRead()
+    {
+        // Arrange: a body that fails to parse answers 400 if it is read, so a 401 proves the tenant was checked first
+        var otherClient = CreateClientFor(TestCredentials.OtherUsername, TestCredentials.OtherPassword);
+
+        // Act
+        var response = await otherClient.PostAsync($"/{TestCredentials.Tenant}/state/{UniqueStateName()}",
+            new StringContent("{not json", Encoding.UTF8, "application/json"), TestContext.Current.CancellationToken);
+
+        // Assert
+        response.StatusCode.Should().Be(HttpStatusCode.Unauthorized);
+    }
+
+    [Fact]
     public async Task StateLock_TakenOnAnotherTenant_IsRefusedAndLeavesTheStateUnlocked()
     {
         // Arrange

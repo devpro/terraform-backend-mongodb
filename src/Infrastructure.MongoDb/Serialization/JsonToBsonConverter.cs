@@ -48,6 +48,12 @@ public static class JsonToBsonConverter
         var document = new BsonDocument();
         foreach (var property in element.EnumerateObject())
         {
+            // a BSON element name is a C string, so the driver refuses this with an exception the controller would answer with a 500
+            if (property.Name.Contains('\0'))
+            {
+                throw new JsonException("A property name cannot contain the NUL character, which BSON cannot store.");
+            }
+
             document[property.Name] = ConvertElement(property.Value);
         }
 

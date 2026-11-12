@@ -25,14 +25,8 @@ Platform items land in the Helm chart in `devpro/helm-charts`, with a matching n
 - **B-61** (P1, app): bound the cost of the history diff, which grows with the square of the length of an array that changes entirely.
   A 112 KB request takes 2.8 GB of memory, so one credential holder can have the pod killed for every tenant.
   The stored change is part of the contract, so the bound limits how many diffs run at once, and what happens above a threshold needs a decision.
-- **B-62** (P2, app): check the tenant in an authorization filter, ahead of model binding.
-  A user of another tenant currently has the body read and parsed before the `401`.
 - **B-67** (P2, platform): keep MongoDB tracing off in the Helm chart, as `compose.yaml` does.
-  The image enables OpenTelemetry auto-instrumentation, and whether its MongoDB spans carry the command text has not been verified.
-- **B-63** (P3, app): count a failed attempt before verifying it, so that parallel guesses cannot overshoot `MaxFailedAttempts`.
-- **B-64** (P3, app): answer `400` to a state key holding a NUL character and `401` to an account with a malformed stored hash, both of which answer `500`.
-- **B-65** (P3, app): send `Cache-Control: no-store` and `X-Content-Type-Options: nosniff` on a state read, and drop the `Server` header.
-- **B-66** (P3, app): join the username and the password in the credential cache key with a separator neither can hold.
+  With `dotnet.openTelemetry.enabled`, the chart exports traces without `OTEL_DOTNET_AUTO_TRACES_MONGODB_INSTRUMENTATION_ENABLED=false`, and whether those spans carry the command text has not been verified.
 - **B-12** (P3, app): lower the request body limit below the Kestrel default of 30 MB.
   Above 16 MB, a state is read, parsed and diffed in full before the driver refuses it.
 - **B-20** (P3, app): structured audit log for every state and lock operation.

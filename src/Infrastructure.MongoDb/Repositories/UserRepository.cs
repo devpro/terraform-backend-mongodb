@@ -1,3 +1,4 @@
+using System;
 using System.Threading.Tasks;
 using Devpro.TerraformBackend.Domain.Models;
 using Devpro.TerraformBackend.Domain.Repositories;
@@ -47,6 +48,17 @@ public class UserRepository : RepositoryBase, IUserRepository
             return null;
         }
 
-        return BCrypt.Net.BCrypt.Verify(password, user.PasswordHash) ? user : null;
+        try
+        {
+            return BCrypt.Net.BCrypt.Verify(password, user.PasswordHash) ? user : null;
+        }
+        catch (Exception exception) when (exception is BCrypt.Net.SaltParseException or ArgumentException)
+        {
+            // a stored hash that is missing or does not parse is refused like a wrong password, after the same verify cost, rather than answered with a 500;
+            // the account is named by its identifier, since the username is the one field a caller may have put a password in
+            Logger.LogError(exception, "The stored password hash of user {UserId} is not a valid BCrypt hash", user.Id);
+            BCrypt.Net.BCrypt.Verify(password, DummyPasswordHash);
+            return null;
+        }
     }
 }

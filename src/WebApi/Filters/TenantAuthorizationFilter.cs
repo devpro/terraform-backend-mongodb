@@ -3,9 +3,16 @@ using Microsoft.AspNetCore.Mvc.Filters;
 
 namespace Devpro.TerraformBackend.WebApi.Filters;
 
-public class TenantAuthorizationFilter : IActionFilter
+/// <summary>
+/// Refuses a request whose route tenant is not the caller's.
+/// <para>
+/// An authorization filter rather than an action filter, because an action filter runs after model binding,
+/// so a caller from another tenant would have its body, up to the request size limit, read and parsed before being refused.
+/// </para>
+/// </summary>
+public class TenantAuthorizationFilter : IAuthorizationFilter
 {
-    public void OnActionExecuting(ActionExecutingContext context)
+    public void OnAuthorization(AuthorizationFilterContext context)
     {
         var tenant = context.RouteData.Values["tenant"]?.ToString();
 
@@ -13,10 +20,5 @@ public class TenantAuthorizationFilter : IActionFilter
         {
             context.Result = new UnauthorizedResult();
         }
-    }
-
-    public void OnActionExecuted(ActionExecutedContext context)
-    {
-        // the tenant is checked before the action runs, so nothing is left to check after it
     }
 }

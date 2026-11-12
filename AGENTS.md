@@ -47,6 +47,7 @@ The CI is the GitHub Actions pipeline, which IstarCI only runs locally first.
 
 **The machine is left as it was found, apart from the intended changes.**
 Anything created for a check, a database, a git worktree, a process, a scratch file, is removed as part of the work, without asking, and the cleanup is verified rather than assumed.
+The .NET SDK keeps MSBuild worker processes alive after a build, so every `dotnet` command an agent runs sets `MSBUILDDISABLENODEREUSE=1` on the command itself.
 
 **Commit only when asked, and never push.**
 
