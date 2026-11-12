@@ -19,6 +19,11 @@ var app = builder.Build();
 // first, so that the lockout and the failure log see the client rather than the reverse proxy
 app.UseForwardedHeaders();
 
+// called explicitly, since the framework otherwise inserts both ahead of everything in this file,
+// and the credential would be checked, and its failure counted, before the forwarded address is applied
+app.UseAuthentication();
+app.UseAuthorization();
+
 if (configuration.IsScalarEnabled)
 {
     app.MapOpenApi()
