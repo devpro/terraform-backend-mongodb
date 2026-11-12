@@ -79,6 +79,7 @@ A control that needs the identity inside the request belongs to the application,
 Control                                                      | Where       | Status
 -------------------------------------------------------------|-------------|-------------------------------------------------------------------------------
 Rate limit by source IP                                      | Platform    | Open, B-53
+Pod reachable through the ingress alone                      | Platform    | Open, B-68: `network.trustAllProxies` depends on it
 TLS termination and HSTS                                     | Platform    | Open, B-42
 Mutual TLS                                                   | Platform    | Open, B-46
 Encryption at rest, network isolation, database RBAC         | Platform    | Open, B-43
@@ -89,7 +90,7 @@ Constant-time username miss                                  | Application | Don
 Authentication failures logged with the source address       | Application | Done, `UseForwardedHeaders` running ahead of the authentication
 Bound on the cost of the history diff                        | Application | Open, B-61
 Tenant check ahead of the request body                       | Application | Done, `TenantAuthorizationFilter` is an authorization filter
-MongoDB tracing kept out of the telemetry                    | Platform    | Open, B-67
+MongoDB tracing kept out of the telemetry                    | Platform    | Done, chart 0.3.3
 `tfbeadm` credential handling                                | Application | Done, except a minimum strength (B-44)
 
 Rate limiting at the edge does not make a weak password safe, it only slows the attempts: a generated credential is what sets the difficulty of the guess.

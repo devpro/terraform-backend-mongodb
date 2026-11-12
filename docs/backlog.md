@@ -22,23 +22,21 @@ Platform items land in the Helm chart in `devpro/helm-charts`, with a matching n
 - **B-42** (P1, platform): add HSTS at the ingress.
   TLS termination is documented as mandatory in [setup](setup.md#configuration), since the password travels on every request.
 - **B-43** (P1, platform): document the database as a secret store: encryption at rest, a read-only user for consuming applications, network isolation, backups treated as secrets.
+- **B-68** (P1, platform): ship a NetworkPolicy in the Helm chart admitting the ingress controller alone.
+  The chart defaults to `network.trustAllProxies: true`, which lets any caller that reaches the pod directly choose the address its failed attempts are counted against.
 - **B-61** (P1, app): bound the cost of the history diff, which grows with the square of the length of an array that changes entirely.
   A 112 KB request takes 2.8 GB of memory, so one credential holder can have the pod killed for every tenant.
   The stored change is part of the contract, so the bound limits how many diffs run at once, and what happens above a threshold needs a decision.
-- **B-67** (P2, platform): keep MongoDB tracing off in the Helm chart, as `compose.yaml` does.
-  With `dotnet.openTelemetry.enabled`, the chart exports traces without `OTEL_DOTNET_AUTO_TRACES_MONGODB_INSTRUMENTATION_ENABLED=false`, and whether those spans carry the command text has not been verified.
 - **B-12** (P3, app): lower the request body limit below the Kestrel default of 30 MB.
   Above 16 MB, a state is read, parsed and diffed in full before the driver refuses it.
 - **B-20** (P3, app): structured audit log for every state and lock operation.
 - **B-44** (P3, app): enforce a minimum strength on a password created by `tfbeadm`.
 - **B-46** (P3, platform): validate a client certificate at the ingress and pass the verified subject to the application.
-- **B-60** (P1, platform): align the Helm chart's default `webapi.tag` with the tags PKG publishes.
-  Chart 0.3.0 defaults to `1.3.0`, while Docker Hub holds `latest` and `1.3.<run id>`, so an install without `--set webapi.tag` cannot pull the image.
 
 ## Correctness and performance
 
-- **B-30** (P2): run CI against a replica set, as `compose.yaml` does, through a `mongo:9.0` service declaring `ports: [27017:27017]`.
-  It replaces the `sudo apt` and `systemctl start mongod` steps in the `custom-commands` of the quality job, which fail in a container without `systemd`, so the job runs the same on GitHub and in IstarCI.
+- **B-30** (P2): run CI against a replica set, as `compose.yaml` does.
+  The MongoDB action of the workflow parts takes a `replica-set` input, but `reusable-dotnet-quality.yml` does not pass one through, so CI runs a standalone server.
   Without a replica set CI cannot run transactions, which blocks B-31.
 - **B-31** (P2): make the state write and the history write atomic.
   A failure between them leaves a history entry for a transition that never happened.
@@ -51,7 +49,8 @@ Platform items land in the Helm chart in `devpro/helm-charts`, with a matching n
 
 - **B-16** (P2): API to list history entries and reconstruct a past state, since the history is written but never read.
 - **B-14** (P2): capture the caller's run context (repository, branch), see the [feasibility study](feasibility-run-context.md).
-- **B-19** (P2): OpenTelemetry instrumentation with spans on MongoDB operations.
+- **B-19** (P2): OpenTelemetry spans on MongoDB operations that leave the command out, since a state write carries every secret of the workspace.
+  The chart turns the auto-instrumentation of MongoDB off for that reason.
 - **B-18** (P3): stale lock handling: lock age, optional TTL, force-unlock runbook.
   A crashed run leaves a lock nothing releases.
 - **B-54** (P3): declare the `409` response body as the existing lock, since the generated OpenAPI infers `ProblemDetails`.
