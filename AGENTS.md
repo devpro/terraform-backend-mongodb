@@ -149,6 +149,7 @@ It is written as if the code had always been so: never "used to", never "this re
 What was done and when belongs to git history.
 The same rule decides what goes into this file: a decision and its reason, in one or two lines, never a walkthrough of the code.
 When editing a file, existing comments and formatting are preserved unless they break these rules.
+Code comments are not common sentences, it says directly what the code does, ideally short, starting with a lower case verb.
 
 **One thought per line.**
 Every sentence starts on its own line, and a long sentence may break at a clause boundary, after a colon or the comma that closes a clause, never mid-clause.
@@ -167,6 +168,7 @@ Write "the working tree", not "your working tree".
 **Other conventions.**
 Use `ini` as the fence language for `.properties` blocks, never `properties`.
 Use `>` for UI navigation, for example **Project Settings > Quality Gate**, and keep arrows for diagrams and data flows.
+Always write for humans, use ASD Simplified Technical English (ASD-STE100)
 
 ## Conventions
 

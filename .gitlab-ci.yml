@@ -1,0 +1,22 @@
+# runs once for a merge request, and once for the default branch
+workflow:
+  rules:
+    - if: $CI_PIPELINE_SOURCE == "merge_request_event"
+    - if: $CI_COMMIT_BRANCH == $CI_DEFAULT_BRANCH
+
+stages:
+  - test
+
+include:
+  - component: $CI_SERVER_FQDN/devpro-labs/compliance/gitlab-components/dotnet-quality@d4a54899ddfc656cee44736d8d3614a94171c07d
+    inputs:
+      mongodb: true
+      test_args: --report-xunit-junit --coverage --coverage-output-format cobertura
+
+dotnet-quality:
+  variables:
+    # keeps the test server on HTTP, as no certificate is in the job
+    Features__IsHttpsRedirectionEnabled: "false"
+  before_script:
+    # puts Terraform and htpasswd on the path, which the tests run
+    - source scripts/install_ci_tools.sh
