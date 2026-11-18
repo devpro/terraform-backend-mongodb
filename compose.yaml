@@ -28,8 +28,10 @@ services:
     ports:
       - "9001:8080"
     depends_on:
-      - mongodb
-      - otel-collector
+      mongodb:
+        condition: service_healthy
+      otel-collector:
+        condition: service_started
     volumes:
       - ./logs/otel:/var/log/opentelemetry/dotnet
 
@@ -51,7 +53,8 @@ services:
                   _id: "rs0",
                   members: [{ _id: 0, host: "mongodb:27017" }]
                 })
-              }' | mongosh --quiet
+              }
+              quit(db.hello().isWritablePrimary ? 0 : 1)' | mongosh --quiet
       interval: 5s
       timeout: 10s
       retries: 30
