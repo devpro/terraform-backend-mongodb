@@ -30,9 +30,6 @@ Platform items land in the Helm chart in `devpro/helm-charts`, with a matching n
 
 ## Correctness and performance
 
-- **B-30** (P2): run CI against a replica set, as `compose.yaml` does.
-  The MongoDB action of the workflow parts takes a `replica-set` input, but `reusable-dotnet-quality.yml` does not pass one through, so CI runs a standalone server.
-  Without a replica set CI never runs the transaction that writes a state and its `tf_state_history_queue` entry together, which only a local run covers.
 - **B-21** (P2): retention policy for `tf_state_history`, which grows without bound.
   Deleting a state keeps its history, so retention is also what removes the secrets of a deleted state.
   The `failed` entries of `tf_state_history_queue` hold full states and stay until an operator removes them, so retention covers them too.

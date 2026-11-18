@@ -134,7 +134,7 @@ Every package is on its latest release, with one deliberate exception.
 
 ## CI/CD and operations
 
-- CI installs MongoDB and Terraform inline through `custom-commands`, as a standalone `mongod`, whereas `compose.yaml` runs a replica set, so CI never runs the transaction of a state write (B-30).
+- CI starts MongoDB through the workflow parts as the single-node replica set `rs0`, as `compose.yaml` does, so CI runs the transaction of a state write, and installs Terraform inline through `custom-commands`.
   The suite creates its own indexes, so CI seeds nothing.
 - The Dockerfile is solid: SUSE BCI base images, a non-root user, checksum-verified OpenTelemetry auto-instrumentation, and no secrets baked in.
 - `tfbeadm` passes every caller-supplied value through the environment, never through interpolation, and reads the password from a prompt or standard input.
