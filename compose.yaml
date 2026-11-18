@@ -57,7 +57,7 @@ services:
       start_period: 10s
 
   otel-collector:
-    image: otel/opentelemetry-collector-contrib:0.145.0
+    image: otel/opentelemetry-collector-contrib:0.165.0
     command: [ "--config=/etc/otelcol/config.yaml" ]
     volumes:
       - ./demo/otel-collector-config.yaml:/etc/otelcol/config.yaml:ro
