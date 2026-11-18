@@ -19,11 +19,9 @@ Platform items land in the Helm chart in `devpro/helm-charts`, with a matching n
 
 - **B-53** (P1, platform): rate limit by source IP at the ingress, and alert on bursts of authentication failures.
   An in-process limiter cannot hold one counter across replicas.
-- **B-42** (P1, platform): add HSTS at the ingress.
-  TLS termination is documented as mandatory in [setup](setup.md#configuration), since the password travels on every request.
-- **B-43** (P1, platform): document the database as a secret store: encryption at rest, a read-only user for consuming applications, network isolation, backups treated as secrets.
-- **B-68** (P1, platform): ship a NetworkPolicy in the Helm chart admitting the ingress controller alone.
-  The chart defaults to `network.trustAllProxies: true`, which lets any caller that reaches the pod directly choose the address its failed attempts are counted against.
+- **B-42** (P1, platform): add the HSTS note of the chart README to [setup](setup.md#configuration).
+  The chart documents HSTS at the ingress from 0.3.4.
+- **B-43** (P1, platform): add the database security note of the chart README to [setup](setup.md): encryption at rest, a read-only user for consuming applications, network isolation, backups treated as secrets.
 - **B-61** (P1, app): bound the cost of the history diff, which grows with the square of the length of an array that changes entirely.
   A 112 KB request takes 2.8 GB of memory, so one credential holder can have the pod killed for every tenant.
   The stored change is part of the contract, so the bound limits how many diffs run at once, and what happens above a threshold needs a decision.
@@ -41,9 +39,8 @@ Platform items land in the Helm chart in `devpro/helm-charts`, with a matching n
 - **B-31** (P2): make the state write and the history write atomic.
   A failure between them leaves a history entry for a transition that never happened.
 - **B-29** (P2): stop reading and re-parsing the whole state on every POST.
-- **B-50** (P2): decide whether deleting a state also deletes its history.
-  `StateRepository.DeleteAsync` removes only the `tf_state` document, so the secrets of a deleted state stay in `tf_state_history`.
 - **B-21** (P2): retention policy for `tf_state_history`, which grows without bound.
+  Deleting a state keeps its history, so retention is also what removes the secrets of a deleted state.
 
 ## Features
 
@@ -59,10 +56,3 @@ Platform items land in the Helm chart in `devpro/helm-charts`, with a matching n
 
 - **B-59** (P3): run the `code-quality` and `image-scan` jobs through IstarCI on a commit changing the application, and record which steps pass.
   The Sonar steps cannot pass locally, since a local run holds no `SONAR_TOKEN`.
-
-## Waiting on the maintainer
-
-These change the data model, so they wait for an explicit decision.
-
-- **B-07**: `created_at` in `tf_state` is rewritten on every update, and fixing it needs an `updated_at` field.
-- **B-28**: `tf_state_history.upgrade` holds the patch as a string, which reaches the document limit before the state does.

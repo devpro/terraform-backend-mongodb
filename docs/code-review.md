@@ -63,7 +63,8 @@ curl -u <username>:<password> -H 'Content-Type: application/json' --data-binary 
 ### S11. A deleted state leaves its secrets in the history
 
 **Observed.**
-`StateRepository.DeleteAsync` removes the `tf_state` document only, so every diff of a deleted state, secrets included, stays in `tf_state_history` with no retention (B-50, B-21).
+`StateRepository.DeleteAsync` removes the `tf_state` document only, so every diff of a deleted state, secrets included, stays in `tf_state_history` with no retention.
+Keeping the history of a deleted state is a decision, so the exposure lasts until a retention policy exists (B-21).
 
 ### S12. A revoked credential stays valid until its cache entry expires
 
@@ -79,10 +80,10 @@ A control that needs the identity inside the request belongs to the application,
 Control                                                      | Where       | Status
 -------------------------------------------------------------|-------------|-------------------------------------------------------------------------------
 Rate limit by source IP                                      | Platform    | Open, B-53
-Pod reachable through the ingress alone                      | Platform    | Open, B-68: `network.trustAllProxies` depends on it
-TLS termination and HSTS                                     | Platform    | Open, B-42
+Pod reachable through the ingress alone                      | Platform    | Done, chart 0.3.4, off by default: `network.trustAllProxies` depends on it
+TLS termination and HSTS                                     | Platform    | Documented in chart 0.3.4, a note in setup remains (B-42)
 Mutual TLS                                                   | Platform    | Open, B-46
-Encryption at rest, network isolation, database RBAC         | Platform    | Open, B-43
+Encryption at rest, network isolation, database RBAC         | Platform    | Documented in chart 0.3.4, a note in setup remains (B-43)
 Alerting on authentication-failure bursts                    | Platform    | Open, B-53: the `compose.yaml` OpenTelemetry collector is already the pipeline
 Lockout after consecutive failures, per username and address | Application | Done, shared through `auth_lockout`, counted before the verify
 Short-lived credential cache                                 | Application | Done, in process by design
@@ -101,7 +102,7 @@ Rate limiting at the edge does not make a weak password safe, it only slows the 
 
 **Proven.**
 `StateRepository.CreateAsync` writes `created_at = DateTime.UtcNow` on every write, so the field records the last update and the creation time is lost.
-Fixing it adds an `updated_at` field, which changes the data model and waits on the maintainer (B-07).
+This is by design: the document follows the Terraform data model, and an `updated_at` field is not added.
 
 ### M3. Every state POST reads and re-parses the entire existing state
 
@@ -132,12 +133,12 @@ No action is recommended: 100 concurrent failed authentications on a 22-core mac
 **Proven.**
 `tf_state_history.upgrade` holds the JSON Patch as a string, the field name says neither "patch" nor "diff", and only the forward diff is kept,
 so rebuilding an older version means replaying patches with no API support.
-Changing it changes the data model (B-28).
+This is by design: a patch holds the change between two consecutive versions only, so it stays far below the document limit.
 
 ### L5. Unbounded growth and stale locks
 
 **Observed.**
-`tf_state_history` has no retention, deleting a state leaves its history behind (B-50), and locks never expire.
+`tf_state_history` has no retention, deleting a state leaves its history behind by decision, and locks never expire.
 A single-document write is atomic, so an interrupted run never leaves a half-written state: it leaves a lock nothing releases, which needs `terraform force-unlock` (B-18, B-21).
 
 ## Test coverage
