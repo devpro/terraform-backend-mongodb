@@ -26,6 +26,8 @@ The following are settled and are not to be reopened, proposed as options, or re
 - No restructuring: the `resources` array is not split across documents, and no field is renamed or nested differently.
 - No new fields, no new collections, and no change to how a change is computed or stored.
 
+`tf_state_history_queue` is the one internal collection the maintainer added beside them: it holds each replaced version until its change is computed, and it is not part of the published contract.
+
 **The data model changes only when the maintainer specifically asks for it.**
 A backlog item is not such a request: anything that would add a field, rename one, or introduce a collection needs explicit confirmation first, however well justified it looks.
 
@@ -99,7 +101,8 @@ The suite runs against a real, long-lived MongoDB rather than a throwaway one pe
   `DatabaseTestBase.TrackState` and `TrackCleanup` register the undo at the moment of creation, never in a `try`/`finally`, which cannot cover a fixture created before the `try` opened.
   Cleanups run in reverse order under `CancellationToken.None`, since the test's own token is cancelled exactly when a run times out and leftovers are most likely.
   This matters because `tf_state` and `tf_state_lock` are uniquely indexed on `{tenant, name}`, so a leftover breaks the next run.
-  Deleting a state through the API does not remove its `tf_state_history` entries, so `TrackState` covers all three collections.
+  Deleting a state through the API does not remove its `tf_state_history` and `tf_state_history_queue` entries, so `TrackState` covers all four collections.
+  The test hosts run without the history worker, and a test computes the history of its own state with `ProcessHistoryAsync`, so no worker writes after the cleanup.
 - **The run proves it left the database as it found it.**
   `TestDatabaseFixture` counts every collection before seeding and again at the end, and fails naming the collection that grew.
   A delete filter that matches nothing reports success, so a passing suite is not evidence on its own.
@@ -115,9 +118,11 @@ Three projects with one-way dependencies: `WebApi` > `Infrastructure.MongoDb` > 
   Collections:
   `tf_state` (current state, stored as a raw `BsonDocument` with no C# model, since its shape is whatever Terraform wrote),
   `tf_state_lock` (one per `{tenant, name}`, the lock ID in `lock_id` rather than `_id`), `user` (BCrypt password hashes), `auth_lockout` (failed-attempt counters, TTL-expired).
-  `tf_state_history` holds JSON-diff patches computed with `SystemTextJson.JsonDiffPatch` on every state update.
+  `tf_state_history` holds JSON-diff patches computed with `SystemTextJson.JsonDiffPatch` on every state update,
+  after the write returns: the write queues the replaced version in `tf_state_history_queue` (in one transaction on a replica set), and `StateHistoryProcessor` computes it.
 - **`src/WebApi`**: `StateController` (all protocol logic including lock checking), Basic authentication against the `user` collection,
   `TenantAuthorizationFilter` matching the route `{tenant}` against the user's tenant claim, and `ThrottledCredentialAuthenticator` enforcing the failed-attempt lockout through `auth_lockout`.
+  `StateHistoryWorker` drains the history queue in the background.
   DI wiring lives in `WebApi/DependencyInjection/`.
 
 ### Protocol constraints

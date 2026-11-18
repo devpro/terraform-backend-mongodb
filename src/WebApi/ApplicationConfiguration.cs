@@ -16,6 +16,17 @@ public class ApplicationConfiguration(IConfigurationRoot configurationRoot)
 
     public bool IsScalarEnabled => configurationRoot.TryGetSection<bool>("Features:IsScalarEnabled");
 
+    /// <summary>
+    /// Runs the worker that computes the history of the state writes.
+    /// Turned off, the writes still queue their changes, and the worker of another replica computes them.
+    /// </summary>
+    public bool IsHistoryWorkerEnabled => configurationRoot.GetValue("Features:IsHistoryWorkerEnabled", true);
+
+    /// <summary>
+    /// The estimated array item comparisons, about 70 bytes of memory each, above which a change is set aside rather than computed.
+    /// </summary>
+    public long HistoryMaxDiffComparisons => configurationRoot.GetValue("History:MaxDiffComparisons", 4_000_000L);
+
     public OpenApiInfo OpenApiInfo => configurationRoot.TryGetSection<OpenApiInfo>("OpenApi");
 
     public string ConnectionString => configurationRoot.TryGetSection<string>("DatabaseSettings:ConnectionString");

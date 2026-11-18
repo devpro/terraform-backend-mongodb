@@ -22,9 +22,6 @@ Platform items land in the Helm chart in `devpro/helm-charts`, with a matching n
 - **B-42** (P1, platform): add the HSTS note of the chart README to [setup](setup.md#configuration).
   The chart documents HSTS at the ingress from 0.3.4.
 - **B-43** (P1, platform): add the database security note of the chart README to [setup](setup.md): encryption at rest, a read-only user for consuming applications, network isolation, backups treated as secrets.
-- **B-61** (P1, app): bound the cost of the history diff, which grows with the square of the length of an array that changes entirely.
-  A 112 KB request takes 2.8 GB of memory, so one credential holder can have the pod killed for every tenant.
-  The stored change is part of the contract, so the bound limits how many diffs run at once, and what happens above a threshold needs a decision.
 - **B-12** (P3, app): lower the request body limit below the Kestrel default of 30 MB.
   Above 16 MB, a state is read, parsed and diffed in full before the driver refuses it.
 - **B-20** (P3, app): structured audit log for every state and lock operation.
@@ -35,12 +32,10 @@ Platform items land in the Helm chart in `devpro/helm-charts`, with a matching n
 
 - **B-30** (P2): run CI against a replica set, as `compose.yaml` does.
   The MongoDB action of the workflow parts takes a `replica-set` input, but `reusable-dotnet-quality.yml` does not pass one through, so CI runs a standalone server.
-  Without a replica set CI cannot run transactions, which blocks B-31.
-- **B-31** (P2): make the state write and the history write atomic.
-  A failure between them leaves a history entry for a transition that never happened.
-- **B-29** (P2): stop reading and re-parsing the whole state on every POST.
+  Without a replica set CI never runs the transaction that writes a state and its `tf_state_history_queue` entry together, which only a local run covers.
 - **B-21** (P2): retention policy for `tf_state_history`, which grows without bound.
   Deleting a state keeps its history, so retention is also what removes the secrets of a deleted state.
+  The `failed` entries of `tf_state_history_queue` hold full states and stay until an operator removes them, so retention covers them too.
 
 ## Features
 

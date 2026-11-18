@@ -28,7 +28,7 @@ namespace Devpro.TerraformBackend.WebApi.IntegrationTests.Hosting;
 public sealed class TestDatabaseFixture : IAsyncLifetime
 {
     private static readonly string[] TrackedCollections =
-        ["tf_state", "tf_state_lock", "tf_state_history", "user", "auth_lockout"];
+        ["tf_state", "tf_state_lock", "tf_state_history", "tf_state_history_queue", "user", "auth_lockout"];
 
     private readonly Dictionary<string, long> _baselineCounts = [];
 
@@ -71,6 +71,14 @@ public sealed class TestDatabaseFixture : IAsyncLifetime
             cancellationToken: CancellationToken.None);
         await _database.GetCollection<BsonDocument>("tf_state_history").Indexes.CreateOneAsync(
             new CreateIndexModel<BsonDocument>(tenantAndName),
+            cancellationToken: CancellationToken.None);
+        await _database.GetCollection<BsonDocument>("tf_state_history_queue").Indexes.CreateOneAsync(
+            new CreateIndexModel<BsonDocument>(
+                Builders<BsonDocument>.IndexKeys.Ascending("status").Ascending("saved_at")),
+            cancellationToken: CancellationToken.None);
+        await _database.GetCollection<BsonDocument>("tf_state_history_queue").Indexes.CreateOneAsync(
+            new CreateIndexModel<BsonDocument>(
+                Builders<BsonDocument>.IndexKeys.Ascending("tenant").Ascending("name").Ascending("serial").Ascending("saved_at")),
             cancellationToken: CancellationToken.None);
         await _database.GetCollection<BsonDocument>("user").Indexes.CreateOneAsync(
             new CreateIndexModel<BsonDocument>(

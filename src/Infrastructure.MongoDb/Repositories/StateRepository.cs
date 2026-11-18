@@ -1,11 +1,9 @@
 using System;
-using System.Text.Json.JsonDiffPatch;
-using System.Text.Json.JsonDiffPatch.Diffs.Formatters;
-using System.Text.Json.Nodes;
 using System.Threading;
 using System.Threading.Tasks;
 using Devpro.TerraformBackend.Domain.Exceptions;
 using Devpro.TerraformBackend.Domain.Repositories;
+using Devpro.TerraformBackend.Infrastructure.MongoDb.History;
 using Devpro.TerraformBackend.Infrastructure.MongoDb.Serialization;
 using Microsoft.Extensions.Logging;
 using MongoDB.Bson;
@@ -15,8 +13,6 @@ namespace Devpro.TerraformBackend.Infrastructure.MongoDb.Repositories;
 
 public class StateRepository : RepositoryBase, IStateRepository
 {
-    private readonly StateHistoryRepository _stateHistoryRepository;
-
     /// <summary>
     /// MongoDB's documented maximum BSON document size, used to name the limit in the error.
     /// <c>BsonDefaults.MaxDocumentSize</c> is not used because it is <see cref="int.MaxValue"/> until a connection reports otherwise,
@@ -24,13 +20,34 @@ public class StateRepository : RepositoryBase, IStateRepository
     /// </summary>
     private const long MaxDocumentSizeInBytes = 16 * 1024 * 1024;
 
+    private const int BsonObjectTooLargeCode = 10334;
+
+    private static readonly FindOneAndReplaceOptions<BsonDocument> ReplaceReturningPrevious = new()
+    {
+        IsUpsert = true,
+        ReturnDocument = ReturnDocument.Before,
+        Projection = Builders<BsonDocument>.Projection.Include("_id").Include("value")
+    };
+
+    private readonly IMongoClient _mongoClient;
+
     private readonly IMongoCollection<BsonDocument> _bsonCollection;
 
-    public StateRepository(IMongoDatabase mongoDatabase, ILogger<StateRepository> logger, StateHistoryRepository stateHistoryRepository)
+    private readonly StateHistoryQueueRepository _queueRepository;
+
+    private readonly TransactionSupport _transactionSupport;
+
+    private readonly StateHistorySignal _historySignal;
+
+    public StateRepository(IMongoDatabase mongoDatabase, ILogger<StateRepository> logger, StateHistoryQueueRepository queueRepository,
+        TransactionSupport transactionSupport, StateHistorySignal historySignal)
         : base(mongoDatabase, logger)
     {
-        _stateHistoryRepository = stateHistoryRepository;
+        _mongoClient = mongoDatabase.Client;
         _bsonCollection = GetCollection<BsonDocument>();
+        _queueRepository = queueRepository;
+        _transactionSupport = transactionSupport;
+        _historySignal = historySignal;
     }
 
     protected override string CollectionName => "tf_state";
@@ -41,37 +58,46 @@ public class StateRepository : RepositoryBase, IStateRepository
         // which is what keeps a bad request distinguishable from an oversized one
         var value = JsonToBsonConverter.Convert(jsonInput);
 
-        var filter = GetFilter(tenant, name);
-        var existing = await _bsonCollection.Find(filter)
-            .FirstOrDefaultAsync(cancellationToken);
-
-        if (existing != null)
-        {
-            var diffNode = GenerateJsonDiff(BsonToJsonConverter.Convert(existing["value"]), jsonInput);
-            if (diffNode != null)
-            {
-                await _stateHistoryRepository.CreateAsync(tenant, name, diffNode, cancellationToken);
-            }
-        }
-
+        var savedAt = DateTime.UtcNow;
+        // no _id: a replacement keeps the _id of the document it replaces, and an upsert generates one
         var document = new BsonDocument
         {
-            ["_id"] = existing == null ? new BsonObjectId(ObjectId.GenerateNewId()) : existing["_id"].AsObjectId,
             ["tenant"] = tenant,
             ["name"] = name,
-            ["created_at"] = new BsonDateTime(DateTime.UtcNow),
+            ["created_at"] = new BsonDateTime(savedAt),
             ["value"] = value
         };
 
+        bool queued;
         try
         {
-            await _bsonCollection.ReplaceOneAsync(filter, document, new ReplaceOptions { IsUpsert = true }, cancellationToken);
+            if (await _transactionSupport.IsSupportedAsync(cancellationToken))
+            {
+                using var session = await _mongoClient.StartSessionAsync(cancellationToken: cancellationToken);
+                queued = await session.WithTransactionAsync(
+                    (transaction, token) => WriteAsync(transaction, tenant, name, document, savedAt, token),
+                    cancellationToken: cancellationToken);
+            }
+            else
+            {
+                queued = await WriteAsync(null, tenant, name, document, savedAt, cancellationToken);
+            }
         }
         catch (FormatException exception)
         {
-            // the driver reports an oversized document by refusing to serialise it,
+            // the driver refuses to serialise a command above the message limit,
             // and by this point the input has already parsed as JSON, so a format failure here can only be the size
             throw new StateTooLargeException(MaxDocumentSizeInBytes, exception);
+        }
+        catch (MongoCommandException exception) when (exception.Code == BsonObjectTooLargeCode)
+        {
+            // the server refuses a replacement above the document limit that still fits in a command
+            throw new StateTooLargeException(MaxDocumentSizeInBytes, exception);
+        }
+
+        if (queued)
+        {
+            _historySignal.Notify();
         }
     }
 
@@ -82,19 +108,39 @@ public class StateRepository : RepositoryBase, IStateRepository
         return document == null ? null : BsonToJsonConverter.Convert(document["value"]);
     }
 
+    /// <summary>
+    /// The current document of a state with its <c>_id</c>, which tells the history worker whether it is still the state a queue entry was written for.
+    /// </summary>
+    public async Task<BsonDocument?> FindDocumentAsync(string tenant, string name, CancellationToken cancellationToken = default) =>
+        await _bsonCollection.Find(GetFilter(tenant, name))
+            .Project(Builders<BsonDocument>.Projection.Include("_id").Include("value"))
+            .FirstOrDefaultAsync(cancellationToken);
+
     public async Task<bool> DeleteAsync(string tenant, string name, CancellationToken cancellationToken = default)
     {
         var deleteResult = await _bsonCollection.DeleteOneAsync(GetFilter(tenant, name), cancellationToken);
         return deleteResult.DeletedCount > 0;
     }
 
-    private static JsonNode? GenerateJsonDiff(string first, string second)
+    /// <summary>
+    /// Saves the state and queues the change from the version it replaces, returning whether a change was queued.
+    /// <para>
+    /// Without a session, on a standalone server, the queue entry is written under no cancellation:
+    /// once the state is saved, a cancelled request must not leave it without its entry.
+    /// </para>
+    /// </summary>
+    private async Task<bool> WriteAsync(IClientSessionHandle? session, string tenant, string name, BsonDocument document, DateTime savedAt,
+        CancellationToken cancellationToken)
     {
-        var diffNode = JsonDiffPatcher.Diff(first, second, new JsonPatchDeltaFormatter());
-        return diffNode switch
-        {
-            null or JsonObject { Count: 0 } or JsonArray { Count: 0 } => null,
-            _ => diffNode
-        };
+        var filter = GetFilter(tenant, name);
+        var replaced = session == null
+            ? await _bsonCollection.FindOneAndReplaceAsync(filter, document, ReplaceReturningPrevious, cancellationToken)
+            : await _bsonCollection.FindOneAndReplaceAsync(session, filter, document, ReplaceReturningPrevious, cancellationToken);
+
+        // a first write has nothing to diff against, and an identical write has no change
+        if (replaced == null || replaced["value"].Equals(document["value"])) return false;
+
+        return await _queueRepository.EnqueueAsync(session, replaced["_id"].AsObjectId, tenant, name, savedAt, replaced["value"],
+            session == null ? CancellationToken.None : cancellationToken);
     }
 }

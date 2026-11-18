@@ -38,6 +38,12 @@ public abstract class ScenarioBase(TestKestrelWebAppFactory factory, ITestOutput
 
     protected abstract string ScenarioPath { get; }
 
+    /// <summary>
+    /// Computes the queued history of the scenario state, which the background worker does outside the tests.
+    /// </summary>
+    protected Task ProcessHistoryAsync() =>
+        HistoryQueue.DrainAsync(Factory.Services, TestCredentials.Tenant, StateName, TestContext.Current.CancellationToken);
+
     public ValueTask InitializeAsync()
     {
         testOutputHelper.WriteLine("Executing from {0}", AppContext.BaseDirectory);
@@ -72,7 +78,8 @@ public abstract class ScenarioBase(TestKestrelWebAppFactory factory, ITestOutput
     /// Removes everything the scenario wrote to the database.
     /// <para>
     /// A completed run ends on <c>terraform destroy</c>,
-    /// which destroys the infrastructure but still leaves the state document behind, holding an empty state, plus one <c>tf_state_history</c> entry per apply.
+    /// which destroys the infrastructure but still leaves the state document behind, holding an empty state, plus one <c>tf_state_history</c> entry per apply
+    /// and the <c>tf_state_history_queue</c> entries not computed yet.
     /// Nothing in the protocol deletes them, so the scenario has to.
     /// </para>
     /// <para>
@@ -89,7 +96,7 @@ public abstract class ScenarioBase(TestKestrelWebAppFactory factory, ITestOutput
         try
         {
             var database = Factory.Services.GetRequiredService<IMongoDatabase>();
-            foreach (var collectionName in new[] { "tf_state", "tf_state_lock", "tf_state_history" })
+            foreach (var collectionName in new[] { "tf_state", "tf_state_lock", "tf_state_history", "tf_state_history_queue" })
             {
                 await database.GetCollection<BsonDocument>(collectionName)
                     .DeleteManyAsync(filter, CancellationToken.None);

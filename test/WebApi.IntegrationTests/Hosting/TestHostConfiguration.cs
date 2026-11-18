@@ -14,6 +14,9 @@ namespace Devpro.TerraformBackend.WebApi.IntegrationTests.Hosting;
 /// <c>UseSetting</c> also carries the Scalar feature flag, rather than <c>Environment.SetEnvironmentVariable</c>, which is process-wide.
 /// A variable that is never reset leaks into every later test in the process and makes the suite order-dependent.
 /// </para>
+/// <para>
+/// The history worker is off, and a test computes the history of its own state through <see cref="HistoryQueue"/>.
+/// </para>
 /// </summary>
 internal static class TestHostConfiguration
 {
@@ -24,5 +27,6 @@ internal static class TestHostConfiguration
 
         builder.UseSetting("DatabaseSettings:DatabaseName", databaseName);
         builder.UseSetting("Features:IsScalarEnabled", "true");
+        builder.UseSetting("Features:IsHistoryWorkerEnabled", "false");
     }
 }

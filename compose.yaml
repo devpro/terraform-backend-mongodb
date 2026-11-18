@@ -21,7 +21,8 @@ services:
       - OTEL_EXPORTER_OTLP_PROTOCOL=http/protobuf
       - OTEL_RESOURCE_ATTRIBUTES=deployment.environment=local,service.version=local-build
       - OTEL_DOTNET_AUTO_INSTRUMENTATIONS=AspNetCore,HttpClient
-      - OTEL_DOTNET_AUTO_METRICS_ADDITIONAL_SOURCES=Private.InternalDiagnostics.System.Net.Quic.MsQuic
+      - OTEL_DOTNET_AUTO_TRACES_ADDITIONAL_SOURCES=Devpro.TerraformBackend.History
+      - OTEL_DOTNET_AUTO_METRICS_ADDITIONAL_SOURCES=Private.InternalDiagnostics.System.Net.Quic.MsQuic,Devpro.TerraformBackend.History
       - OTEL_DOTNET_AUTO_TRACES_MONGODB_INSTRUMENTATION_ENABLED=false
       - OTEL_LOG_LEVEL=debug
     ports:

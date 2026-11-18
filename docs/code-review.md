@@ -20,8 +20,9 @@ out-of-range numbers are stored as `Decimal128`, the response is plain JSON rath
 The authentication path has a lockout shared across replicas that counts an attempt before verifying it, a credential cache, a constant-time miss, and failure logs carrying the caller's address.
 Responses carry `Cache-Control: no-store` and `X-Content-Type-Options: nosniff`, and no `Server` header.
 
-The largest exposure in the code is the cost of the history diff, which lets one small request exhaust the memory of the process (S6).
-The rest is small: a second cost paid on every state write, the non-atomic history write, the history of a deleted state (S11), a short revocation lag (S12), and questions that need a decision on the data model.
+The history diff runs after the state write returns, from `tf_state_history_queue`, one entry at a time per process, and a change whose estimated cost is above `History:MaxDiffComparisons` is set aside and reported rather than computed.
+On a replica set, the state and its queue entry are written in one transaction.
+The rest is small: the history of a deleted state (S11) and a short revocation lag (S12).
 The platform controls are listed under [where each control belongs](#where-each-control-belongs).
 
 ## Security
@@ -44,21 +45,6 @@ This follows from the storage contract rather than from a defect.
 A Terraform state holds provider credentials, generated passwords and private keys in plaintext, and other applications, `liveship` among them, read `tf_state` directly.
 The blast radius of the database is therefore every secret of every managed workspace.
 The controls this makes necessary are encryption at rest, a least-privilege read-only user for consuming applications, network isolation, and treating a `tf_state` backup as a secret.
-
-### S6. A small state write can exhaust the memory of the process
-
-**Proven.**
-Every state write diffs the previous state against the new one, and the cost of the diff grows with the square of the length of an array that changes entirely.
-Replacing an array of 16,000 integers, a body of 112 KB, took 13.5 s and 2.8 GB of memory, against 0.7 s and 181 MB for 2,000.
-The diff is synchronous, so a client that disconnects does not stop it.
-Any credential holder of any tenant can therefore have the pod killed for every tenant, and a legitimate state with a large list that changes wholesale costs the same.
-The body limit does not help, since the request is small (B-61).
-
-```bash
-python3 -c "import json; n=16000; json.dump({'version':4,'a':list(range(n))}, open('a.json','w')); json.dump({'version':4,'a':list(range(n,2*n))}, open('b.json','w'))"
-curl -u <username>:<password> -H 'Content-Type: application/json' --data-binary @a.json http://localhost:5293/<tenant>/state/big
-curl -u <username>:<password> -H 'Content-Type: application/json' --data-binary @b.json http://localhost:5293/<tenant>/state/big
-```
 
 ### S11. A deleted state leaves its secrets in the history
 
@@ -89,7 +75,7 @@ Lockout after consecutive failures, per username and address | Application | Don
 Short-lived credential cache                                 | Application | Done, in process by design
 Constant-time username miss                                  | Application | Done
 Authentication failures logged with the source address       | Application | Done, `UseForwardedHeaders` running ahead of the authentication
-Bound on the cost of the history diff                        | Application | Open, B-61
+Bound on the cost of the history diff                        | Application | Done, in the background, one at a time per process, above `History:MaxDiffComparisons` set aside
 Tenant check ahead of the request body                       | Application | Done, `TenantAuthorizationFilter` is an authorization filter
 MongoDB tracing kept out of the telemetry                    | Platform    | Done, chart 0.3.3
 `tfbeadm` credential handling                                | Application | Done, except a minimum strength (B-44)
@@ -103,20 +89,6 @@ Rate limiting at the edge does not make a weak password safe, it only slows the 
 **Proven.**
 `StateRepository.CreateAsync` writes `created_at = DateTime.UtcNow` on every write, so the field records the last update and the creation time is lost.
 This is by design: the document follows the Terraform data model, and an `updated_at` field is not added.
-
-### M3. Every state POST reads and re-parses the entire existing state
-
-**Observed.**
-`CreateAsync` reads the whole existing document, renders it to JSON, diffs it against the new state, and performs two writes.
-Near the 16 MB ceiling that is tens of megabytes of allocation and a full structural diff on every `terraform apply`, whether or not anyone reads the history (B-29).
-
-### M4. The state write and the history write are not atomic
-
-**Observed.**
-The history entry is inserted, then the state is replaced, with no transaction.
-A failure between the two leaves a history entry for a transition that never happened.
-`compose.yaml` runs a replica set, so transactions are available, but CI runs a standalone `mongod`, which cannot test one (B-30, B-31).
-Cancellation is therefore honoured only by the read that precedes the two writes, so an aborted request cannot widen the gap.
 
 ### M8. `BCrypt.Verify` runs synchronously on a thread-pool thread
 
@@ -162,7 +134,7 @@ Every package is on its latest release, with one deliberate exception.
 
 ## CI/CD and operations
 
-- CI installs MongoDB and Terraform inline through `custom-commands`, as a standalone `mongod`, whereas `compose.yaml` runs a replica set (M4, B-30).
+- CI installs MongoDB and Terraform inline through `custom-commands`, as a standalone `mongod`, whereas `compose.yaml` runs a replica set, so CI never runs the transaction of a state write (B-30).
   The suite creates its own indexes, so CI seeds nothing.
 - The Dockerfile is solid: SUSE BCI base images, a non-root user, checksum-verified OpenTelemetry auto-instrumentation, and no secrets baked in.
 - `tfbeadm` passes every caller-supplied value through the environment, never through interpolation, and reads the password from a prompt or standard input.

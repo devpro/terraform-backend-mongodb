@@ -16,6 +16,8 @@ MONGOSH_ENV_NAMES=(TFBEADM_USERNAME TFBEADM_PASSWORD_HASH TFBEADM_TENANT)
 MONGODB_INDEX_COMMANDS=(
   'db.tf_state.createIndex({"tenant": 1, "name": 1}, {unique: true})'
   'db.tf_state_history.createIndex({"tenant": 1, "name": 1})'
+  'db.tf_state_history_queue.createIndex({"status": 1, "saved_at": 1})'
+  'db.tf_state_history_queue.createIndex({"tenant": 1, "name": 1, "serial": 1, "saved_at": 1})'
   'db.tf_state_lock.createIndex({"tenant": 1, "name": 1}, {unique: true})'
   'db.user.createIndex({"username": 1}, {unique: true})'
   'db.auth_lockout.createIndex({"username": 1, "remote_address": 1}, {unique: true})'
