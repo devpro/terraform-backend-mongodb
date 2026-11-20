@@ -193,6 +193,39 @@ public class StateHistoryTest(TestWebApplicationFactory factory)
     }
 
     [Fact]
+    public async Task HistoryProcessor_StateRenamedBeforeProcessing_WritesTheHistoryUnderTheNewTenant()
+    {
+        // Arrange: two changes are queued, then the state moves to another tenant with the same _id, as a tenant rename in another application does
+        var client = CreateClient(true);
+        var name = UniqueStateName();
+        var newTenant = $"renamed-{Guid.NewGuid():N}";
+        TrackState(Tenant, name);
+        TrackState(newTenant, name);
+        await PostStateAsync(client, name, """{"version":4,"serial":1,"step":"first"}""");
+        await PostStateAsync(client, name, """{"version":4,"serial":2,"step":"second"}""");
+        await PostStateAsync(client, name, """{"version":4,"serial":3,"step":"third"}""");
+        await Collection("tf_state").UpdateOneAsync(StateFilter(name), Builders<BsonDocument>.Update.Set("tenant", newTenant),
+            cancellationToken: TestContext.Current.CancellationToken);
+
+        // Act
+        await ProcessHistoryAsync(Tenant, name);
+        await ProcessHistoryAsync(newTenant, name);
+
+        // Assert: both changes are computed, in order, and nothing is left or written under the old tenant
+        var newFilter = Builders<BsonDocument>.Filter.And(
+            Builders<BsonDocument>.Filter.Eq("tenant", newTenant),
+            Builders<BsonDocument>.Filter.Eq("name", name));
+        var entries = (await Collection("tf_state_history").Find(newFilter).ToListAsync(TestContext.Current.CancellationToken))
+            .OrderBy(x => x["created_at"].ToUniversalTime()).ToList();
+        entries.Should().HaveCount(2);
+        entries[0]["upgrade"].AsString.Should().Contain("second").And.NotContain("third");
+        entries[1]["upgrade"].AsString.Should().Contain("third").And.NotContain("first");
+        (await FindHistoryEntriesAsync(name)).Should().BeEmpty();
+        (await FindQueueEntriesAsync(name)).Should().BeEmpty();
+        (await Collection("tf_state_history_queue").Find(newFilter).ToListAsync(TestContext.Current.CancellationToken)).Should().BeEmpty();
+    }
+
+    [Fact]
     public async Task HistoryProcessor_StateDeletedBeforeProcessing_SetsTheEntryAside()
     {
         // Arrange

@@ -185,6 +185,18 @@ public class StateHistoryQueueRepository : RepositoryBase
         return next?["value"];
     }
 
+    /// <summary>
+    /// Gives every entry of a state the tenant and the name the state has now, set aside entries included.
+    /// </summary>
+    public async Task MoveStateAsync(ObjectId stateId, string tenant, string name, CancellationToken cancellationToken)
+    {
+        var update = Builders<BsonDocument>.Update
+            .Set("tenant", tenant)
+            .Set("name", name);
+        await _bsonCollection.UpdateManyAsync(Builders<BsonDocument>.Filter.Eq("state_id", stateId), update,
+            cancellationToken: cancellationToken);
+    }
+
     public async Task DeleteAsync(ObjectId id, CancellationToken cancellationToken) =>
         await _bsonCollection.DeleteOneAsync(Builders<BsonDocument>.Filter.Eq("_id", id), cancellationToken);
 

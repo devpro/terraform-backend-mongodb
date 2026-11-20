@@ -85,6 +85,24 @@ public class StateHistoryProcessor(
         {
             // the state is read before a later entry is looked for: a write landing between the two then shows up as that later entry
             var current = await stateRepository.FindDocumentAsync(tenant, name, cancellationToken);
+            if (current == null || current["_id"] != entry["state_id"])
+            {
+                // a tenant rename in an application sharing the database moves the state and keeps its _id, but leaves its queue entries behind:
+                // computed where they are, they would lose the change, or write it to tf_state_history under a tenant the state left
+                var moved = await stateRepository.FindDocumentByIdAsync(entry["state_id"].AsObjectId, cancellationToken);
+                if (moved != null)
+                {
+                    var newTenant = moved["tenant"].AsString;
+                    var newName = moved["name"].AsString;
+                    logger.LogInformation(
+                        "History entries of state {Tenant}/{Name} follow the state to {NewTenant}/{NewName}",
+                        tenant, name, newTenant, newName);
+                    await queueRepository.MoveStateAsync(entry["state_id"].AsObjectId, newTenant, newName, cancellationToken);
+                    await queueRepository.ReleaseAsync(id, countAttempt: false, CancellationToken.None);
+                    return;
+                }
+            }
+
             var after = await queueRepository.FindNextValueAsync(entry, cancellationToken)
                 ?? (current != null && current["_id"] == entry["state_id"] ? current["value"] : null);
 

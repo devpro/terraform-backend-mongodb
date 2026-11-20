@@ -116,6 +116,14 @@ public class StateRepository : RepositoryBase, IStateRepository
             .Project(Builders<BsonDocument>.Projection.Include("_id").Include("value"))
             .FirstOrDefaultAsync(cancellationToken);
 
+    /// <summary>
+    /// The current document of a state found by its <c>_id</c>, with the tenant and the name it has now.
+    /// </summary>
+    public async Task<BsonDocument?> FindDocumentByIdAsync(ObjectId id, CancellationToken cancellationToken = default) =>
+        await _bsonCollection.Find(Builders<BsonDocument>.Filter.Eq("_id", id))
+            .Project(Builders<BsonDocument>.Projection.Include("_id").Include("tenant").Include("name"))
+            .FirstOrDefaultAsync(cancellationToken);
+
     public async Task<bool> DeleteAsync(string tenant, string name, CancellationToken cancellationToken = default)
     {
         var deleteResult = await _bsonCollection.DeleteOneAsync(GetFilter(tenant, name), cancellationToken);
