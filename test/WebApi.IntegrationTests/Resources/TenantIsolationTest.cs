@@ -5,7 +5,11 @@ using System.Net.Http.Headers;
 using System.Text;
 using System.Threading.Tasks;
 using AwesomeAssertions;
+using Devpro.TerraformBackend.Infrastructure.MongoDb.Repositories;
 using Devpro.TerraformBackend.WebApi.IntegrationTests.Hosting;
+using Microsoft.Extensions.DependencyInjection;
+using MongoDB.Bson;
+using MongoDB.Driver;
 using Xunit;
 
 namespace Devpro.TerraformBackend.WebApi.IntegrationTests.Resources;
@@ -147,6 +151,61 @@ public class TenantIsolationTest(TestWebApplicationFactory factory)
         var ownResponse = await client.PostAsync($"/{TestCredentials.Tenant}/state/{name}/lock",
             Serialize(ownLock), TestContext.Current.CancellationToken);
         ownResponse.StatusCode.Should().Be(HttpStatusCode.OK);
+    }
+
+    [Fact]
+    public async Task State_AfterATenantRenameWithACachedCredential_IsServedOnTheNewAddressOnly()
+    {
+        // Arrange: a user verified once, so its credential is cached, then renamed to another tenant together with its state,
+        // as a tenant rename in another application sharing the database does
+        var username = $"rename-test-{Guid.NewGuid():N}";
+        const string password = "rename123";
+        var oldTenant = $"old-{Guid.NewGuid():N}";
+        var newTenant = $"new-{Guid.NewGuid():N}";
+        var name = UniqueStateName();
+        var otherName = UniqueStateName();
+        TrackDocumentsWhere("user", Builders<BsonDocument>.Filter.Eq("username", username));
+        TrackState(oldTenant, name);
+        TrackState(newTenant, name);
+        TrackState(oldTenant, otherName);
+
+        var database = Factory.Services.GetRequiredService<IMongoDatabase>();
+        await database.GetCollection<BsonDocument>("user").InsertOneAsync(new BsonDocument
+        {
+            ["username"] = username,
+            ["password_hash"] = BCrypt.Net.BCrypt.HashPassword(password, UserRepository.StoredHashWorkFactor),
+            ["tenant"] = oldTenant
+        }, cancellationToken: TestContext.Current.CancellationToken);
+
+        var client = CreateClientFor(username, password);
+        (await client.PostAsync($"/{oldTenant}/state/{name}", Serialize(new { owner = "moved", serial = 1 }),
+            TestContext.Current.CancellationToken)).StatusCode.Should().Be(HttpStatusCode.OK);
+
+        await database.GetCollection<BsonDocument>("user").UpdateOneAsync(
+            Builders<BsonDocument>.Filter.Eq("username", username),
+            Builders<BsonDocument>.Update.Set("tenant", newTenant), cancellationToken: TestContext.Current.CancellationToken);
+        await database.GetCollection<BsonDocument>("tf_state").UpdateManyAsync(
+            Builders<BsonDocument>.Filter.Eq("tenant", oldTenant),
+            Builders<BsonDocument>.Update.Set("tenant", newTenant), cancellationToken: TestContext.Current.CancellationToken);
+
+        // Act: at once, with no wait
+        var oldRead = await client.GetAsync($"/{oldTenant}/state/{name}", TestContext.Current.CancellationToken);
+        var oldWrite = await client.PostAsync($"/{oldTenant}/state/{name}", Serialize(new { owner = "orphan", serial = 2 }),
+            TestContext.Current.CancellationToken);
+        var oldNewName = await client.PostAsync($"/{oldTenant}/state/{otherName}", Serialize(new { owner = "orphan", serial = 1 }),
+            TestContext.Current.CancellationToken);
+        var oldLock = await client.PostAsync($"/{oldTenant}/state/{name}/lock", Serialize(StateLockFaker.Generate()),
+            TestContext.Current.CancellationToken);
+        var newRead = await client.GetStringAsync($"/{newTenant}/state/{name}", TestContext.Current.CancellationToken);
+
+        // Assert: a 404 on the old address reads as "no state" to Terraform, and a 200 on a write leaves an orphan state under the old tenant
+        oldRead.StatusCode.Should().Be(HttpStatusCode.Unauthorized);
+        oldWrite.StatusCode.Should().Be(HttpStatusCode.Unauthorized);
+        oldNewName.StatusCode.Should().Be(HttpStatusCode.Unauthorized);
+        oldLock.StatusCode.Should().Be(HttpStatusCode.Unauthorized);
+        newRead.Should().Contain("moved");
+        (await database.GetCollection<BsonDocument>("tf_state").CountDocumentsAsync(
+            Builders<BsonDocument>.Filter.Eq("tenant", oldTenant), cancellationToken: TestContext.Current.CancellationToken)).Should().Be(0);
     }
 
     private HttpClient CreateClientFor(string username, string password)

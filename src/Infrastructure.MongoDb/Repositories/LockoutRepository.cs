@@ -4,6 +4,7 @@ using Devpro.TerraformBackend.Domain.Models;
 using Devpro.TerraformBackend.Domain.Repositories;
 using Microsoft.Extensions.Logging;
 using MongoDB.Bson;
+using MongoDB.Bson.Serialization;
 using MongoDB.Driver;
 
 namespace Devpro.TerraformBackend.Infrastructure.MongoDb.Repositories;
@@ -27,6 +28,61 @@ public class LockoutRepository : RepositoryBase, ILockoutRepository
             .Find(x => x.Username == username && x.RemoteAddress == remoteAddress && x.ExpiresAt > now)
             .FirstOrDefaultAsync();
         return counter?.Failures ?? 0;
+    }
+
+    /// <summary>
+    /// Reads the open counter and the user in one aggregation, the user joined with <c>$unionWith</c>.
+    /// <para>
+    /// Two separate reads would add a database request to every cached authentication, which is every Terraform request after the first.
+    /// The user comes back wrapped in a <c>user</c> field, so that it cannot be confused with the counter.
+    /// </para>
+    /// </summary>
+    public async Task<(int Failures, UserModel? User)> GetFailureCountAndUserAsync(string username, string remoteAddress)
+    {
+        var now = DateTime.UtcNow;
+
+        // raw BSON stages reference the stored field names: remote_address and expires_at, not the BsonElement-mapped properties
+        var pipeline = new BsonDocument[]
+        {
+            new("$match", new BsonDocument
+            {
+                ["username"] = username,
+                ["remote_address"] = remoteAddress,
+                ["expires_at"] = new BsonDocument("$gt", now)
+            }),
+            new("$limit", 1),
+            new("$project", new BsonDocument { ["_id"] = 0, ["failures"] = 1 }),
+            new("$unionWith", new BsonDocument
+            {
+                ["coll"] = UserRepository.Collection,
+                ["pipeline"] = new BsonArray
+                {
+                    new BsonDocument("$match", new BsonDocument("username", username)),
+                    new BsonDocument("$limit", 1),
+                    new BsonDocument("$replaceWith", new BsonDocument("user", "$$ROOT"))
+                }
+            })
+        };
+
+        var documents = await GetCollection<BsonDocument>()
+            .Aggregate(PipelineDefinition<BsonDocument, BsonDocument>.Create(pipeline))
+            .ToListAsync();
+
+        var failures = 0;
+        UserModel? user = null;
+        foreach (var document in documents)
+        {
+            if (document.TryGetValue("user", out var stored))
+            {
+                user = BsonSerializer.Deserialize<UserModel>(stored.AsBsonDocument);
+            }
+            else
+            {
+                failures = document["failures"].ToInt32();
+            }
+        }
+
+        return (failures, user);
     }
 
     /// <summary>

@@ -35,7 +35,9 @@ public class UserRepository : RepositoryBase, IUserRepository
     private static readonly string DummyPasswordHash =
         BCrypt.Net.BCrypt.HashPassword("this value is never a password", StoredHashWorkFactor);
 
-    protected override string CollectionName => "user";
+    internal const string Collection = "user";
+
+    protected override string CollectionName => Collection;
 
     public async Task<UserModel?> CheckAuthentication(string username, string password)
     {
