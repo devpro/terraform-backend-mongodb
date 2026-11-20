@@ -1,5 +1,6 @@
 using System;
 using System.Threading.Tasks;
+using Devpro.TerraformBackend.Domain.Models;
 
 namespace Devpro.TerraformBackend.Domain.Repositories;
 
@@ -10,6 +11,15 @@ public interface ILockoutRepository
     /// Zero both when nothing was ever recorded and when the last recorded window has expired.
     /// </summary>
     Task<int> GetFailureCountAsync(string username, string remoteAddress);
+
+    /// <summary>
+    /// The failure count and the current user in one database request, for a credential whose BCrypt verify is already cached.
+    /// <para>
+    /// The user is read on every cached authentication, so a change of tenant, a deletion or a new password applies at the next request.
+    /// Read together with the counter, it costs no more requests than the counter alone.
+    /// </para>
+    /// </summary>
+    Task<(int Failures, UserModel? User)> GetFailureCountAndUserAsync(string username, string remoteAddress);
 
     /// <summary>
     /// Atomically records one failure and returns the count after it.

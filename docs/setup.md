@@ -29,6 +29,8 @@ Add the indexes, the unique ones on `tf_state` and `tf_state_lock` being what ma
     ```js
     db.tf_state.createIndex({"tenant": 1, "name": 1}, {unique: true})
     db.tf_state_history.createIndex({"tenant": 1, "name": 1})
+    db.tf_state_history_queue.createIndex({"status": 1, "saved_at": 1})
+    db.tf_state_history_queue.createIndex({"tenant": 1, "name": 1, "serial": 1, "saved_at": 1})
     db.tf_state_lock.createIndex({"tenant": 1, "name": 1}, {unique: true})
     db.user.createIndex({"username": 1}, {unique: true})
     db.auth_lockout.createIndex({"username": 1, "remote_address": 1}, {unique: true})
@@ -71,6 +73,8 @@ Setting | Environment variable | Default | Purpose
 `DatabaseSettings:DatabaseName` | `DatabaseSettings__DatabaseName` | `tfbackend` | MongoDB database name.
 `Features:IsHttpsRedirectionEnabled` | `Features__IsHttpsRedirectionEnabled` | `true` | Redirects HTTP requests to HTTPS, to disable when TLS terminates at an ingress.
 `Features:IsScalarEnabled` | `Features__IsScalarEnabled` | `false` | Serves the OpenAPI definition and the Scalar web page on `/scalar`.
+`Features:IsHistoryWorkerEnabled` | `Features__IsHistoryWorkerEnabled` | `true` | Runs the worker that computes the history, at least one replica must run it.
+`History:MaxDiffComparisons` | `History__MaxDiffComparisons` | `4000000` | Estimated array item comparisons, about 70 bytes of memory each, above which a change is not computed.
 `Authentication:CredentialCacheSeconds` | `Authentication__CredentialCacheSeconds` | `60` | How long a verified credential skips BCrypt.
 `Authentication:MaxFailedAttempts` | `Authentication__MaxFailedAttempts` | `10` | Consecutive failures, per username and source address, before that pair is refused.
 `Authentication:LockoutSeconds` | `Authentication__LockoutSeconds` | `300` | How long a pair stays refused once locked out.
@@ -84,6 +88,24 @@ Setting | Environment variable | Default | Purpose
     Left unset, the application sees the proxy's own address on every request: every caller then shares a single lockout bucket, and every authentication-failure log entry names the proxy instead of the attacker.
 
 The health check is served on `/health`.
+
+### State history
+
+A state write returns once the state is saved, and the change from the replaced version is computed afterwards from `tf_state_history_queue`.
+On a replica set or a sharded cluster, the state and its queue entry are written in one transaction.
+
+A change that cannot be computed stays in the queue with the status `failed` and an `error` field that gives the reason, and the worker ignores it.
+The reasons are a diff above `History:MaxDiffComparisons`, a state deleted before its change was computed, and three attempts that never finished.
+The same text is logged as an error, and with OpenTelemetry the span `compute state history` and the counter `tfbackend.history.failed` carry it too,
+once `OTEL_DOTNET_AUTO_TRACES_ADDITIONAL_SOURCES` and `OTEL_DOTNET_AUTO_METRICS_ADDITIONAL_SOURCES` include `Devpro.TerraformBackend.History`.
+
+A failed entry is computed again once its status is set back to `pending`, for example after raising the limit:
+
+```js
+db.tf_state_history_queue.updateOne({_id: ObjectId("<id>")}, {$set: {status: "pending", attempts: 0}})
+```
+
+The queue holds full states, with their secrets, until their change is computed, so it is protected like `tf_state`.
 
 !!! warning
 

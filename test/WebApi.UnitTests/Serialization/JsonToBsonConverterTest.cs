@@ -53,6 +53,15 @@ public class JsonToBsonConverterTest
     }
 
     [Fact]
+    public void Convert_WithANulCharacterInAPropertyName_ThrowsJsonException()
+    {
+        // Arrange: a BSON element name is a C string, so the driver would refuse it with an exception that is not a bad request
+        var act = () => JsonToBsonConverter.Convert("""{"outer":{"a\u0000b":1}}""");
+
+        act.Should().Throw<JsonException>();
+    }
+
+    [Fact]
     public void Convert_WithANumberBeyondEveryBsonNumericRange_ThrowsJsonException()
     {
         // Arrange: Decimal128 gives out at roughly 1e6144

@@ -13,6 +13,7 @@ namespace Devpro.TerraformBackend.WebApi.Authentication;
 /// The Terraform <c>http</c> backend sends a Basic credential on every request and supports no token,
 /// so without the cache every operation pays a BCrypt verify, about 139 ms of CPU at work factor 10.
 /// The cache removes that cost for a credential already verified, and the lockout caps the attempts of one that is not.
+/// The user itself is read on every request, so a change of tenant, a deletion or a new password applies at once.
 /// </para>
 /// <para>
 /// The lockout lives in MongoDB so that it holds across every replica.
@@ -40,7 +41,24 @@ public sealed class ThrottledCredentialAuthenticator(
     {
         var addressKey = Describe(remoteAddress);
 
-        var failures = await lockoutRepository.GetFailureCountAsync(username, addressKey);
+        // the cache holds the hash the password was verified against, never the user:
+        // a cached user would keep its tenant after a rename or a move, and stay valid after a deletion, until the entry expires
+        var credentialKey = CredentialKey(username, password);
+        cache.TryGetValue<string>(credentialKey, out var verifiedHash);
+
+        // a hit reads the user together with the counter, in the one request the counter alone costs:
+        // the lockout is checked before a hit is accepted, or a locked-out caller could test guesses against the cache without limit
+        int failures;
+        UserModel? current = null;
+        if (verifiedHash is not null)
+        {
+            (failures, current) = await lockoutRepository.GetFailureCountAndUserAsync(username, addressKey);
+        }
+        else
+        {
+            failures = await lockoutRepository.GetFailureCountAsync(username, addressKey);
+        }
+
         if (failures >= configuration.MaxFailedAttempts)
         {
             logger.LogWarning(
@@ -51,16 +69,38 @@ public sealed class ThrottledCredentialAuthenticator(
 
         // only successful verifications are cached, so a wrong password always pays the BCrypt cost and always reaches the counter below:
         // the cache must never become a way to skip the lockout
-        var credentialKey = CredentialKey(username, password);
-        if (cache.TryGetValue<UserModel>(credentialKey, out var cachedUser) && cachedUser is not null)
+        // a user deleted, or a hash changed since the verify, sends the credential through BCrypt again
+        if (verifiedHash is not null)
         {
-            return AuthenticationOutcome.Success(cachedUser);
+            if (current is not null && current.PasswordHash == verifiedHash)
+            {
+                return AuthenticationOutcome.Success(current);
+            }
+
+            cache.Remove(credentialKey);
+        }
+
+        // the attempt is counted before it is verified, and the counter cleared on success, so that guesses sent together are each checked against a count that includes the others:
+        // counted after the verify, every guess in flight passes the check above with the same stale count, and a parallel burst gets far more than its allowance
+        var attempt = await lockoutRepository.RecordFailureAsync(username, addressKey, configuration.LockoutDuration);
+        if (attempt > configuration.MaxFailedAttempts)
+        {
+            logger.LogWarning(
+                "Authentication refused: too many consecutive failures from {RemoteAddress} for a known account",
+                addressKey);
+            return AuthenticationOutcome.LockedOut;
         }
 
         var user = await userRepository.CheckAuthentication(username, password);
         if (user is null)
         {
-            await RecordFailureAsync(username, addressKey);
+            if (attempt == configuration.MaxFailedAttempts)
+            {
+                logger.LogWarning(
+                    "Authentication locked out for {LockoutDuration} after {MaxFailedAttempts} consecutive failures from {RemoteAddress}",
+                    configuration.LockoutDuration, configuration.MaxFailedAttempts, addressKey);
+            }
+
             return AuthenticationOutcome.InvalidCredentials;
         }
 
@@ -68,7 +108,7 @@ public sealed class ThrottledCredentialAuthenticator(
 
         if (configuration.CredentialCacheDuration > TimeSpan.Zero)
         {
-            cache.Set(credentialKey, user, new MemoryCacheEntryOptions
+            cache.Set(credentialKey, user.PasswordHash, new MemoryCacheEntryOptions
             {
                 AbsoluteExpirationRelativeToNow = configuration.CredentialCacheDuration,
                 Size = 1
@@ -78,29 +118,22 @@ public sealed class ThrottledCredentialAuthenticator(
         return AuthenticationOutcome.Success(user);
     }
 
+    /// <summary>
+    /// Prefixes the username with its length, since any separator could also appear in either field,
+    /// and an ambiguous join lets two different credentials share one key.
+    /// </summary>
     private static string CredentialKey(string username, string password)
     {
-        var hash = HMACSHA256.HashData(CacheKeySalt, Encoding.UTF8.GetBytes($"{username} {password}"));
+        var hash = HMACSHA256.HashData(CacheKeySalt, Encoding.UTF8.GetBytes($"{username.Length}:{username}{password}"));
         return $"credential:{Convert.ToBase64String(hash)}";
     }
 
     /// <summary>
-    /// Records one failure against the username and the caller's address together.
+    /// Scopes the failure counter to the username and the caller's address together.
     /// <para>
     /// A lockout on the username alone is a denial of service anybody can trigger: guessing at <c>admin</c> from anywhere would lock the real operator out.
     /// An attacker spread across many addresses gets the same allowance per address, and that volume is for the ingress rate limit to stop.
     /// </para>
     /// </summary>
-    private async Task RecordFailureAsync(string username, string addressKey)
-    {
-        var failures = await lockoutRepository.RecordFailureAsync(username, addressKey, configuration.LockoutDuration);
-        if (failures == configuration.MaxFailedAttempts)
-        {
-            logger.LogWarning(
-                "Authentication locked out for {LockoutDuration} after {MaxFailedAttempts} consecutive failures from {RemoteAddress}",
-                configuration.LockoutDuration, configuration.MaxFailedAttempts, addressKey);
-        }
-    }
-
     private static string Describe(IPAddress? remoteAddress) => remoteAddress?.ToString() ?? "unknown";
 }

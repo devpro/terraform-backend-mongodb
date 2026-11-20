@@ -62,6 +62,24 @@ public class StateControllerResourceTest(TestWebApplicationFactory factory)
     }
 
     [Fact]
+    public async Task StateResource_Get_IsNeitherCachedNorSniffed()
+    {
+        // Arrange
+        var client = CreateClient(true);
+        var name = UniqueStateName();
+        TrackState(Tenant, name);
+        await client.PostAsync($"/{Tenant}/state/{name}", Serialize(NewState()), TestContext.Current.CancellationToken);
+
+        // Act
+        var response = await client.GetAsync($"/{Tenant}/state/{name}", TestContext.Current.CancellationToken);
+
+        // Assert
+        response.StatusCode.Should().Be(HttpStatusCode.OK);
+        response.Headers.CacheControl?.NoStore.Should().BeTrue();
+        response.Headers.GetValues("X-Content-Type-Options").Should().ContainSingle().Which.Should().Be("nosniff");
+    }
+
+    [Fact]
     public async Task StateResource_CreateFindDelete_IsSuccess()
     {
         // Arrange

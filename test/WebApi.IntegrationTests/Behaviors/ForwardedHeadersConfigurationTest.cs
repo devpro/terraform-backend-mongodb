@@ -1,4 +1,9 @@
+using System;
 using System.Linq;
+using System.Net;
+using System.Net.Http;
+using System.Net.Http.Headers;
+using System.Text;
 using System.Threading.Tasks;
 using AwesomeAssertions;
 using Devpro.TerraformBackend.WebApi.IntegrationTests.Hosting;
@@ -6,6 +11,8 @@ using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Options;
+using MongoDB.Bson;
+using MongoDB.Driver;
 using Xunit;
 
 namespace Devpro.TerraformBackend.WebApi.IntegrationTests.Behaviors;
@@ -61,6 +68,34 @@ public class ForwardedHeadersConfigurationTest(TestWebApplicationFactory factory
         options.KnownIPNetworks.Should().BeEmpty();
 
         return Task.CompletedTask;
+    }
+
+    [Fact]
+    public async Task ForwardedHeaders_OnFailedAuthentication_CountTheFailureAgainstTheForwardedAddress()
+    {
+        // Arrange: a username nothing else uses, so the only counter it can have is the one this request creates
+        const string forwardedAddress = "203.0.113.9";
+        var username = $"forwarded-{Guid.NewGuid():N}";
+        var filter = Builders<BsonDocument>.Filter.Eq("username", username);
+        TrackDocumentsWhere("auth_lockout", filter);
+        var client = CreateClient();
+
+        var request = new HttpRequestMessage(HttpMethod.Get, $"/{TestCredentials.Tenant}/state/{UniqueStateName()}");
+        request.Headers.Authorization = new AuthenticationHeaderValue("Basic",
+            Convert.ToBase64String(Encoding.ASCII.GetBytes($"{username}:wrong-password")));
+        request.Headers.Add("X-Forwarded-For", forwardedAddress);
+
+        // Act
+        var response = await client.SendAsync(request, TestContext.Current.CancellationToken);
+
+        // Assert: correct options are not enough, since the credential is checked by a middleware of its own,
+        // and one that runs ahead of the forwarded headers counts every caller against the proxy
+        response.StatusCode.Should().Be(HttpStatusCode.Unauthorized);
+        var counter = await Factory.Services.GetRequiredService<IMongoDatabase>()
+            .GetCollection<BsonDocument>("auth_lockout")
+            .Find(filter)
+            .SingleAsync(TestContext.Current.CancellationToken);
+        counter["remote_address"].AsString.Should().Be(forwardedAddress);
     }
 
     private ForwardedHeadersOptions ResolveOptions(System.Action<IWebHostBuilder> configuration)

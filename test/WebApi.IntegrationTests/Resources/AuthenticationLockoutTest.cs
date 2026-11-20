@@ -7,6 +7,7 @@ using System.Threading.Tasks;
 using AwesomeAssertions;
 using Devpro.TerraformBackend.WebApi.IntegrationTests.Hosting;
 using Microsoft.AspNetCore.Hosting;
+using Microsoft.Extensions.DependencyInjection;
 using MongoDB.Bson;
 using MongoDB.Driver;
 using Xunit;
@@ -82,6 +83,28 @@ public class AuthenticationLockoutTest(TestWebApplicationFactory factory)
 
         // Act
         var response = await Send(client, unknownUsername, "any-password");
+
+        // Assert
+        response.StatusCode.Should().Be(HttpStatusCode.Unauthorized);
+    }
+
+    [Fact]
+    public async Task Authentication_WithAMalformedStoredHash_IsRefusedWithoutError()
+    {
+        // Arrange: an account written by hand rather than through tfbeadm can hold anything in password_hash
+        var username = $"malformed-{Guid.NewGuid():N}";
+        var users = Factory.Services.GetRequiredService<IMongoDatabase>().GetCollection<BsonDocument>("user");
+        TrackDocumentsWhere("user", Builders<BsonDocument>.Filter.Eq("username", username));
+        TrackLockout(username);
+        await users.InsertOneAsync(new BsonDocument
+        {
+            ["username"] = username,
+            ["password_hash"] = "not a bcrypt hash",
+            ["tenant"] = TestCredentials.Tenant
+        }, cancellationToken: TestContext.Current.CancellationToken);
+
+        // Act
+        var response = await Send(CreateClient(), username, "any-password");
 
         // Assert
         response.StatusCode.Should().Be(HttpStatusCode.Unauthorized);

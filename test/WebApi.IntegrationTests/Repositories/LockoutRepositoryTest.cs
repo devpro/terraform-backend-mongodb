@@ -110,6 +110,52 @@ public class LockoutRepositoryTest(TestWebApplicationFactory factory)
         afterExpiry.Should().Be(1);
     }
 
+    [Fact]
+    [Trait("Mode", "Readonly")]
+    public async Task LockoutRepository_GetFailureCountAndUser_ReturnsBothInOneRead()
+    {
+        // Arrange
+        var username = UniqueUsername();
+        TrackLockout(username);
+        TrackDocumentsWhere("user", Builders<BsonDocument>.Filter.Eq("username", username));
+        using var scope = Factory.Services.CreateScope();
+        var repository = scope.ServiceProvider.GetRequiredService<ILockoutRepository>();
+        await scope.ServiceProvider.GetRequiredService<IMongoDatabase>().GetCollection<BsonDocument>("user")
+            .InsertOneAsync(new BsonDocument { ["username"] = username, ["password_hash"] = "hash", ["tenant"] = "tenant-a" },
+                cancellationToken: TestContext.Current.CancellationToken);
+        await repository.RecordFailureAsync(username, "1.2.3.4", TimeSpan.FromMinutes(5));
+
+        // Act
+        var (failures, user) = await repository.GetFailureCountAndUserAsync(username, "1.2.3.4");
+        var (otherFailures, sameUser) = await repository.GetFailureCountAndUserAsync(username, "5.6.7.8");
+
+        // Assert
+        failures.Should().Be(1);
+        user!.Tenant.Should().Be("tenant-a");
+        user.PasswordHash.Should().Be("hash");
+        otherFailures.Should().Be(0);
+        sameUser!.Username.Should().Be(username);
+    }
+
+    [Fact]
+    [Trait("Mode", "Readonly")]
+    public async Task LockoutRepository_GetFailureCountAndUser_WithAnUnknownUser_ReturnsTheCountAlone()
+    {
+        // Arrange
+        var username = UniqueUsername();
+        TrackLockout(username);
+        using var scope = Factory.Services.CreateScope();
+        var repository = scope.ServiceProvider.GetRequiredService<ILockoutRepository>();
+        await repository.RecordFailureAsync(username, "1.2.3.4", TimeSpan.FromMinutes(5));
+
+        // Act
+        var (failures, user) = await repository.GetFailureCountAndUserAsync(username, "1.2.3.4");
+
+        // Assert
+        failures.Should().Be(1);
+        user.Should().BeNull();
+    }
+
     private static string UniqueUsername() => $"lockout-test-{Guid.NewGuid():N}";
 
     private void TrackLockout(string username) =>

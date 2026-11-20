@@ -38,10 +38,11 @@ public abstract class DatabaseTestBase(TestWebApplicationFactory factory)
     protected void TrackCleanup(Func<Task> cleanup) => _cleanups.Add(cleanup);
 
     /// <summary>
-    /// Registers every document a state is made of for removal: the <c>tf_state</c> document itself, its lock if one is still held, and its <c>tf_state_history</c> entries.
+    /// Registers every document a state is made of for removal: the <c>tf_state</c> document itself, its lock if one is still held,
+    /// its <c>tf_state_history</c> entries, and the <c>tf_state_history_queue</c> entries not computed yet.
     /// <para>
-    /// The history is the part that is easy to miss, and it is not a test-only concern: <c>StateRepository.DeleteAsync</c> removes only the <c>tf_state</c> document,
-    /// so deleting a state through the API leaves its history behind forever, here and in production alike (see B-50).
+    /// The history and the queue are the parts that are easy to miss: <c>StateRepository.DeleteAsync</c> removes only the <c>tf_state</c> document,
+    /// and keeping the history of a deleted state is the behaviour in production too.
     /// A test that only calls <c>DELETE</c> therefore still leaks.
     /// </para>
     /// </summary>
@@ -56,7 +57,16 @@ public abstract class DatabaseTestBase(TestWebApplicationFactory factory)
         TrackDocumentsWhere("tf_state_history", Builders<BsonDocument>.Filter.And(
             Builders<BsonDocument>.Filter.Eq("tenant", tenant),
             Builders<BsonDocument>.Filter.Eq("name", name)));
+        TrackDocumentsWhere("tf_state_history_queue", Builders<BsonDocument>.Filter.And(
+            Builders<BsonDocument>.Filter.Eq("tenant", tenant),
+            Builders<BsonDocument>.Filter.Eq("name", name)));
     }
+
+    /// <summary>
+    /// Computes the queued history of one state, which the background worker does outside the tests.
+    /// </summary>
+    protected Task ProcessHistoryAsync(string tenant, string name) =>
+        HistoryQueue.DrainAsync(Factory.Services, tenant, name, TestContext.Current.CancellationToken);
 
     /// <summary>
     /// Registers every document matching a filter for deletion.

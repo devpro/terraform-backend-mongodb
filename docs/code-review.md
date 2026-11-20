@@ -1,6 +1,6 @@
 # Code review
 
-Assessment of version 1.3.0 as of 2026-09-24, covering source code, tests, CI/CD, container packaging and `tfbeadm`.
+Assessment of version 1.3.1 as of 2026-11-12, covering source code, tests, CI/CD, container packaging and `tfbeadm`.
 Identifiers are stable: the [backlog](backlog.md) refers to them.
 
 ## Method
@@ -17,10 +17,15 @@ Tenant isolation is enforced by the tenant claim, by `TenantAuthorizationFilter`
 
 The conversion between the request payload and the stored BSON document is guarded:
 out-of-range numbers are stored as `Decimal128`, the response is plain JSON rather than Extended JSON, and an oversized state answers `413` naming the limit.
-The authentication path has a lockout shared across replicas, a credential cache, a constant-time miss, and failure logs carrying the caller's address.
+The authentication path has a lockout shared across replicas that counts an attempt before verifying it,
+a credential cache whose every hit reads the user again in the same request as the lockout counter, a constant-time miss,
+and failure logs carrying the caller's address.
+Responses carry `Cache-Control: no-store` and `X-Content-Type-Options: nosniff`, and no `Server` header.
 
-What remains open is small: two costs paid on every state write, the non-atomic history write, and questions that need a decision on the data model.
-The largest remaining exposure is outside the code, in the platform controls listed under [where each control belongs](#where-each-control-belongs).
+The history diff runs after the state write returns, from `tf_state_history_queue`, one entry at a time per process, and a change whose estimated cost is above `History:MaxDiffComparisons` is set aside and reported rather than computed.
+On a replica set, the state and its queue entry are written in one transaction.
+The rest is small: the history of a deleted state (S11).
+The platform controls are listed under [where each control belongs](#where-each-control-belongs).
 
 ## Security
 
@@ -43,6 +48,12 @@ A Terraform state holds provider credentials, generated passwords and private ke
 The blast radius of the database is therefore every secret of every managed workspace.
 The controls this makes necessary are encryption at rest, a least-privilege read-only user for consuming applications, network isolation, and treating a `tf_state` backup as a secret.
 
+### S11. A deleted state leaves its secrets in the history
+
+**Observed.**
+`StateRepository.DeleteAsync` removes the `tf_state` document only, so every diff of a deleted state, secrets included, stays in `tf_state_history` with no retention.
+Keeping the history of a deleted state is a decision, so the exposure lasts until a retention policy exists (B-21).
+
 ### Where each control belongs
 
 A control that needs only the connection, the request rate or the certificate belongs to the platform, which sees them before any application code runs and enforces them across every replica.
@@ -51,14 +62,18 @@ A control that needs the identity inside the request belongs to the application,
 Control                                                      | Where       | Status
 -------------------------------------------------------------|-------------|-------------------------------------------------------------------------------
 Rate limit by source IP                                      | Platform    | Open, B-53
-TLS termination and HSTS                                     | Platform    | Open, B-42
+Pod reachable through the ingress alone                      | Platform    | Done, chart 0.3.4, off by default: `network.trustAllProxies` depends on it
+TLS termination and HSTS                                     | Platform    | Documented in chart 0.3.4, a note in setup remains (B-42)
 Mutual TLS                                                   | Platform    | Open, B-46
-Encryption at rest, network isolation, database RBAC         | Platform    | Open, B-43
+Encryption at rest, network isolation, database RBAC         | Platform    | Documented in chart 0.3.4, a note in setup remains (B-43)
 Alerting on authentication-failure bursts                    | Platform    | Open, B-53: the `compose.yaml` OpenTelemetry collector is already the pipeline
-Lockout after consecutive failures, per username and address | Application | Done, shared through `auth_lockout`
+Lockout after consecutive failures, per username and address | Application | Done, shared through `auth_lockout`, counted before the verify
 Short-lived credential cache                                 | Application | Done, in process by design
 Constant-time username miss                                  | Application | Done
-Authentication failures logged with the source address       | Application | Done, relying on `UseForwardedHeaders`
+Authentication failures logged with the source address       | Application | Done, `UseForwardedHeaders` running ahead of the authentication
+Bound on the cost of the history diff                        | Application | Done, in the background, one at a time per process, above `History:MaxDiffComparisons` set aside
+Tenant check ahead of the request body                       | Application | Done, `TenantAuthorizationFilter` is an authorization filter
+MongoDB tracing kept out of the telemetry                    | Platform    | Done, chart 0.3.3
 `tfbeadm` credential handling                                | Application | Done, except a minimum strength (B-44)
 
 Rate limiting at the edge does not make a weak password safe, it only slows the attempts: a generated credential is what sets the difficulty of the guess.
@@ -69,21 +84,7 @@ Rate limiting at the edge does not make a weak password safe, it only slows the 
 
 **Proven.**
 `StateRepository.CreateAsync` writes `created_at = DateTime.UtcNow` on every write, so the field records the last update and the creation time is lost.
-Fixing it adds an `updated_at` field, which changes the data model and waits on the maintainer (B-07).
-
-### M3. Every state POST reads and re-parses the entire existing state
-
-**Observed.**
-`CreateAsync` reads the whole existing document, renders it to JSON, diffs it against the new state, and performs two writes.
-Near the 16 MB ceiling that is tens of megabytes of allocation and a full structural diff on every `terraform apply`, whether or not anyone reads the history (B-29).
-
-### M4. The state write and the history write are not atomic
-
-**Observed.**
-The history entry is inserted, then the state is replaced, with no transaction.
-A failure between the two leaves a history entry for a transition that never happened.
-`compose.yaml` runs a replica set, so transactions are available, but CI runs a standalone `mongod`, which cannot test one (B-30, B-31).
-Cancellation is therefore honoured only by the read that precedes the two writes, so an aborted request cannot widen the gap.
+This is by design: the document follows the Terraform data model, and an `updated_at` field is not added.
 
 ### M8. `BCrypt.Verify` runs synchronously on a thread-pool thread
 
@@ -100,17 +101,17 @@ No action is recommended: 100 concurrent failed authentications on a 22-core mac
 **Proven.**
 `tf_state_history.upgrade` holds the JSON Patch as a string, the field name says neither "patch" nor "diff", and only the forward diff is kept,
 so rebuilding an older version means replaying patches with no API support.
-Changing it changes the data model (B-28).
+This is by design: a patch holds the change between two consecutive versions only, so it stays far below the document limit.
 
 ### L5. Unbounded growth and stale locks
 
 **Observed.**
-`tf_state_history` has no retention, deleting a state leaves its history behind (B-50), and locks never expire.
+`tf_state_history` has no retention, deleting a state leaves its history behind by decision, and locks never expire.
 A single-document write is atomic, so an interrupted run never leaves a half-written state: it leaves a lock nothing releases, which needs `terraform force-unlock` (B-18, B-21).
 
 ## Test coverage
 
-85 tests: 30 unit tests, and 55 integration tests against a real MongoDB and, for the scenarios, the real `terraform` CLI.
+93 tests: 34 unit tests, and 59 integration tests against a real MongoDB and, for the scenarios, the real `terraform` CLI.
 Line coverage of the handwritten code under `src/` is 96.9% (631 of 651 lines), measured with the collector CI uses and excluding the OpenAPI source generator's output.
 The least covered files are `StateController.cs` (89%) and `BasicAuthenticationHandler.cs` (91%).
 
@@ -129,7 +130,7 @@ Every package is on its latest release, with one deliberate exception.
 
 ## CI/CD and operations
 
-- CI installs MongoDB and Terraform inline through `custom-commands`, as a standalone `mongod`, whereas `compose.yaml` runs a replica set (M4, B-30).
+- CI starts MongoDB through the workflow parts as the single-node replica set `rs0`, as `compose.yaml` does, so CI runs the transaction of a state write, and installs Terraform inline through `custom-commands`.
   The suite creates its own indexes, so CI seeds nothing.
 - The Dockerfile is solid: SUSE BCI base images, a non-root user, checksum-verified OpenTelemetry auto-instrumentation, and no secrets baked in.
 - `tfbeadm` passes every caller-supplied value through the environment, never through interpolation, and reads the password from a prompt or standard input.

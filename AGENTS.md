@@ -26,6 +26,8 @@ The following are settled and are not to be reopened, proposed as options, or re
 - No restructuring: the `resources` array is not split across documents, and no field is renamed or nested differently.
 - No new fields, no new collections, and no change to how a change is computed or stored.
 
+`tf_state_history_queue` is the one internal collection the maintainer added beside them: it holds each replaced version until its change is computed, and it is not part of the published contract.
+
 **The data model changes only when the maintainer specifically asks for it.**
 A backlog item is not such a request: anything that would add a field, rename one, or introduce a collection needs explicit confirmation first, however well justified it looks.
 
@@ -47,6 +49,7 @@ The CI is the GitHub Actions pipeline, which IstarCI only runs locally first.
 
 **The machine is left as it was found, apart from the intended changes.**
 Anything created for a check, a database, a git worktree, a process, a scratch file, is removed as part of the work, without asking, and the cleanup is verified rather than assumed.
+The .NET SDK keeps MSBuild worker processes alive after a build, so every `dotnet` command an agent runs sets `MSBUILDDISABLENODEREUSE=1` on the command itself.
 
 **Commit only when asked, and never push.**
 
@@ -98,7 +101,8 @@ The suite runs against a real, long-lived MongoDB rather than a throwaway one pe
   `DatabaseTestBase.TrackState` and `TrackCleanup` register the undo at the moment of creation, never in a `try`/`finally`, which cannot cover a fixture created before the `try` opened.
   Cleanups run in reverse order under `CancellationToken.None`, since the test's own token is cancelled exactly when a run times out and leftovers are most likely.
   This matters because `tf_state` and `tf_state_lock` are uniquely indexed on `{tenant, name}`, so a leftover breaks the next run.
-  Deleting a state through the API does not remove its `tf_state_history` entries, so `TrackState` covers all three collections.
+  Deleting a state through the API does not remove its `tf_state_history` and `tf_state_history_queue` entries, so `TrackState` covers all four collections.
+  The test hosts run without the history worker, and a test computes the history of its own state with `ProcessHistoryAsync`, so no worker writes after the cleanup.
 - **The run proves it left the database as it found it.**
   `TestDatabaseFixture` counts every collection before seeding and again at the end, and fails naming the collection that grew.
   A delete filter that matches nothing reports success, so a passing suite is not evidence on its own.
@@ -114,9 +118,11 @@ Three projects with one-way dependencies: `WebApi` > `Infrastructure.MongoDb` > 
   Collections:
   `tf_state` (current state, stored as a raw `BsonDocument` with no C# model, since its shape is whatever Terraform wrote),
   `tf_state_lock` (one per `{tenant, name}`, the lock ID in `lock_id` rather than `_id`), `user` (BCrypt password hashes), `auth_lockout` (failed-attempt counters, TTL-expired).
-  `tf_state_history` holds JSON-diff patches computed with `SystemTextJson.JsonDiffPatch` on every state update.
+  `tf_state_history` holds JSON-diff patches computed with `SystemTextJson.JsonDiffPatch` on every state update,
+  after the write returns: the write queues the replaced version in `tf_state_history_queue` (in one transaction on a replica set), and `StateHistoryProcessor` computes it.
 - **`src/WebApi`**: `StateController` (all protocol logic including lock checking), Basic authentication against the `user` collection,
   `TenantAuthorizationFilter` matching the route `{tenant}` against the user's tenant claim, and `ThrottledCredentialAuthenticator` enforcing the failed-attempt lockout through `auth_lockout`.
+  `StateHistoryWorker` drains the history queue in the background.
   DI wiring lives in `WebApi/DependencyInjection/`.
 
 ### Protocol constraints
@@ -148,11 +154,13 @@ It is written as if the code had always been so: never "used to", never "this re
 What was done and when belongs to git history.
 The same rule decides what goes into this file: a decision and its reason, in one or two lines, never a walkthrough of the code.
 When editing a file, existing comments and formatting are preserved unless they break these rules.
+Code comments are not common sentences, it says directly what the code does, ideally short, starting with a lower case verb.
 
 **One thought per line.**
-Every sentence starts on its own line, and a long sentence may break at a clause boundary, after a colon or the comma that closes a clause, never mid-clause.
-There is no maximum line length: screens are wide, the editor wraps, and the 80 character convention is not used here.
-A line length reported by a tool is never a reason to break a line.
+Every sentence starts on its own line.
+A sentence longer than 240 characters, the Markdown lint limit, is cut at a natural break:
+after a colon, at the comma that closes a clause, or before "and", "so" or "which", never mid-clause.
+Below that limit there is no maximum line length: screens are wide, the editor wraps, and the 80 character convention is not used here.
 
 **Never use the em dash (`—`) or the en dash (`–`).**
 Use a colon when introducing an explanation, a comma when joining clauses, or a full stop and a new sentence.
@@ -166,6 +174,7 @@ Write "the working tree", not "your working tree".
 **Other conventions.**
 Use `ini` as the fence language for `.properties` blocks, never `properties`.
 Use `>` for UI navigation, for example **Project Settings > Quality Gate**, and keep arrows for diagrams and data flows.
+Always write for humans, use ASD Simplified Technical English (ASD-STE100)
 
 ## Conventions
 
@@ -176,9 +185,12 @@ Use `>` for UI navigation, for example **Project Settings > Quality Gate**, and 
 - MongoDB field names are camelCase via a global `ConventionPack` (registered in `InfrastructureServiceCollectionExtensions`),
   except multi-word fields, which `[BsonElement]` or the raw `BsonDocument` writes in snake_case: `created_at`, `lock_id`, `password_hash`, `remote_address`, `expires_at`.
 - Markdown and YAML are linted in CI (`.markdownlint-cli2.yaml`, `.yamllint.yaml`); C# style is enforced by `.editorconfig`.
-- Linters are never run by an agent, and never imitated either: no `markdownlint`, no `yamllint`, no formatter in write mode, and no reshaping text to fit a lint configuration.
-  The maintainer runs them and decides about every finding, and an agent that notices text a linter might flag says so in its report.
-  Test commands are not linters.
+- Linters are never run by an agent directly: no `markdownlint`, no `yamllint`.
+  The local IstarCI run of each commit runs them, and the Markdown and YAML an agent writes must pass it:
+  a finding there is fixed in a new commit, and the next run checks the fix.
+- `neatmd` may cut long Markdown lines, and every change it makes is reviewed before it is kept.
+  Only the lines that need it are changed, never a whole file reflowed.
+- Test commands are not linters.
 
 ### Scripts
 

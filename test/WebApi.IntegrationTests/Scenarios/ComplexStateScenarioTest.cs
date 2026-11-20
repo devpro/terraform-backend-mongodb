@@ -55,6 +55,7 @@ public class ComplexStateScenarioTest(TestKestrelWebAppFactory kestrelWebAppFact
         created["scaling"]["identifier"].BsonType.Should().Be(BsonType.Decimal128);
         created["scaling"]["identifier"].AsDecimal128.Should().Be(Decimal128.Parse("123456789012345678901234567890"));
 
+        await ProcessHistoryAsync();
         var historyAfterCreate = await FindHistoryEntriesAsync();
         historyAfterCreate.Should().BeEmpty("a first write has nothing to diff against");
 
@@ -67,6 +68,7 @@ public class ComplexStateScenarioTest(TestKestrelWebAppFactory kestrelWebAppFact
         updated.Should().NotBeNull();
         updated!["metadata"]["revision"].AsInt32.Should().Be(2);
 
+        await ProcessHistoryAsync();
         var historyAfterUpdate = await FindHistoryEntriesAsync();
         historyAfterUpdate.Should().HaveCount(1, "the update is the one write that has something to diff against");
         historyAfterUpdate[0]["upgrade"].AsString.Should().Contain("revision",
@@ -76,6 +78,7 @@ public class ComplexStateScenarioTest(TestKestrelWebAppFactory kestrelWebAppFact
         await ExecuteTerraformAsync("apply -auto-approve -var revision=2",
             expectedOutput: "Apply complete! Resources: 0 added, 0 changed, 0 destroyed.");
 
+        await ProcessHistoryAsync();
         var historyAfterNoOp = await FindHistoryEntriesAsync();
         historyAfterNoOp.Should().HaveCount(1, "a no-op apply has nothing to diff, so it must add nothing");
 

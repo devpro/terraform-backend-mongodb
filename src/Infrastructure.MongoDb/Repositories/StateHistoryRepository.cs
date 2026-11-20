@@ -20,16 +20,31 @@ public class StateHistoryRepository : RepositoryBase
 
     protected override string CollectionName => "tf_state_history";
 
-    public async Task CreateAsync(string tenant, string name, JsonNode patch, CancellationToken cancellationToken = default)
+    /// <summary>
+    /// Writes the change of one state write, under the <c>_id</c> of its queue entry.
+    /// <para>
+    /// Reusing that <c>_id</c> makes the write idempotent: a worker that stops after this write and before removing the queue entry
+    /// computes the entry again on the next claim, and the second insert is refused rather than duplicated.
+    /// </para>
+    /// </summary>
+    public async Task CreateAsync(ObjectId id, string tenant, string name, DateTime createdAt, JsonNode patch, CancellationToken cancellationToken = default)
     {
         var document = new BsonDocument
         {
-            ["_id"] = new BsonObjectId(ObjectId.GenerateNewId()),
+            ["_id"] = id,
             ["tenant"] = tenant,
             ["name"] = name,
-            ["created_at"] = new BsonDateTime(DateTime.UtcNow),
+            ["created_at"] = new BsonDateTime(createdAt),
             ["upgrade"] = patch.ToJsonString()
         };
-        await _bsonCollection.InsertOneAsync(document, cancellationToken: cancellationToken);
+
+        try
+        {
+            await _bsonCollection.InsertOneAsync(document, cancellationToken: cancellationToken);
+        }
+        catch (MongoWriteException exception) when (exception.WriteError?.Category == ServerErrorCategory.DuplicateKey)
+        {
+            // written by an earlier attempt at the same entry
+        }
     }
 }
