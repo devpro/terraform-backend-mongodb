@@ -157,9 +157,10 @@ When editing a file, existing comments and formatting are preserved unless they 
 Code comments are not common sentences, it says directly what the code does, ideally short, starting with a lower case verb.
 
 **One thought per line.**
-Every sentence starts on its own line, and a long sentence may break at a clause boundary, after a colon or the comma that closes a clause, never mid-clause.
-There is no maximum line length: screens are wide, the editor wraps, and the 80 character convention is not used here.
-A line length reported by a tool is never a reason to break a line.
+Every sentence starts on its own line.
+A sentence longer than 240 characters, the Markdown lint limit, is cut at a natural break:
+after a colon, at the comma that closes a clause, or before "and", "so" or "which", never mid-clause.
+Below that limit there is no maximum line length: screens are wide, the editor wraps, and the 80 character convention is not used here.
 
 **Never use the em dash (`—`) or the en dash (`–`).**
 Use a colon when introducing an explanation, a comma when joining clauses, or a full stop and a new sentence.
@@ -184,9 +185,12 @@ Always write for humans, use ASD Simplified Technical English (ASD-STE100)
 - MongoDB field names are camelCase via a global `ConventionPack` (registered in `InfrastructureServiceCollectionExtensions`),
   except multi-word fields, which `[BsonElement]` or the raw `BsonDocument` writes in snake_case: `created_at`, `lock_id`, `password_hash`, `remote_address`, `expires_at`.
 - Markdown and YAML are linted in CI (`.markdownlint-cli2.yaml`, `.yamllint.yaml`); C# style is enforced by `.editorconfig`.
-- Linters are never run by an agent, and never imitated either: no `markdownlint`, no `yamllint`, no formatter in write mode, and no reshaping text to fit a lint configuration.
-  The maintainer runs them and decides about every finding, and an agent that notices text a linter might flag says so in its report.
-  Test commands are not linters.
+- Linters are never run by an agent directly: no `markdownlint`, no `yamllint`.
+  The local IstarCI run of each commit runs them, and the Markdown and YAML an agent writes must pass it:
+  a finding there is fixed in a new commit, and the next run checks the fix.
+- `neatmd` may cut long Markdown lines, and every change it makes is reviewed before it is kept.
+  Only the lines that need it are changed, never a whole file reflowed.
+- Test commands are not linters.
 
 ### Scripts
 

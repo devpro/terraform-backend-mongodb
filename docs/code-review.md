@@ -17,7 +17,9 @@ Tenant isolation is enforced by the tenant claim, by `TenantAuthorizationFilter`
 
 The conversion between the request payload and the stored BSON document is guarded:
 out-of-range numbers are stored as `Decimal128`, the response is plain JSON rather than Extended JSON, and an oversized state answers `413` naming the limit.
-The authentication path has a lockout shared across replicas that counts an attempt before verifying it, a credential cache whose every hit reads the user again in the same request as the lockout counter, a constant-time miss, and failure logs carrying the caller's address.
+The authentication path has a lockout shared across replicas that counts an attempt before verifying it,
+a credential cache whose every hit reads the user again in the same request as the lockout counter, a constant-time miss,
+and failure logs carrying the caller's address.
 Responses carry `Cache-Control: no-store` and `X-Content-Type-Options: nosniff`, and no `Server` header.
 
 The history diff runs after the state write returns, from `tf_state_history_queue`, one entry at a time per process, and a change whose estimated cost is above `History:MaxDiffComparisons` is set aside and reported rather than computed.
